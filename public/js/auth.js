@@ -109,8 +109,18 @@ async function isAdmin(uid) {
 async function regenerateApiKey(uid) {
   const userRef = doc(db, 'users', uid);
   const newKey = generateApiKey();
-  await updateDoc(userRef, { apiKey: newKey });
+  await setDoc(userRef, { apiKey: newKey }, { merge: true });
   return newKey;
 }
 
-export { auth, db, loginWithGoogle, loginWithEmail, registerWithEmail, logout, onAuthChange, getUserData, isAdmin, regenerateApiKey, OWNER_EMAIL };
+async function ensureUserApiKey(uid, existing) {
+  if (existing) return existing;
+  try {
+    return await regenerateApiKey(uid);
+  } catch (error) {
+    console.error('No se pudo generar la API key:', error);
+    return null;
+  }
+}
+
+export { auth, db, loginWithGoogle, loginWithEmail, registerWithEmail, logout, onAuthChange, getUserData, isAdmin, regenerateApiKey, ensureUserApiKey, OWNER_EMAIL };

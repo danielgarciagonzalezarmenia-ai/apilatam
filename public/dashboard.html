@@ -147,8 +147,9 @@
   </main>
 
   <script type="module">
-    import { onAuthChange, getUserData, isAdmin, logout, regenerateApiKey } from './js/auth.js?v=4';
+    import { onAuthChange, getUserData, isAdmin, logout, regenerateApiKey, ensureUserApiKey } from './js/auth.js?v=5';
     import { toggleMobileMenu, copyToClipboard } from './js/app.js?v=4';
+    import { showConfirm, showAlert } from './js/dialog.js?v=6';
 
     window.toggleMobileMenu = toggleMobileMenu;
 
@@ -172,10 +173,15 @@
       document.getElementById('loading').style.display = 'none';
       document.getElementById('dashboard-content').style.display = 'block';
 
+      const apiKey = await ensureUserApiKey(user.uid, userData ? userData.apiKey : null);
+
       if (!userData) {
         document.getElementById('stat-plan').textContent = 'free';
-        document.getElementById('api-key-display').textContent = '-';
+        document.getElementById('api-key-display').textContent = apiKey || '-';
         return;
+      }
+      if (apiKey && apiKey !== userData.apiKey) {
+        userData.apiKey = apiKey;
       }
 
       document.getElementById('stat-plan').textContent = userData.plan || 'free';
@@ -191,8 +197,14 @@
       });
 
       document.getElementById('rotate-key-btn').addEventListener('click', async () => {
-        const confirmMsg = 'Estas seguro de que quieres generar una nueva API key?\nLa clave anterior dejara de funcionar inmediatamente.';
-        if (!confirm(confirmMsg)) return;
+        const confirmed = await showConfirm({
+          title: 'Regenerar API Key',
+          message: '¿Estás seguro de que quieres generar una nueva API key?\nLa clave anterior dejará de funcionar inmediatamente.',
+          confirmText: 'Regenerar',
+          cancelText: 'Cancelar',
+          danger: true
+        });
+        if (!confirmed) return;
         try {
           const btn = document.getElementById('rotate-key-btn');
           btn.disabled = true;
@@ -205,7 +217,7 @@
           btn.textContent = 'Regenerar';
         } catch (error) {
           console.error(error);
-          alert('Error al regenerar la API key: ' + error.message);
+          showAlert({ title: 'Error', message: 'Error al regenerar la API key: ' + error.message, okText: 'Entendido', variant: 'error' });
           const btn = document.getElementById('rotate-key-btn');
           btn.disabled = false;
           btn.textContent = 'Regenerar';

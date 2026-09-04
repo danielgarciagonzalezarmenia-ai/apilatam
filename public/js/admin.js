@@ -6,6 +6,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import { firebaseConfig } from './firebase-config.js?v=9';
 import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=9';
+import { showConfirm } from './dialog.js?v=6';
 
 const OWNER_EMAIL = 'danigar222009@gmail.com';
 console.log('admin.js loaded v9');
@@ -310,7 +311,14 @@ window.editItem = function(type, id) {
 };
 
 window.deleteItem = async function(collectionName, id) {
-  if (!confirm('Eliminar este elemento?')) return;
+  const confirmed = await showConfirm({
+    title: 'Eliminar elemento',
+    message: '¿Seguro que deseas eliminar este elemento? Esta acción no se puede deshacer.',
+    confirmText: 'Eliminar',
+    cancelText: 'Cancelar',
+    danger: true
+  });
+  if (!confirmed) return;
   try {
     await deleteDoc(doc(db, collectionName, id));
     showToast('Eliminado', 'success');
@@ -322,7 +330,14 @@ window.deleteItem = async function(collectionName, id) {
 };
 
 window.deleteCategory = async function(id) {
-  if (!confirm('Eliminar esta categoria?')) return;
+  const confirmed = await showConfirm({
+    title: 'Eliminar categoría',
+    message: '¿Seguro que deseas eliminar esta categoría? Esta acción no se puede deshacer.',
+    confirmText: 'Eliminar',
+    cancelText: 'Cancelar',
+    danger: true
+  });
+  if (!confirmed) return;
   try {
     await deleteDoc(doc(db, 'categories', id));
     showToast('Categoria eliminada', 'success');

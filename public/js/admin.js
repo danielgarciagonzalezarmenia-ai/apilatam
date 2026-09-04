@@ -1,13 +1,14 @@
 ﻿import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {
-  getFirestore, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc,
+  getFirestore, collection, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc, doc,
   query, orderBy, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=8';
-import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=8';
+import { firebaseConfig } from './firebase-config.js?v=9';
+import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=9';
 
-console.log('admin.js loaded v8');
+const OWNER_EMAIL = 'danigar222009@gmail.com';
+console.log('admin.js loaded v9');
 window.toggleMobileMenu = toggleMobileMenu;
 
 let app, auth, db;
@@ -50,8 +51,12 @@ if (auth) {
       const adminRef = doc(db, 'admin', user.uid);
       const adminSnap = await getDoc(adminRef);
       if (!adminSnap.exists()) {
-        window.location.href = 'dashboard.html';
-        return;
+        if (user.email && user.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
+          await setDoc(adminRef, { roles: ['admin'], email: user.email });
+        } else {
+          window.location.href = 'dashboard.html';
+          return;
+        }
       }
       await loadAll();
     } catch (e) {

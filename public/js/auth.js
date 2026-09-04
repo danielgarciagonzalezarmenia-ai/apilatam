@@ -1,6 +1,6 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+﻿import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import { firebaseConfig } from './firebase-config.js';
 
 const app = initializeApp(firebaseConfig);
@@ -66,4 +66,11 @@ async function isAdmin(uid) {
   return adminSnap.exists();
 }
 
-export { auth, db, loginWithGoogle, logout, onAuthChange, getUserData, isAdmin };
+async function regenerateApiKey(uid) {
+  const userRef = doc(db, 'users', uid);
+  const newKey = generateApiKey();
+  await updateDoc(userRef, { apiKey: newKey });
+  return newKey;
+}
+
+export { auth, db, loginWithGoogle, logout, onAuthChange, getUserData, isAdmin, regenerateApiKey };

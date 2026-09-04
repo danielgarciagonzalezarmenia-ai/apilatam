@@ -11,8 +11,8 @@
   <title>Dashboard - API LATAM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=2">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=3">
 </head>
 <body>
 
@@ -65,15 +65,21 @@
       </div>
 
       <div class="card" style="margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
           <h3 style="font-size: 16px; font-weight: 600;">Tu API Key</h3>
-          <button id="copy-key-btn" class="btn btn-secondary btn-sm">Copiar</button>
+          <div style="display: flex; gap: 8px;">
+            <button id="copy-key-btn" class="btn btn-secondary btn-sm">Copiar</button>
+            <button id="rotate-key-btn" class="btn btn-secondary btn-sm">Regenerar</button>
+          </div>
         </div>
         <div class="api-key-box">
           <span id="api-key-display">-</span>
         </div>
         <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
           Usa esta key en tus requests: <code style="background: var(--surface); padding: 2px 6px; border-radius: 6px; font-family: var(--font-mono); font-size: 12px;">?api_key=TU_KEY</code> o en el header <code style="background: var(--surface); padding: 2px 6px; border-radius: 6px; font-family: var(--font-mono); font-size: 12px;">x-api-key: TU_KEY</code>
+        </p>
+        <p style="font-size: 12px; color: var(--warning); margin-top: 6px;">
+          Al regenerar tu key, la anterior deja de funcionar al instante. Tus creditos y plan se mantienen.
         </p>
       </div>
 
@@ -141,8 +147,8 @@
   </main>
 
   <script type="module">
-    import { onAuthChange, getUserData, isAdmin, logout } from './js/auth.js?v=2';
-    import { toggleMobileMenu, copyToClipboard } from './js/app.js?v=2';
+    import { onAuthChange, getUserData, isAdmin, logout, regenerateApiKey } from './js/auth.js?v=3';
+    import { toggleMobileMenu, copyToClipboard } from './js/app.js?v=3';
 
     window.toggleMobileMenu = toggleMobileMenu;
 
@@ -156,11 +162,21 @@
 
       document.getElementById('user-name').textContent = user.displayName || user.email;
 
-      const userData = await getUserData(user.uid);
-      if (!userData) return;
+      let userData = null;
+      try {
+        userData = await getUserData(user.uid);
+      } catch (error) {
+        console.error('Error cargando datos del usuario:', error);
+      }
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('dashboard-content').style.display = 'block';
+
+      if (!userData) {
+        document.getElementById('stat-plan').textContent = 'free';
+        document.getElementById('api-key-display').textContent = '-';
+        return;
+      }
 
       document.getElementById('stat-plan').textContent = userData.plan || 'free';
       document.getElementById('stat-requests').textContent = userData.requestsToday || 0;
@@ -174,10 +190,32 @@
         copyToClipboard(userData.apiKey);
       });
 
+      document.getElementById('rotate-key-btn').addEventListener('click', async () => {
+        const confirmMsg = 'Estas seguro de que quieres generar una nueva API key?\nLa clave anterior dejara de funcionar inmediatamente.';
+        if (!confirm(confirmMsg)) return;
+        try {
+          const btn = document.getElementById('rotate-key-btn');
+          btn.disabled = true;
+          btn.textContent = 'Generando...';
+          const newKey = await regenerateApiKey(user.uid);
+          userData.apiKey = newKey;
+          document.getElementById('api-key-display').textContent = newKey;
+          copyToClipboard(newKey);
+          btn.disabled = false;
+          btn.textContent = 'Regenerar';
+        } catch (error) {
+          console.error(error);
+          alert('Error al regenerar la API key: ' + error.message);
+          const btn = document.getElementById('rotate-key-btn');
+          btn.disabled = false;
+          btn.textContent = 'Regenerar';
+        }
+      });
+
       const adminCheck = await isAdmin(user.uid);
       if (adminCheck) {
         const adminBtn = document.createElement('a');
-        adminBtn.href = '/admin.html';
+        adminBtn.href = 'admin.html';
         adminBtn.className = 'btn btn-primary btn-sm';
         adminBtn.textContent = 'Panel Admin';
         document.querySelector('.dashboard-header').appendChild(adminBtn);

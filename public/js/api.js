@@ -1,12 +1,12 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+﻿import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getFirestore, collection, getDocs, doc, getDoc, query, where, limit as fbLimit } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import { firebaseConfig } from './firebase-config.js';
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const FREE_CHANNEL_LIMIT = 20;
-const FREE_MOVIE_LIMIT = 20;
+const FREE_CHANNEL_LIMIT = 5;
+const FREE_MOVIE_LIMIT = 10;
 
 function validateApiKey(apiKey) {
   return apiKey && typeof apiKey === 'string' && apiKey.startsWith('aplat_');

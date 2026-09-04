@@ -1,4 +1,4 @@
-function showToast(message, type = 'info') {
+﻿function showToast(message, type = 'info') {
   let container = document.querySelector('.toast-container');
   if (!container) {
     container = document.createElement('div');

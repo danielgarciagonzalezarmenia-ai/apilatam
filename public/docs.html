@@ -11,8 +11,8 @@
   <title>Documentacion API - API LATAM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=2">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=3">
 </head>
 <body>
 
@@ -83,7 +83,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"category"</span>: <span class="string">"Deportes"</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
 &nbsp;&nbsp;],<br>
-&nbsp;&nbsp;<span class="key">"total"</span>: 20,<br>
+&nbsp;&nbsp;<span class="key">"total"</span>: 5,<br>
 &nbsp;&nbsp;<span class="key">"plan"</span>: <span class="string">"free"</span><br>
 }
         </div>
@@ -135,11 +135,14 @@
             <tr><th>Plan</th><th>Canales</th><th>Peliculas</th></tr>
           </thead>
           <tbody>
-            <tr><td>Gratis</td><td>20</td><td>20</td></tr>
+            <tr><td>Gratis</td><td>5</td><td>10</td></tr>
             <tr><td>Pro</td><td>Todos</td><td>Todos</td></tr>
           </tbody>
         </table>
       </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 12px;">
+        El plan gratuito es solo para probar la API. Actualiza a Pro para acceso sin limites.
+      </p>
     </section>
 
     <section style="margin-bottom: 48px;">
@@ -162,7 +165,7 @@ console.log(peliculas.movies);
       <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">HTML simple</h3>
       <div class="code-block">
 &lt;script type=<span class="string">"module"</span>&gt;<br>
-&nbsp;&nbsp;<span class="key">import</span> { getChannels } <span class="key">from</span> <span class="string">'./js/api.js?v=2'</span>;<br><br>
+&nbsp;&nbsp;<span class="key">import</span> { getChannels } <span class="key">from</span> <span class="string">'./js/api.js?v=3'</span>;<br><br>
 &nbsp;&nbsp;<span class="key">const</span> data = <span class="key">await</span> getChannels(<span class="string">'aplat_TU_API_KEY'</span>);<br>
 &nbsp;&nbsp;document.getElementById(<span class="string">'app'</span>).innerHTML =<br>
 &nbsp;&nbsp;&nbsp;&nbsp;data.channels.map(c =&gt;<br>
@@ -186,7 +189,7 @@ console.log(peliculas.movies);
   </footer>
 
   <script type="module">
-    import { toggleMobileMenu } from './js/app.js?v=2';
+    import { toggleMobileMenu } from './js/app.js?v=3';
     window.toggleMobileMenu = toggleMobileMenu;
   </script>
 

@@ -1,11 +1,11 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+﻿import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {
   getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc,
   query, orderBy, serverTimestamp, Timestamp
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=2';
-import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=2';
+import { firebaseConfig } from './firebase-config.js?v=3';
+import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=3';
 
 window.toggleMobileMenu = toggleMobileMenu;
 

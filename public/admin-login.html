@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Panel Admin - API LATAM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=4">
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <a href="index.html" style="display:inline-block; margin-bottom: 24px;">
+        <span class="navbar-logo" style="font-size: 20px;">API LATAM</span>
+      </a>
+      <h1>Panel de Administracion</h1>
+      <p>Solo el administrador puede acceder.</p>
+
+      <form id="admin-login-form" style="margin-top: 20px;">
+        <label class="field-label">Correo electronico</label>
+        <input type="email" id="admin-email" class="input" placeholder="tu@correo.com" required>
+        <label class="field-label" style="margin-top: 12px;">Contraseña</label>
+        <input type="password" id="admin-password" class="input" placeholder="Tu contraseña" required>
+        <button type="submit" id="admin-submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 16px;">Entrar al Panel</button>
+        <p id="admin-error" style="display:none; margin-top: 12px; font-size: 13px; color: var(--error);"></p>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { loginWithEmail, onAuthChange } from './js/auth.js?v=4';
+
+    onAuthChange((user) => {
+      if (user) {
+        window.location.href = 'admin.html';
+      }
+    });
+
+    document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('admin-email').value.trim();
+      const password = document.getElementById('admin-password').value;
+      const btn = document.getElementById('admin-submit');
+      const errEl = document.getElementById('admin-error');
+      errEl.style.display = 'none';
+
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Verificando...';
+        await loginWithEmail(email, password);
+        window.location.href = 'admin.html';
+      } catch (error) {
+        let msg = error.message || 'Error de autenticacion';
+        if (error.code === 'auth/user-not-found') msg = 'No existe una cuenta con ese correo.';
+        else if (error.code === 'auth/wrong-password') msg = 'Contraseña incorrecta.';
+        errEl.textContent = msg;
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Entrar al Panel';
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -42,7 +42,7 @@ document.querySelectorAll('.tab-btn').forEach(tab => {
 });
 
 if (auth) {
-  onAuthStateChanged(async (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.href = 'login.html';
       return;

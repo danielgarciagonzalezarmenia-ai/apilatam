@@ -12,17 +12,35 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=3">
+  <link rel="stylesheet" href="css/custom.css?v=4">
 </head>
 <body>
 
-  <div class="auth-container">
+<div class="auth-container">
     <div class="auth-card">
       <a href="index.html" style="display:inline-block; margin-bottom: 24px;">
         <span class="navbar-logo" style="font-size: 20px;">API LATAM</span>
       </a>
       <h1>Bienvenido</h1>
       <p>Inicia sesion para acceder a tu dashboard y API key.</p>
+
+      <div class="auth-tabs">
+        <button id="tab-login" class="auth-tab active">Iniciar Sesion</button>
+        <button id="tab-register" class="auth-tab">Registrarse</button>
+      </div>
+
+      <form id="auth-form" style="margin-top: 20px;">
+        <label class="field-label">Correo electronico</label>
+        <input type="email" id="auth-email" class="input" placeholder="tu@correo.com" required>
+        <label class="field-label" style="margin-top: 12px;">Contraseña</label>
+        <input type="password" id="auth-password" class="input" placeholder="Tu contraseña" required>
+        <button type="submit" id="auth-submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 16px;">Iniciar Sesion</button>
+        <p id="auth-error" style="display:none; margin-top: 12px; font-size: 13px; color: var(--error);"></p>
+        <p id="auth-hint" style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">En "Registrarse" creas tu cuenta nueva y obtienes tu API key.</p>
+      </form>
+
+      <div class="auth-divider"><span>o</span></div>
+
       <button id="google-login" class="btn btn-google btn-lg" style="width: 100%;">
         <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
         Continuar con Google
@@ -34,11 +52,67 @@
   </div>
 
   <script type="module">
-    import { loginWithGoogle, onAuthChange } from './js/auth.js?v=3';
+    import { loginWithGoogle, loginWithEmail, registerWithEmail, onAuthChange } from './js/auth.js?v=4';
+
+    let mode = 'login';
 
     onAuthChange((user) => {
       if (user) {
         window.location.href = 'dashboard.html';
+      }
+    });
+
+    document.getElementById('tab-login').addEventListener('click', () => setMode('login'));
+    document.getElementById('tab-register').addEventListener('click', () => setMode('register'));
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById('auth-submit').textContent = m === 'login' ? 'Iniciar Sesion' : 'Crear Cuenta';
+      document.getElementById('auth-hint').textContent = m === 'login'
+        ? 'En "Registrarse" creas tu cuenta nueva y obtienes tu API key.'
+        : 'Al crear tu cuenta obtendras una API key gratuita (5 canales, 10 peliculas).';
+      document.getElementById('tab-login').classList.toggle('active', m === 'login');
+      document.getElementById('tab-register').classList.toggle('active', m === 'register');
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('auth-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    document.getElementById('auth-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const btn = document.getElementById('auth-submit');
+      const errEl = document.getElementById('auth-error');
+      errEl.style.display = 'none';
+
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Espera...';
+        if (mode === 'login') {
+          await loginWithEmail(email, password);
+        } else {
+          if (password.length < 6) {
+            showError('La contraseña debe tener al menos 6 caracteres.');
+            btn.disabled = false;
+            btn.textContent = 'Crear Cuenta';
+            return;
+          }
+          await registerWithEmail(email, password);
+        }
+        window.location.href = 'dashboard.html';
+      } catch (error) {
+        let msg = error.message || 'Error de autenticacion';
+        if (error.code === 'auth/user-not-found') msg = 'No existe una cuenta con ese correo. Registrate con el boton "Registrarse".';
+        else if (error.code === 'auth/wrong-password') msg = 'Contraseña incorrecta.';
+        else if (error.code === 'auth/email-already-in-use') msg = 'Ese correo ya tiene una cuenta. Inicia sesion.';
+        else if (error.code === 'auth/invalid-email') msg = 'Correo electronico invalido.';
+        showError(msg);
+        btn.disabled = false;
+        btn.textContent = mode === 'login' ? 'Iniciar Sesion' : 'Crear Cuenta';
       }
     });
 

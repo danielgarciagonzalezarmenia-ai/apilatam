@@ -4,8 +4,8 @@ import {
   getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc,
   query, orderBy, serverTimestamp, Timestamp
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=3';
-import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=3';
+import { firebaseConfig } from './firebase-config.js?v=4';
+import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=4';
 
 window.toggleMobileMenu = toggleMobileMenu;
 

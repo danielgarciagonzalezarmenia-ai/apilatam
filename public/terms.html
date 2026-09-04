@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <title>Terminos de Servicio - API LATAM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-logo">API LATAM</a>
+      <div class="navbar-links">
+        <a href="/">Inicio</a>
+        <a href="docs.html">Documentacion</a>
+        <a href="login.html" class="btn btn-primary btn-sm">Iniciar Sesion</a>
+      </div>
+      <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="legal-content">
+      <h1>Terminos de Servicio</h1>
+      <p style="color: var(--text-muted); margin-bottom: 32px;">Ultima actualizacion: 4 de septiembre de 2026</p>
+
+      <h2>1. Aceptacion de los Terminos</h2>
+      <p>Al acceder y utilizar API LATAM, aceptas estos Terminos de Servicio en su totalidad. Si no estas de acuerdo con alguno de estos terminos, no utilices nuestro servicio.</p>
+
+      <h2>2. Descripcion del Servicio</h2>
+      <p>API LATAM proporciona una API REST para acceder a contenido de canales de television en vivo y peliculas. El servicio incluye:</p>
+      <ul>
+        <li>Acceso a endpoints REST con respuestas en formato JSON.</li>
+        <li>Autenticacion mediante API keys.</li>
+        <li>Planes de acceso gratuito y de pago.</li>
+      </ul>
+
+      <h2>3. Cuentas de Usuario</h2>
+      <p>Para utilizar el servicio debes crear una cuenta a traves de Google Authentication. Eres responsable de:</p>
+      <ul>
+        <li>Mantener la confidencialidad de tu API key.</li>
+        <li>Todas las actividades que ocurran bajo tu cuenta.</li>
+        <li>Notificarnos inmediatamente sobre cualquier uso no autorizado.</li>
+      </ul>
+
+      <h2>4. Uso Aceptable</h2>
+      <p>Te comprometes a no:</p>
+      <ul>
+        <li>Compartir tu API key con terceros.</li>
+        <li>Intentar evadir los limites de uso o rate limiting.</li>
+        <li>Utilizar el servicio para actividades ilegales.</li>
+        <li>Realizar ingenieria inversa o intentar acceder al codigo fuente.</li>
+        <li>Sobrecargar la infraestructura con peticiones automatizadas excesivas.</li>
+        <li>Revender el acceso a la API sin autorizacion.</li>
+      </ul>
+
+      <h2>5. Planes y Pagos</h2>
+      <p><strong style="color: var(--text-primary);">Plan Gratis:</strong> Acceso limitado con 100 peticiones diarias, 20 canales y 20 peliculas.</p>
+      <p><strong style="color: var(--text-primary);">Plan Pro:</strong> Acceso completo por $5/mes con requests ilimitados y todo el contenido disponible.</p>
+      <p>Los precios pueden cambiar con previo aviso de 30 dias.</p>
+
+      <h2>6. Propiedad Intelectual</h2>
+      <p>Todo el contenido, codigo, diseno y documentacion de API LATAM son propiedad exclusiva del servicio. No adquieres ningun derecho de propiedad sobre el servicio al utilizarlo.</p>
+
+      <h2>7. Disponibilidad del Servicio</h2>
+      <p>Nos esforzamos por mantener el servicio disponible 24/7, pero no garantizamos disponibilidad ininterrumpida. Nos reservamos el derecho de realizar mantenimiento programado con aviso previo.</p>
+
+      <h2>8. Limitacion de Responsabilidad</h2>
+      <p>API LATAM no sera responsable por:</p>
+      <ul>
+        <li>Perdidas o danos derivados del uso del servicio.</li>
+        <li>Interrupciones del servicio por causas mayores.</li>
+        <li>Contenido de terceros accesible a traves de la API.</li>
+        <li>Decisiones tomadas basadas en la informacion proporcionada por la API.</li>
+      </ul>
+
+      <h2>9. Terminacion</h2>
+      <p>Podemos suspender o terminar tu acceso al servicio si:</p>
+      <ul>
+        <li>Violas estos terminos de servicio.</li>
+        <li>Realizas uso fraudulento del servicio.</li>
+        <li>Realizas pagos no autorizados.</li>
+      </ul>
+
+      <h2>10. Modificaciones</h2>
+      <p>Nos reservamos el derecho de modificar estos terminos en cualquier momento. Los cambios significativos seran notificados con al menos 15 dias de anticipacion.</p>
+
+      <h2>11. Ley Aplicable</h2>
+      <p>Estos terminos se rigen por las leyes de la Republica. Cualquier disputa sera resuelta en los tribunales competentes de la jurisdiccion correspondiente.</p>
+
+      <h2>12. Contacto</h2>
+      <p>Para preguntas sobre estos terminos, contactanos a traves de nuestro correo electronico de soporte.</p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span style="font-size: 14px; color: var(--text-muted);">2026 API LATAM. Todos los derechos reservados.</span>
+      <div class="footer-links">
+        <a href="docs.html">Documentacion</a>
+        <a href="privacy.html">Privacidad</a>
+        <a href="terms.html">Terminos</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { toggleMobileMenu } from './js/app.js';
+    window.toggleMobileMenu = toggleMobileMenu;
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <title>Documentacion API - API LATAM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-logo">API LATAM</a>
+      <div class="navbar-links">
+        <a href="/">Inicio</a>
+        <a href="docs.html" class="active">Documentacion</a>
+        <a href="login.html" class="btn btn-primary btn-sm">Iniciar Sesion</a>
+      </div>
+      <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="container" style="padding-top: 40px; padding-bottom: 80px; max-width: 900px;">
+    <h1 style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px;">Documentacion de la API</h1>
+    <p style="color: var(--text-secondary); font-size: 16px; margin-bottom: 40px;">Guia completa para integrar la API de canales TV y peliculas en tu proyecto.</p>
+
+    <section style="margin-bottom: 48px;">
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 16px;">Como Funciona</h2>
+      <p style="font-size: 15px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 16px;">
+        La API se consume directamente desde el navegador usando el SDK de Firebase. No necesitas servidores ni configuracion compleja.
+      </p>
+      <p style="font-size: 15px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 16px;">
+        Obtienes tu API key desde el <a href="dashboard.html" style="color: var(--accent);">dashboard</a> y la usas para autenticar tus peticiones.
+      </p>
+    </section>
+
+    <section style="margin-bottom: 48px;">
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 16px;">Instalacion</h2>
+      <p style="font-size: 15px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 16px;">
+        Importa el modulo de la API en tu proyecto JavaScript:
+      </p>
+      <div class="code-block" style="margin-bottom: 16px;">
+<span class="comment">// En tu HTML</span><br>
+&lt;script type=<span class="string">"module"</span>&gt;<br>
+&nbsp;&nbsp;<span class="key">import</span> { getChannels, getMovies } <span class="key">from</span> <span class="string">'https://TU_DOMINIO/js/api.js'</span>;<br>
+&lt;/script&gt;
+      </div>
+    </section>
+
+    <section style="margin-bottom: 48px;">
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 16px;">Funciones Disponibles</h2>
+
+      <div class="card" style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <span class="badge badge-info" style="font-size: 11px;">FUNCION</span>
+          <code style="font-family: var(--font-mono); font-size: 14px; font-weight: 600;">getChannels(apiKey, category?)</code>
+        </div>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Obtiene la lista de canales de TV disponibles.</p>
+        <p style="font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">Parametros:</p>
+        <ul style="font-size: 14px; color: var(--text-secondary); padding-left: 20px; margin-bottom: 12px;">
+          <li><code style="font-family: var(--font-mono); font-size: 13px;">apiKey</code> (requerido) - Tu API key</li>
+          <li><code style="font-family: var(--font-mono); font-size: 13px;">category</code> (opcional) - Filtrar por categoria</li>
+        </ul>
+        <p style="font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">Respuesta:</p>
+        <div class="code-block">
+{<br>
+&nbsp;&nbsp;<span class="key">"channels"</span>: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"id"</span>: <span class="string">"abc123"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"name"</span>: <span class="string">"ESPN"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"imageUrl"</span>: <span class="string">"https://..."</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"m3u8Url"</span>: <span class="string">"https://..."</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"category"</span>: <span class="string">"Deportes"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;],<br>
+&nbsp;&nbsp;<span class="key">"total"</span>: 20,<br>
+&nbsp;&nbsp;<span class="key">"plan"</span>: <span class="string">"free"</span><br>
+}
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <span class="badge badge-info" style="font-size: 11px;">FUNCION</span>
+          <code style="font-family: var(--font-mono); font-size: 14px; font-weight: 600;">getChannelById(apiKey, id)</code>
+        </div>
+        <p style="font-size: 14px; color: var(--text-secondary);">Obtiene los detalles de un canal especifico por su ID.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <span class="badge badge-info" style="font-size: 11px;">FUNCION</span>
+          <code style="font-family: var(--font-mono); font-size: 14px; font-weight: 600;">getMovies(apiKey, category?)</code>
+        </div>
+        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Obtiene la lista de peliculas disponibles.</p>
+        <p style="font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">Parametros:</p>
+        <ul style="font-size: 14px; color: var(--text-secondary); padding-left: 20px;">
+          <li><code style="font-family: var(--font-mono); font-size: 13px;">apiKey</code> (requerido) - Tu API key</li>
+          <li><code style="font-family: var(--font-mono); font-size: 13px;">category</code> (opcional) - Filtrar por categoria</li>
+        </ul>
+      </div>
+
+      <div class="card" style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <span class="badge badge-info" style="font-size: 11px;">FUNCION</span>
+          <code style="font-family: var(--font-mono); font-size: 14px; font-weight: 600;">getMovieById(apiKey, id)</code>
+        </div>
+        <p style="font-size: 14px; color: var(--text-secondary);">Obtiene los detalles de una pelicula especifica por su ID.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <span class="badge badge-info" style="font-size: 11px;">FUNCION</span>
+          <code style="font-family: var(--font-mono); font-size: 14px; font-weight: 600;">getCategories(apiKey)</code>
+        </div>
+        <p style="font-size: 14px; color: var(--text-secondary);">Obtiene todas las categorias disponibles.</p>
+      </div>
+    </section>
+
+    <section style="margin-bottom: 48px;">
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 16px;">Rate Limiting</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Plan</th><th>Canales</th><th>Peliculas</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Gratis</td><td>20</td><td>20</td></tr>
+            <tr><td>Pro</td><td>Todos</td><td>Todos</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section style="margin-bottom: 48px;">
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 16px;">Ejemplos de Codigo</h2>
+
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">JavaScript (navegador)</h3>
+      <div class="code-block" style="margin-bottom: 24px;">
+<span class="key">import</span> { getChannels, getMovies } <span class="key">from</span> <span class="string">'https://tu-dominio/js/api.js'</span>;<br><br>
+<span class="comment">// Obtener todos los canales</span><br>
+<span class="key">const</span> canales = <span class="key">await</span> getChannels(<span class="string">'aplat_TU_API_KEY'</span>);<br>
+console.log(canales.channels);<br><br>
+<span class="comment">// Filtrar por categoria</span><br>
+<span class="key">const</span> deportes = <span class="key">await</span> getChannels(<span class="string">'aplat_TU_API_KEY'</span>, <span class="string">'Deportes'</span>);<br>
+console.log(deportes.channels);<br><br>
+<span class="comment">// Obtener peliculas</span><br>
+<span class="key">const</span> peliculas = <span class="key">await</span> getMovies(<span class="string">'aplat_TU_API_KEY'</span>);<br>
+console.log(peliculas.movies);
+      </div>
+
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">HTML simple</h3>
+      <div class="code-block">
+&lt;script type=<span class="string">"module"</span>&gt;<br>
+&nbsp;&nbsp;<span class="key">import</span> { getChannels } <span class="key">from</span> <span class="string">'./js/api.js'</span>;<br><br>
+&nbsp;&nbsp;<span class="key">const</span> data = <span class="key">await</span> getChannels(<span class="string">'aplat_TU_API_KEY'</span>);<br>
+&nbsp;&nbsp;document.getElementById(<span class="string">'app'</span>).innerHTML =<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data.channels.map(c =&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`&lt;div&gt;&lt;img src="${c.imageUrl}"&gt; ${c.name}&lt;/div&gt;`<br>
+&nbsp;&nbsp;&nbsp;&nbsp;).join(<span class="string">''</span>);<br>
+&lt;/script&gt;
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span style="font-size: 14px; color: var(--text-muted);">2026 API LATAM. Todos los derechos reservados.</span>
+      <div class="footer-links">
+        <a href="docs.html">Documentacion</a>
+        <a href="privacy.html">Privacidad</a>
+        <a href="terms.html">Terminos</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { toggleMobileMenu } from './js/app.js';
+    window.toggleMobileMenu = toggleMobileMenu;
+  </script>
+
+</body>
+</html>

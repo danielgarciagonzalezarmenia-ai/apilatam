@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <title>Politica de Privacidad - API LATAM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-logo">API LATAM</a>
+      <div class="navbar-links">
+        <a href="/">Inicio</a>
+        <a href="docs.html">Documentacion</a>
+        <a href="login.html" class="btn btn-primary btn-sm">Iniciar Sesion</a>
+      </div>
+      <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="legal-content">
+      <h1>Politica de Privacidad</h1>
+      <p style="color: var(--text-muted); margin-bottom: 32px;">Ultima actualizacion: 4 de septiembre de 2026</p>
+
+      <h2>1. Informacion que Recopilamos</h2>
+      <p>Recopilamos la siguiente informacion cuando utilizas nuestro servicio:</p>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Informacion de cuenta:</strong> Nombre, direccion de correo electronico y foto de perfil proporcionados a traves de Google Authentication.</li>
+        <li><strong style="color: var(--text-primary);">Datos de uso:</strong> Numero de peticiones API realizadas, fecha y hora de las peticiones, y endpoints consultados.</li>
+        <li><strong style="color: var(--text-primary);">API Keys:</strong> Claves de acceso generadas para autenticar las peticiones a la API.</li>
+      </ul>
+
+      <h2>2. Uso de la Informacion</h2>
+      <p>Utilizamos la informacion recopilada para:</p>
+      <ul>
+        <li>Proveer y mantener nuestro servicio de API.</li>
+        <li>Autenticar y autorizar el acceso a los endpoints.</li>
+        <li>Controlar los limites de uso segun el plan contratado.</li>
+        <li>Mejorar la calidad y seguridad del servicio.</li>
+        <li>Comunicarnos contigo sobre actualizaciones o cambios en el servicio.</li>
+      </ul>
+
+      <h2>3. Autenticacion con Google</h2>
+      <p>Utilizamos Firebase Authentication con Google como proveedor de identidad. Al iniciar sesion con Google:</p>
+      <ul>
+        <li>Recibimos tu nombre, correo electronico y foto de perfil.</li>
+        <li>Google no nos proporciona tu contrasena.</li>
+        <li>Puedes revocar el acceso desde tu cuenta de Google en cualquier momento.</li>
+      </ul>
+
+      <h2>4. Almacenamiento de Datos</h2>
+      <p>Tus datos se almacenan en servidores de Google Cloud (Firebase/Firestore), que cumplen con estandares de seguridad y encriptacion de la industria.</p>
+
+      <h2>5. Compartir Datos con Terceros</h2>
+      <p>No vendemos, alquilamos ni compartimos tu informacion personal con terceros, excepto:</p>
+      <ul>
+        <li>Cuando sea requerido por ley.</li>
+        <li>Para proteger los derechos y seguridad de API LATAM y sus usuarios.</li>
+        <li>Con proveedores de servicios necesarios para operar (Google Cloud/Firebase).</li>
+      </ul>
+
+      <h2>6. Cookies y Tecnologias de Rastreo</h2>
+      <p>Utilizamos cookies y tecnologias similares para:</p>
+      <ul>
+        <li>Mantener tu sesion iniciada.</li>
+        <li>Recordar tus preferencias.</li>
+        <li>Analizar el uso del sitio para mejorar el servicio.</li>
+      </ul>
+      <p>Puedes controlar las cookies desde la configuracion de tu navegador.</p>
+
+      <h2>7. Seguridad</h2>
+      <p>Implementamos medidas de seguridad tecnicas y organizativas para proteger tu informacion, incluyendo:</p>
+      <ul>
+        <li>Encriptacion de datos en transito (TLS/SSL).</li>
+        <li>Autenticacion segura via Google OAuth.</li>
+        <li>Reglas de seguridad en la base de datos.</li>
+        <li>Acceso restringido a datos sensibles.</li>
+      </ul>
+
+      <h2>8. Retencion de Datos</h2>
+      <p>Conservamos tu informacion personal mientras tu cuenta este activa. Si eliminas tu cuenta, eliminaremos tus datos personales dentro de 30 dias, excepto cuando debamos conservarlos por obligaciones legales.</p>
+
+      <h2>9. Tus Derechos</h2>
+      <p>Como usuario, tienes derecho a:</p>
+      <ul>
+        <li>Acceder a tu informacion personal.</li>
+        <li>Corregir datos inexactos.</li>
+        <li>Solicitar la eliminacion de tus datos.</li>
+        <li>Oponerte al procesamiento de tus datos.</li>
+        <li>Solicitar la portabilidad de tus datos.</li>
+      </ul>
+
+      <h2>10. Cambios en esta Politica</h2>
+      <p>Nos reservamos el derecho de actualizar esta politica de privacidad en cualquier momento. Los cambios importantes seran notificados por correo electronico o mediante un aviso en nuestro sitio web.</p>
+
+      <h2>11. Contacto</h2>
+      <p>Si tienes preguntas sobre esta politica de privacidad, puedes contactarnos a traves de nuestro correo electronico de soporte.</p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span style="font-size: 14px; color: var(--text-muted);">2026 API LATAM. Todos los derechos reservados.</span>
+      <div class="footer-links">
+        <a href="docs.html">Documentacion</a>
+        <a href="privacy.html">Privacidad</a>
+        <a href="terms.html">Terminos</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { toggleMobileMenu } from './js/app.js';
+    window.toggleMobileMenu = toggleMobileMenu;
+  </script>
+
+</body>
+</html>

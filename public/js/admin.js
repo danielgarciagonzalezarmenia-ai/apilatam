@@ -34,19 +34,19 @@ tabs.forEach(tab => {
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await signOut(auth);
-  window.location.href = '/login.html';
+  window.location.href = 'login.html';
 });
 
 onAuthStateChanged(async (user) => {
   if (!user) {
-    window.location.href = '/login.html';
+    window.location.href = 'login.html';
     return;
   }
   const adminRef = doc(db, 'admin', user.uid);
   const { getDoc } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
   const adminSnap = await getDoc(adminRef);
   if (!adminSnap.exists()) {
-    window.location.href = '/dashboard.html';
+    window.location.href = 'dashboard.html';
     return;
   }
   await loadAll();

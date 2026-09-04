@@ -37,7 +37,7 @@ async function loginWithGoogle() {
 
 async function logout() {
   await signOut(auth);
-  window.location.href = '/login.html';
+  window.location.href = 'login.html';
 }
 
 function onAuthChange(callback) {

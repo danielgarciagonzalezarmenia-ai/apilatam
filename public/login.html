@@ -15,7 +15,7 @@
 
   <div class="auth-container">
     <div class="auth-card">
-      <a href="/" style="display:inline-block; margin-bottom: 24px;">
+      <a href="index.html" style="display:inline-block; margin-bottom: 24px;">
         <span class="navbar-logo" style="font-size: 20px;">API LATAM</span>
       </a>
       <h1>Bienvenido</h1>
@@ -35,7 +35,7 @@
 
     onAuthChange((user) => {
       if (user) {
-        window.location.href = '/dashboard.html';
+        window.location.href = 'dashboard.html';
       }
     });
 
@@ -45,7 +45,7 @@
         btn.disabled = true;
         btn.textContent = 'Conectando...';
         await loginWithGoogle();
-        window.location.href = '/dashboard.html';
+        window.location.href = 'dashboard.html';
       } catch (error) {
         console.error(error);
         alert('Error al iniciar sesion: ' + error.message);

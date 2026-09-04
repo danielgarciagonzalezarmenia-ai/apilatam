@@ -4,79 +4,100 @@ import {
   getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc,
   query, orderBy, serverTimestamp, Timestamp
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=5';
-import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=5';
+import { firebaseConfig } from './firebase-config.js?v=7';
+import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=7';
 
+console.log('admin.js loaded v7');
 window.toggleMobileMenu = toggleMobileMenu;
 
-window.addEventListener('error', (e) => {
-  try { showToast('Error en administracion: ' + (e.message || 'desconocido'), 'error'); } catch (err) {}
-});
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+let app, auth, db;
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+} catch (e) {
+  console.error('Firebase init error:', e);
+  document.getElementById('loading') && (document.getElementById('loading').style.display = 'none');
+}
 
 let channels = [];
 let movies = [];
 let categories = [];
 let currentTab = 'channels';
 
-const tabs = document.querySelectorAll('.tab-btn');
-const tabContents = document.querySelectorAll('.tab-content');
-
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    tabContents.forEach(c => c.style.display = 'none');
-    tab.classList.add('active');
-    const target = tab.dataset.tab;
-    document.getElementById(`tab-${target}`).style.display = 'block';
-    currentTab = target;
-  });
-});
-
 document.getElementById('logout-btn').addEventListener('click', async () => {
-  await signOut(auth);
+  if (auth) await signOut(auth);
   window.location.href = 'login.html';
 });
 
-onAuthStateChanged(async (user) => {
-  if (!user) {
-    window.location.href = 'login.html';
-    return;
-  }
-  const adminRef = doc(db, 'admin', user.uid);
-  const { getDoc } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
-  const adminSnap = await getDoc(adminRef);
-  if (!adminSnap.exists()) {
-    window.location.href = 'dashboard.html';
-    return;
-  }
-  await loadAll();
+document.querySelectorAll('.tab-btn').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).style.display = 'block';
+    currentTab = tab.dataset.tab;
+  });
 });
+
+if (auth) {
+  onAuthStateChanged(async (user) => {
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+    try {
+      const adminRef = doc(db, 'admin', user.uid);
+      const { getDoc } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
+      const adminSnap = await getDoc(adminRef);
+      if (!adminSnap.exists()) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+      await loadAll();
+    } catch (e) {
+      console.error('Auth check error:', e);
+      showToast('Error verificando permisos: ' + e.message, 'error');
+    }
+  });
+}
 
 async function loadAll() {
   await Promise.all([loadChannels(), loadMovies(), loadCategories()]);
 }
 
 async function loadChannels() {
-  const snap = await getDocs(query(collection(db, 'channels'), orderBy('createdAt', 'desc')));
-  channels = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const snap = await getDocs(query(collection(db, 'channels'), orderBy('createdAt', 'desc')));
+    channels = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    console.error('loadChannels error:', e);
+    channels = [];
+  }
   renderChannels();
   updateCategoryFilters();
 }
 
 async function loadMovies() {
-  const snap = await getDocs(query(collection(db, 'movies'), orderBy('createdAt', 'desc')));
-  movies = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const snap = await getDocs(query(collection(db, 'movies'), orderBy('createdAt', 'desc')));
+    movies = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    console.error('loadMovies error:', e);
+    movies = [];
+  }
   renderMovies();
   updateCategoryFilters();
 }
 
 async function loadCategories() {
-  const snap = await getDocs(collection(db, 'categories'));
-  categories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const snap = await getDocs(collection(db, 'categories'));
+    categories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    console.error('loadCategories error:', e);
+    categories = [];
+  }
   renderCategories();
   updateCategoryFilters();
   updateModalCategories();
@@ -104,7 +125,7 @@ function renderChannels() {
       <td style="font-weight: 600;">${escapeHtml(ch.name)}</td>
       <td><span class="badge badge-info">${escapeHtml(ch.category || '-')}</span></td>
       <td><span class="badge ${ch.status === 'online' ? 'badge-success' : ch.status === 'offline' ? 'badge-danger' : 'badge-warning'}">${ch.status || 'verificar'}</span></td>
-      <td style="font-size: 13px; color: var(--color-text-muted);">${formatDate(ch.createdAt)}</td>
+      <td style="font-size: 13px; color: var(--text-muted);">${formatDate(ch.createdAt)}</td>
       <td>
         <div style="display:flex; gap:6px;">
           <button onclick="editItem('channel','${ch.id}')" class="btn btn-secondary btn-sm" style="padding:6px 10px; font-size:12px;">Editar</button>
@@ -137,7 +158,7 @@ function renderMovies() {
       <td style="font-weight: 600;">${escapeHtml(mv.name)}</td>
       <td><span class="badge badge-info">${escapeHtml(mv.category || '-')}</span></td>
       <td><span class="badge ${mv.status === 'online' ? 'badge-success' : mv.status === 'offline' ? 'badge-danger' : 'badge-warning'}">${mv.status || 'verificar'}</span></td>
-      <td style="font-size: 13px; color: var(--color-text-muted);">${formatDate(mv.createdAt)}</td>
+      <td style="font-size: 13px; color: var(--text-muted);">${formatDate(mv.createdAt)}</td>
       <td>
         <div style="display:flex; gap:6px;">
           <button onclick="editItem('movie','${mv.id}')" class="btn btn-secondary btn-sm" style="padding:6px 10px; font-size:12px;">Editar</button>
@@ -182,47 +203,67 @@ function updateCategoryFilters() {
 
 function updateModalCategories() {
   const modalSelect = document.getElementById('modal-category');
+  if (!modalSelect) return;
   const type = document.getElementById('modal-item-type').value || 'channel';
   const filtered = categories.filter(c => c.type === type);
   modalSelect.innerHTML = '<option value="">Sin categoria</option>' +
     filtered.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
 }
 
-function openModal(type, item = null) {
+function openModal(type, itemId) {
   const overlay = document.getElementById('modal-overlay');
   const title = document.getElementById('modal-title');
   const form = document.getElementById('modal-form');
+  const typeInput = document.getElementById('modal-item-type');
+  const idInput = document.getElementById('modal-item-id');
 
-  document.getElementById('modal-item-type').value = type;
-  try { updateModalCategories(); } catch (e) { console.error(e); }
+  typeInput.value = type;
 
-  if (item) {
+  if (itemId) {
+    const items = type === 'channel' ? channels : movies;
+    const item = items.find(i => i.id === itemId);
     title.textContent = type === 'channel' ? 'Editar Canal' : 'Editar Pelicula';
-    document.getElementById('modal-name').value = item.name || '';
-    document.getElementById('modal-image').value = item.imageUrl || '';
-    document.getElementById('modal-m3u8').value = item.m3u8Url || '';
-    document.getElementById('modal-category').value = item.category || '';
-    document.getElementById('modal-item-id').value = item.id;
+    document.getElementById('modal-name').value = item ? (item.name || '') : '';
+    document.getElementById('modal-image').value = item ? (item.imageUrl || '') : '';
+    document.getElementById('modal-m3u8').value = item ? (item.m3u8Url || '') : '';
+    idInput.value = itemId;
+    updateModalCategories();
+    document.getElementById('modal-category').value = item ? (item.category || '') : '';
   } else {
     title.textContent = type === 'channel' ? 'Nuevo Canal' : 'Nueva Pelicula';
     form.reset();
-    document.getElementById('modal-item-id').value = '';
+    idInput.value = '';
+    updateModalCategories();
   }
 
-  document.body.style.overflow = 'hidden';
   overlay.style.display = 'flex';
   overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.remove('active');
+  overlay.style.display = 'none';
   document.body.style.overflow = '';
 }
 
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('active');
-}
+window.openModal = openModal;
+window.closeModal = closeModal;
+
+window.addCategory = async function() {
+  const name = document.getElementById('new-category-name').value.trim();
+  const type = document.getElementById('new-category-type').value;
+  if (!name) return showToast('Ingresa un nombre', 'error');
+  try {
+    await addDoc(collection(db, 'categories'), { name, type, createdAt: serverTimestamp() });
+    document.getElementById('new-category-name').value = '';
+    showToast('Categoria creada', 'success');
+    await loadCategories();
+  } catch (error) {
+    showToast('Error: ' + error.message, 'error');
+  }
+};
 
 document.getElementById('modal-cancel').addEventListener('click', closeModal);
 document.getElementById('modal-overlay').addEventListener('click', (e) => {
@@ -246,11 +287,11 @@ document.getElementById('modal-form').addEventListener('submit', async (e) => {
   try {
     if (id) {
       await updateDoc(doc(db, collectionName, id), data);
-      showToast(`${type === 'channel' ? 'Canal' : 'Pelicula'} actualizado`, 'success');
+      showToast(type === 'channel' ? 'Canal actualizado' : 'Pelicula actualizada', 'success');
     } else {
       data.createdAt = serverTimestamp();
       await addDoc(collection(db, collectionName), data);
-      showToast(`${type === 'channel' ? 'Canal' : 'Pelicula'} creado`, 'success');
+      showToast(type === 'channel' ? 'Canal creado' : 'Pelicula creada', 'success');
     }
     closeModal();
     if (type === 'channel') await loadChannels();
@@ -260,14 +301,11 @@ document.getElementById('modal-form').addEventListener('submit', async (e) => {
   }
 });
 
-window.editItem = async (type, id) => {
-  const collectionName = type === 'channel' ? 'channels' : 'movies';
-  const items = type === 'channel' ? channels : movies;
-  const item = items.find(i => i.id === id);
-  if (item) openModal(type, item);
+window.editItem = function(type, id) {
+  openModal(type, id);
 };
 
-window.deleteItem = async (collectionName, id) => {
+window.deleteItem = async function(collectionName, id) {
   if (!confirm('Eliminar este elemento?')) return;
   try {
     await deleteDoc(doc(db, collectionName, id));
@@ -279,7 +317,7 @@ window.deleteItem = async (collectionName, id) => {
   }
 };
 
-window.deleteCategory = async (id) => {
+window.deleteCategory = async function(id) {
   if (!confirm('Eliminar esta categoria?')) return;
   try {
     await deleteDoc(doc(db, 'categories', id));
@@ -290,8 +328,12 @@ window.deleteCategory = async (id) => {
   }
 };
 
-document.getElementById('add-channel-btn').addEventListener('click', () => openModal('channel'));
-document.getElementById('add-movie-btn').addEventListener('click', () => openModal('movie'));
+document.getElementById('add-channel-btn').addEventListener('click', function() {
+  openModal('channel');
+});
+document.getElementById('add-movie-btn').addEventListener('click', function() {
+  openModal('movie');
+});
 
 document.getElementById('add-category-btn').addEventListener('click', async () => {
   const name = document.getElementById('new-category-name').value.trim();
@@ -335,10 +377,7 @@ async function checkM3U8(collectionName) {
 document.getElementById('check-channels-btn').addEventListener('click', () => checkM3U8('channels'));
 document.getElementById('check-movies-btn').addEventListener('click', () => checkM3U8('movies'));
 
-const debouncedChannelSearch = debounce(() => renderChannels());
-const debouncedMovieSearch = debounce(() => renderMovies());
-
-document.getElementById('search-channels').addEventListener('input', debouncedChannelSearch);
-document.getElementById('search-movies').addEventListener('input', debouncedMovieSearch);
+document.getElementById('search-channels').addEventListener('input', debounce(() => renderChannels()));
+document.getElementById('search-movies').addEventListener('input', debounce(() => renderMovies()));
 document.getElementById('filter-category-channels').addEventListener('change', renderChannels);
 document.getElementById('filter-category-movies').addEventListener('change', renderMovies);

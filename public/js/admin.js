@@ -1,13 +1,13 @@
 ﻿import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {
-  getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc,
-  query, orderBy, serverTimestamp, Timestamp
+  getFirestore, collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc,
+  query, orderBy, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=7';
-import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=7';
+import { firebaseConfig } from './firebase-config.js?v=8';
+import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=8';
 
-console.log('admin.js loaded v7');
+console.log('admin.js loaded v8');
 window.toggleMobileMenu = toggleMobileMenu;
 
 let app, auth, db;
@@ -48,7 +48,6 @@ if (auth) {
     }
     try {
       const adminRef = doc(db, 'admin', user.uid);
-      const { getDoc } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
       const adminSnap = await getDoc(adminRef);
       if (!adminSnap.exists()) {
         window.location.href = 'dashboard.html';

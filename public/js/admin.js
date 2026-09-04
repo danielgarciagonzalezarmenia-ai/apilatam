@@ -4,10 +4,14 @@ import {
   getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc,
   query, orderBy, serverTimestamp, Timestamp
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=4';
-import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=4';
+import { firebaseConfig } from './firebase-config.js?v=5';
+import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from './app.js?v=5';
 
 window.toggleMobileMenu = toggleMobileMenu;
+
+window.addEventListener('error', (e) => {
+  try { showToast('Error en administracion: ' + (e.message || 'desconocido'), 'error'); } catch (err) {}
+});
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -190,7 +194,7 @@ function openModal(type, item = null) {
   const form = document.getElementById('modal-form');
 
   document.getElementById('modal-item-type').value = type;
-  updateModalCategories();
+  try { updateModalCategories(); } catch (e) { console.error(e); }
 
   if (item) {
     title.textContent = type === 'channel' ? 'Editar Canal' : 'Editar Pelicula';
@@ -205,7 +209,15 @@ function openModal(type, item = null) {
     document.getElementById('modal-item-id').value = '';
   }
 
+  document.body.style.overflow = 'hidden';
+  overlay.style.display = 'flex';
   overlay.classList.add('active');
+}
+
+function closeModal() {
+  const overlay = document.getElementById('modal-overlay');
+  overlay.classList.remove('active');
+  document.body.style.overflow = '';
 }
 
 function closeModal() {

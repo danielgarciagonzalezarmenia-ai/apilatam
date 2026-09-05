@@ -15,12 +15,13 @@ async function initAppPage(id) {
       import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'),
       import('./auth.js?v=2'),
       import('./util.js?v=1'),
-      import('./blocks.js?v=4')
+      import('./blocks.js?v=5')
     ]);
     const { doc, getDoc } = firestore;
     const { db } = authMod;
     const { escapeHtml } = utilMod;
     const { renderBlocks, defaultTheme, initHls, loadFont } = blkMod;
+    const { loadIconFont } = await import('./icons.js?v=1');
     blocksMod = blkMod;
 
     const snap = await getDoc(doc(db, 'apps', id));
@@ -42,6 +43,7 @@ async function initAppPage(id) {
       : [{ id: 'p-home', name: 'Inicio', blocks: data.blocks || [] }];
     state.pages.forEach(p => migrateLinks(p.blocks));
     await loadFont(state.theme.font || 'Poppins');
+    loadIconFont();
 
     await setupShell(data, id);
     renderCurrentPage(true);

@@ -1,4 +1,4 @@
-const VERSION = 'v1.2.0';
+const VERSION = 'v1.3.0';
 const CACHE = 'appforge-' + VERSION;
 const CORE = [
   './',
@@ -8,7 +8,8 @@ const CORE = [
   'css/builder.css',
   'css/stream.css',
   'js/util.js',
-  'js/blocks.js'
+  'js/blocks.js',
+  'js/icons.js'
 ];
 
 self.addEventListener('install', (event) => {

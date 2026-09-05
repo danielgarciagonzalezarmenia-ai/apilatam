@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css?v=8">
-  <link rel="stylesheet" href="css/builder.css?v=5">
+  <link rel="stylesheet" href="css/builder.css?v=6">
   <link rel="stylesheet" href="css/stream.css?v=1">
 </head>
 <body class="editor">
@@ -86,8 +86,9 @@
     import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { db, onAuthChange } from './js/auth.js?v=3';
     import { showToast, escapeHtml, uid, copyText } from './js/util.js?v=1';
-    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks, FONTS, loadFont, initHls } from './js/blocks.js?v=4';
+    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks, FONTS, loadFont, initHls } from './js/blocks.js?v=5';
     import { setupProfile } from './js/profile.js?v=1';
+    import { iconSpan, ALL_ICONS, ICON_CATEGORIES, loadIconFont } from './js/icons.js?v=1';
 
     const $ = id => document.getElementById(id);
     const params = new URLSearchParams(location.search);
@@ -124,6 +125,7 @@
       selectPage(pages[0].id);
       renderPalette();
       setupFont();
+      loadIconFont();
     }
 
     function normalizePages(d) {
@@ -307,11 +309,11 @@
     function newBlock(type) {
       const b = { id: 'b' + uid(), type };
       switch (type) {
-        case 'header': b.text = 'Mi App'; b.subtitle = 'Subtitulo'; b.showLogo = true; b.logo = ''; b.align = 'center'; break;
+        case 'header': b.text = 'Mi App'; b.subtitle = 'Subtitulo'; b.showLogo = true; b.logo = ''; b.logoIcon = ''; b.align = 'center'; break;
         case 'heading': b.text = 'Nuevo titulo'; b.align = 'left'; b.size = 26; break;
         case 'text': b.text = 'Escribe aqui tu texto.'; b.align = 'left'; b.size = 15; b.opacity = 0.85; break;
         case 'image': b.url = ''; b.align = 'center'; b.width = 100; break;
-        case 'button': b.text = 'Boton'; b.url = '#'; b.variant = 'solid'; b.align = 'center'; b.bg = ''; b.textColor = ''; b.width = ''; b.height = ''; b.linkTarget = ''; b.linkUrl = ''; break;
+        case 'button': b.text = 'Boton'; b.url = '#'; b.variant = 'solid'; b.align = 'center'; b.bg = ''; b.textColor = ''; b.width = ''; b.height = ''; b.icon = ''; b.linkTarget = ''; b.linkUrl = ''; break;
         case 'video': b.type = 'video'; b.url = ''; break;
         case 'youtube': b.type = 'youtube'; b.url = ''; break;
         case 'html': b.html = '<p style="margin:0;">Mi <strong>bloque</strong> HTML.</p>'; break;
@@ -445,6 +447,13 @@
         <div class="inspector-field"><label>${label}: URL externa (opcional)</label><input class="input" data-linkurl placeholder="https://ejemplo.com" value="${escapeHtml(b.linkUrl || '')}"></div>`;
     }
 
+    function iconPickField(k, value, label = 'Icono') {
+      return `<div class="inspector-field"><label>${label}</label><div class="icon-pick-row">
+        <button class="btn btn-secondary btn-sm" data-iconpick="${k}" style="flex:1;display:inline-flex;align-items:center;gap:8px;justify-content:flex-start;">${value ? iconSpan(value, { size: 16 }) + ' ' + escapeHtml(value) : 'Elegir icono...'}</button>
+        <button class="btn btn-danger btn-sm" data-iconclear="${k}" title="Quitar icono">${ICONS_X}</button>
+      </div></div>`;
+    }
+
     function renderInspector() {
       const el = $('inspector');
       const block = curBlocks().find(b => b.id === selectedId);
@@ -476,11 +485,11 @@
 
     function inspectorFor(b) {
       switch (b.type) {
-        case 'header': return field('Titulo', input('text', b.text)) + field('Subtitulo', input('subtitle', b.subtitle)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="inspector-field"><label><input type="checkbox" data-k="showLogo" ${b.showLogo ? 'checked' : ''}> Mostrar logo</label></div>` + field('Logo (URL)', input('logo', b.logo));
+        case 'header': return field('Titulo', input('text', b.text)) + field('Subtitulo', input('subtitle', b.subtitle)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="inspector-field"><label><input type="checkbox" data-k="showLogo" ${b.showLogo ? 'checked' : ''}> Mostrar logo</label></div>` + iconPickField('logoIcon', b.logoIcon, 'Icono del logo') + field('Logo (URL)', input('logo', b.logo));
         case 'heading': return field('Texto', input('text', b.text)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
         case 'text': return field('Texto', textarea('text', b.text, 5)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
         case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' })) + pageLinkFields(b, 'Al hacer clic en la imagen');
-        case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="field-row">${field('Ancho', rangeField('width', b.width, 60, 375))}${field('Altura', rangeField('height', b.height, 36, 220))}</div>` + field('Color del boton', colorField('bg', b.bg || theme.accent)) + field('Color del texto', colorField('textColor', b.textColor || (b.variant === 'solid' ? '#000000' : theme.accent))) + pageLinkFields(b, 'Al hacer clic en el boton');
+        case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + iconPickField('icon', b.icon, 'Icono (antes del texto)') + `<div class="field-row">${field('Ancho', rangeField('width', b.width, 60, 375))}${field('Altura', rangeField('height', b.height, 36, 220))}</div>` + field('Color del boton', colorField('bg', b.bg || theme.accent)) + field('Color del texto', colorField('textColor', b.textColor || (b.variant === 'solid' ? '#000000' : theme.accent))) + pageLinkFields(b, 'Al hacer clic en el boton');
         case 'video':
         case 'youtube': return field('URL del video', input('url', b.url, { ph: b.type === 'youtube' ? 'https://youtube.com/watch?v=...' : 'https://...mp4' }));
         case 'html': return field('Codigo HTML', textarea('html', b.html, 8));
@@ -488,8 +497,9 @@
           <div class="inspector-field"><label>Elementos</label></div>
           ${(b.items || []).map((it, i) => `
             <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
-              <input class="input" data-item-icon="${i}" value="${escapeHtml(it.icon || '')}" style="width:52px;text-align:center;" placeholder="Icono">
-              <input class="input" data-item-text="${i}" value="${escapeHtml(it.text || '')}" placeholder="Texto">
+              <button class="btn btn-secondary btn-sm" data-item-iconpick="${i}" title="Elegir icono" style="padding:7px 9px;display:inline-flex;align-items:center;gap:6px;">${it.icon ? iconSpan(it.icon, { size: 16 }) + ' ' + escapeHtml(it.icon) : 'Icono'}</button>
+              <button class="btn btn-danger btn-sm" data-item-iconclear="${i}" title="Quitar icono" style="padding:7px 9px;">${ICONS_X}</button>
+              <input class="input" data-item-text="${i}" value="${escapeHtml(it.text || '')}" placeholder="Texto" style="flex:1;min-width:0;">
               <button class="btn btn-danger btn-sm" data-item-del="${i}" style="padding:7px 9px;">${ICONS_X}</button>
             </div>
             <input class="input" data-item-desc="${i}" value="${escapeHtml(it.desc || '')}" placeholder="Descripcion (opcional)" style="margin-bottom:8px;">
@@ -568,12 +578,28 @@
             renderPreview(); markDirty();
           });
         });
-        el.querySelectorAll('[data-item-icon]').forEach(inp => {
-          inp.addEventListener('input', () => {
-            block.items[+inp.dataset.itemIcon].icon = inp.value;
-            renderPreview(); markDirty();
+        el.querySelectorAll('[data-iconpick]').forEach(btn => btn.addEventListener('click', () => {
+          const k = btn.dataset.iconpick;
+          openIconPicker({
+            initial: block[k],
+            onPick: (name) => { block[k] = name || ''; renderInspector(); renderPreview(); markDirty(); }
           });
-        });
+        }));
+        el.querySelectorAll('[data-iconclear]').forEach(btn => btn.addEventListener('click', () => {
+          block[btn.dataset.iconclear] = '';
+          renderInspector(); renderPreview(); markDirty();
+        }));
+        el.querySelectorAll('[data-item-iconpick]').forEach(btn => btn.addEventListener('click', () => {
+          const i = +btn.dataset.itemIconpick;
+          openIconPicker({
+            initial: (block.items && block.items[i] && block.items[i].icon) || '',
+            onPick: (name) => { block.items[i].icon = name || ''; renderInspector(); renderPreview(); markDirty(); }
+          });
+        }));
+        el.querySelectorAll('[data-item-iconclear]').forEach(btn => btn.addEventListener('click', () => {
+          block.items[+btn.dataset.itemIconclear].icon = '';
+          renderInspector(); renderPreview(); markDirty();
+        }));
         el.querySelectorAll('[data-item-target]').forEach(inp => {
           inp.addEventListener('change', () => {
             block.items[+inp.dataset.itemTarget].linkTarget = inp.value || '';
@@ -627,6 +653,71 @@
           });
         });
       }
+    }
+
+    /* ---------- Icon picker ---------- */
+    function openIconPicker({ initial, onPick }) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay active';
+      let sel = initial || null;
+      let q = '';
+      let cat = 'all';
+      overlay.innerHTML = `
+        <div class="modal icon-picker">
+          <h2 style="margin:0 0 4px;">Elegir icono</h2>
+          <p class="empty-inspector" style="margin:0 0 12px;">Busca o selecciona un icono de Material Symbols.</p>
+          <div class="icon-picker-head">
+            <input class="input" id="ip-search" placeholder="Buscar icono..." autocomplete="off" style="flex:1;">
+            <button class="btn btn-secondary btn-sm" id="ip-clear" ${sel ? '' : 'disabled'}>Sin icono</button>
+          </div>
+          <div class="icon-cats" id="ip-cats"></div>
+          <div class="icon-grid" id="ip-grid"></div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" id="ip-cancel">Cancelar</button>
+            <button class="btn btn-primary" id="ip-save">Guardar</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', ev => { if (ev.target === overlay) overlay.remove(); });
+
+      const grid = overlay.querySelector('#ip-grid');
+      const catsEl = overlay.querySelector('#ip-cats');
+      const search = overlay.querySelector('#ip-search');
+      const clearBtn = overlay.querySelector('#ip-clear');
+
+      const matches = () => {
+        const cats = ICON_CATEGORIES.find(c => c.id === cat);
+        return ALL_ICONS.filter(n =>
+          (cat === 'all' || (cats && cats.icons.includes(n))) &&
+          (!q || n.includes(q)));
+      };
+
+      const drawCats = () => {
+        catsEl.innerHTML = [['all', 'Todos'], ...ICON_CATEGORIES.map(c => [c.id, c.label])]
+          .map(([id, lab]) => `<button class="icat ${cat === id ? 'active' : ''}" data-cat="${id}">${escapeHtml(lab)}</button>`).join('');
+        catsEl.querySelectorAll('[data-cat]').forEach(b => b.addEventListener('click', () => {
+          cat = b.dataset.cat; drawCats(); drawGrid();
+        }));
+      };
+
+      const drawGrid = () => {
+        const list = matches();
+        grid.innerHTML = list.length
+          ? list.map(n => `<button class="icell ${sel === n ? 'sel' : ''}" data-ic="${n}">${iconSpan(n, { size: 24 })}<span>${escapeHtml(n)}</span></button>`).join('')
+          : '<p class="empty-inspector" style="grid-column:1/-1;">Ningun icono coincide con la busqueda.</p>';
+        grid.querySelectorAll('[data-ic]').forEach(b => b.addEventListener('click', () => {
+          sel = b.dataset.ic;
+          clearBtn.disabled = false;
+          drawGrid();
+        }));
+      };
+
+      search.addEventListener('input', () => { q = search.value.trim().toLowerCase(); drawGrid(); });
+      overlay.querySelector('#ip-cancel').addEventListener('click', () => overlay.remove());
+      clearBtn.addEventListener('click', () => { sel = null; drawGrid(); });
+      overlay.querySelector('#ip-save').addEventListener('click', () => { onPick(sel); overlay.remove(); });
+      drawCats(); drawGrid();
+      search.focus();
     }
 
     /* ---------- App mini ---------- */

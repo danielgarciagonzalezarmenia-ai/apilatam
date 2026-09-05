@@ -1,4 +1,5 @@
 import { escapeHtml } from './util.js?v=1';
+import { iconSpan } from './icons.js?v=1';
 
 export const BLOCK_TYPES = {
   header: 'Encabezado',
@@ -167,9 +168,14 @@ export function renderBlocks(blocks, theme) {
 }
 
 function blockHeader(b, css) {
-  const logo = b.showLogo && b.logo
-    ? `<img class="ab-logo" src="${escapeHtml(b.logo)}" alt="" onerror="this.style.display='none'">`
-    : '';
+  let logo = '';
+  if (b.showLogo) {
+    if (b.logoIcon) {
+      logo = iconSpan(b.logoIcon, { size: 38, color: 'var(--t-accent)' });
+    } else if (b.logo) {
+      logo = `<img class="ab-logo" src="${escapeHtml(b.logo)}" alt="" onerror="this.style.display='none'">`;
+    }
+  }
   return `<div class="ab-header" style="${css};text-align:${b.align || 'center'};"><div class="ab-header-inner">${logo}<div class="ab-title">${escapeHtml(b.text || '')}</div>${b.subtitle ? `<div class="ab-subtitle">${escapeHtml(b.subtitle)}</div>` : ''}</div></div>`;
 }
 
@@ -206,11 +212,14 @@ function blockButton(b, css) {
   const dims = [];
   if (b.width) dims.push(`width:${b.width}px;`);
   if (b.height) dims.push(`height:${b.height}px;`);
-  style = 'position:relative;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;padding:13px 28px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;' + style + dims.join(' ');
+  style = 'position:relative;display:inline-flex;gap:8px;align-items:center;justify-content:center;box-sizing:border-box;padding:13px 28px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;' + style + dims.join(' ');
   let attrs = 'href="#"';
   if (b.linkTarget) attrs = `data-af-page="${escapeHtml(b.linkTarget)}"`;
   else if (b.linkUrl) attrs = `href="${escapeHtml(b.linkUrl)}" target="_blank" rel="noopener"`;
-  return `<div class="ab-button" style="${css};text-align:${b.align || 'center'};"><a style="${style}" ${attrs}>${escapeHtml(b.text || 'Boton')}</a></div>`;
+  const iconHtml = b.icon ? iconSpan(b.icon, { size: 17 }) : '';
+  const txt = escapeHtml(b.text || '');
+  const label = txt || (!b.icon ? 'Boton' : '');
+  return `<div class="ab-button" style="${css};text-align:${b.align || 'center'};"><a style="${style}" ${attrs}>${iconHtml}${label}</a></div>`;
 }
 
 function blockVideo(b, css) {
@@ -234,7 +243,8 @@ function blockHtml(b, css) {
 function blockList(b, css) {
   const items = (b.items || []).filter(x => x && x.text);
   const list = items.map(x => {
-    const content = `${x.icon ? `<span class="ab-list-icon" style="background:var(--t-accent);">${escapeHtml(x.icon)}</span>` : ''}
+    const iconHtml = x.icon ? `<span class="ab-list-icon">${iconSpan(x.icon, { size: 16 })}</span>` : '';
+    const content = `${iconHtml}
       <div><div class="ab-list-title">${escapeHtml(x.text)}</div>${x.desc ? `<div class="ab-list-desc">${escapeHtml(x.desc)}</div>` : ''}</div>`;
     const lk = x.linkTarget || x.linkUrl ? linkMarkup(x) : null;
     if (lk) {

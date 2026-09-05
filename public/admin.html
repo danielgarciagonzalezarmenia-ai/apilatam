@@ -143,7 +143,18 @@
           <label for="modal-m3u8">URL M3U8</label>
           <input type="url" id="modal-m3u8" class="input" placeholder="https://ejemplo.com/stream.m3u8">
         </div>
-<div class="form-group" id="field-category">
+<div class="form-group" id="field-banner" style="display:none;">
+          <label for="modal-banner">Imagen horizontal (Recomendados)</label>
+          <input type="url" id="modal-banner" class="input" placeholder="https://ejemplo.com/banner.jpg">
+          <div id="modal-banner-preview" style="margin-top:10px;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:12px;">Vista previa del banner horizontal</div>
+        </div>
+        <div class="form-group" id="field-rec" style="display:none;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--text-secondary);">
+            <input type="checkbox" id="modal-recommended" style="width:18px;height:18px;accent-color:var(--accent);">
+            Mostrar en Recomendados (banner superior)
+          </label>
+        </div>
+        <div class="form-group" id="field-category">
           <label for="modal-category">Categoria</label>
           <select id="modal-category" class="select"></select>
         </div>
@@ -185,23 +196,35 @@
         var isMovie = type === 'movie';
         var fYear = document.getElementById('field-year');
         var fDesc = document.getElementById('field-desc');
+        var fBanner = document.getElementById('field-banner');
+        var fRec = document.getElementById('field-rec');
         if (fYear) fYear.style.display = isMovie ? '' : 'none';
         if (fDesc) fDesc.style.display = isMovie ? '' : 'none';
+        if (fBanner) fBanner.style.display = isMovie ? '' : 'none';
+        if (fRec) fRec.style.display = isMovie ? '' : 'none';
         var l = document.querySelector('label[for="modal-m3u8"]');
         if (l) l.textContent = isMovie ? 'URL del video (m3u8, mp4 o mkv)' : 'URL M3U8';
       }
       window.toggleMovieFields = toggleMovieFields;
-      function updateImgPreview() {
-        var input = document.getElementById('modal-image');
-        var box = document.getElementById('modal-img-preview');
+      function imgPreview(inputId, boxId) {
+        var input = document.getElementById(inputId);
+        var box = document.getElementById(boxId);
         if (!input || !box) return;
-        var val = input.value.trim();
-        if (!val) { box.innerHTML = 'Vista previa de la imagen'; box.style.background = 'var(--surface)'; return; }
-        box.innerHTML = '<img src="' + val + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentNode.innerHTML=\'Imagen no disponible\';this.parentNode.style.background=\'var(--surface)\';this.parentNode.style.display=\'flex\'">';
-        box.style.background = 'transparent';
+        syncPreview(input, box);
+        input.addEventListener('input', function () { syncPreview(input, box); });
       }
-      var imgIn = document.getElementById('modal-image');
-      if (imgIn) imgIn.addEventListener('input', updateImgPreview);
+      function syncPreview(input, box) {
+        var val = input.value.trim();
+        if (!val) {
+          box.innerHTML = box.id === 'modal-banner-preview' ? 'Vista previa del banner horizontal' : 'Vista previa de la imagen';
+          box.style.background = 'var(--surface)';
+          return;
+        }
+        box.style.background = 'transparent';
+        box.innerHTML = '<img src="' + val + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentNode.innerText=\'Imagen no disponible\';this.parentNode.style.background=\'var(--surface)\';this.parentNode.style.display=\'flex\';this.parentNode.style.alignItems=\'center\';this.parentNode.style.justifyContent=\'center\';this.parentNode.style.color=\'var(--text-muted)\';this.parentNode.style.fontSize=\'12px\'">';
+      }
+      imgPreview('modal-image', 'modal-img-preview');
+      imgPreview('modal-banner', 'modal-banner-preview');
       function closeModal() {
         var overlay = document.getElementById('modal-overlay');
         if (!overlay) return;

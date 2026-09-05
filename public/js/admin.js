@@ -233,9 +233,12 @@ function openModal(type, itemId) {
     document.getElementById('modal-m3u8').value = item ? (item.m3u8Url || item.videoUrl || '') : '';
     idInput.value = itemId;
     updateModalCategories();
-    document.getElementById('modal-category').value = item ? (item.category || '') : '';
+document.getElementById('modal-category').value = item ? (item.category || '') : '';
     document.getElementById('modal-year').value = item ? (item.year || '') : '';
     document.getElementById('modal-desc').value = item ? (item.description || '') : '';
+    document.getElementById('modal-banner').value = item ? (item.bannerUrl || '') : '';
+    const recEl = document.getElementById('modal-recommended');
+    if (recEl) recEl.checked = !!(item && item.recommended);
   } else {
     title.textContent = type === 'channel' ? 'Nuevo Canal' : 'Nueva Pelicula';
     form.reset();
@@ -243,8 +246,11 @@ function openModal(type, itemId) {
     updateModalCategories();
   }
 
-  window.toggleMovieFields && window.toggleMovieFields(type);
-  window.updateImgPreview && window.updateImgPreview();
+window.toggleMovieFields && window.toggleMovieFields(type);
+  const ii = document.getElementById('modal-image');
+  const ib = document.getElementById('modal-banner');
+  if (ii) ii.dispatchEvent(new Event('input'));
+  if (ib) ib.dispatchEvent(new Event('input'));
 
   overlay.style.display = 'flex';
   overlay.classList.add('active');
@@ -298,6 +304,8 @@ document.getElementById('modal-form').addEventListener('submit', async (e) => {
     const year = document.getElementById('modal-year').value.trim();
     data.year = year ? Number(year) : 0;
     data.description = document.getElementById('modal-desc').value.trim();
+    data.bannerUrl = document.getElementById('modal-banner').value.trim();
+    data.recommended = !!(document.getElementById('modal-recommended') && document.getElementById('modal-recommended').checked);
   }
 
   try {

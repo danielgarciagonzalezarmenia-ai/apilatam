@@ -43,7 +43,8 @@
 
     <!-- MOVIES VIEW -->
     <section id="view-movies">
-      <div id="hero" class="hero-movie hidden"></div>
+      <div id="hero" class="hero-movie hero-car no-flow"></div>
+      <div id="hero-dots" class="hero-dots hidden"></div>
       <div id="rows" class="rows"></div>
     </section>
 
@@ -165,12 +166,13 @@
 
     function renderMovies(list) {
       const visible = list.filter(m => !q || (m.name && m.name.toLowerCase().includes(q)));
-      heroEl.classList.add('hidden');
       if (!visible.length) {
+        $('hero').classList.add('hidden');
+        $('hero-dots').classList.add('hidden');
         rowsEl.innerHTML = '<div class="empty-block"><h3>Sin resultados</h3><p>No encontramos peliculas con ese filtro.</p></div>';
         return;
       }
-      showHero(visible);
+      renderHero(visible);
       const cats = uniqueCategories(visible);
       const rows = [];
       if (cats.length === 0) {
@@ -185,25 +187,63 @@
       bindCards();
     }
 
-    function showHero(list) {
-      const f = list[0];
-      const src = f.imageUrl || '';
-      heroEl.innerHTML = `
-        <div class="backdrop" style="background-image:url('${escapeHtml(src)}')" ></div>
-        <div class="overlay"></div>
-        <div class="content">
-          <h1>${escapeHtml(f.name || '')}</h1>
-          <div class="meta">
-            ${f.year ? `<span>${escapeHtml(String(f.year))}</span>` : ''}
-            ${f.category ? `<span class="badge badge-info">${escapeHtml(f.category)}</span>` : ''}
+    /* ---- Hero carousel (Recomendados) ---- */
+    let heroIdx = 0, heroTimer = null;
+    function renderHero(list) {
+      const rec = list.filter(m => m.recommended);
+      const slides = rec.length ? rec : list.slice(0, 6);
+      if (!slides.length) {
+        $('hero').classList.add('hidden');
+        $('hero-dots').classList.add('hidden');
+        return;
+      }
+      const hero = $('hero');
+      hero.innerHTML = slides.map((m, i) => `
+        <div class="hero-slide ${i === 0 ? 'active' : ''}" data-i="${i}" data-id="${m.id}">
+          <div class="backdrop" style="background-image:url('${escapeHtml(m.bannerUrl || m.imageUrl || '')}')"></div>
+          <div class="overlay"></div>
+          <div class="content">
+            <h1>${escapeHtml(m.name || '')}</h1>
+            <div class="meta">
+              ${m.year ? `<span>${escapeHtml(String(m.year))}</span>` : ''}
+              ${m.category ? `<span class="badge badge-info">${escapeHtml(m.category)}</span>` : ''}
+            </div>
+            <p class="desc">${escapeHtml(m.description || '')}</p>
+            <div class="hero-actions">
+              <button class="btn btn-primary btn-lg" data-ver>Ver Ahora</button>
+            </div>
           </div>
-          <p class="desc">${escapeHtml(f.description || '')}</p>
-          <div class="hero-actions">
-            <button class="btn btn-primary btn-lg" data-ver="${f.id}">Ver Ahora</button>
-          </div>
-        </div>`;
-      heroEl.classList.remove('hidden');
-      heroEl.querySelector('[data-ver]') && heroEl.querySelector('[data-ver]').addEventListener('click', () => openDetail(f));
+        </div>`).join('');
+      hero.classList.remove('hidden');
+
+      const dotsEl = $('hero-dots');
+      dotsEl.innerHTML = slides.map((_, i) => `<button class="d ${i === 0 ? 'active' : ''}" data-i="${i}" aria-label="Slide ${i + 1}"></button>`).join('');
+      dotsEl.classList.remove('hidden');
+
+      heroIdx = 0;
+      restartHero(slides.length, hero, dotsEl, slides);
+
+      hero.onclick = (e) => {
+        if (e.target.closest('[data-ver]')) {
+          const s = e.target.closest('.hero-slide');
+          const m = slides[+s.dataset.i];
+          openDetail(m);
+        }
+      };
+      dotsEl.querySelectorAll('.d').forEach(d => {
+        d.addEventListener('click', () => setHeroIdx(+d.dataset.i, hero, dotsEl));
+      });
+    }
+
+    function setHeroIdx(idx, hero, dotsEl) {
+      heroIdx = idx;
+      hero.querySelectorAll('.hero-slide').forEach(s => s.classList.toggle('active', +s.dataset.i === idx));
+      dotsEl.querySelectorAll('.d').forEach(d => d.classList.toggle('active', +d.dataset.i === idx));
+    }
+
+    function restartHero(n, hero, dotsEl) {
+      clearInterval(heroTimer);
+      heroTimer = setInterval(() => setHeroIdx((heroIdx + 1) % n, hero, dotsEl), 6000);
     }
 
     function rowBlock(title, items) {

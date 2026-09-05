@@ -334,14 +334,6 @@
       heroTimer = setInterval(() => setHeroIdx((heroIdx + 1) % n, hero, dotsEl), 6000);
     }
 
-    function rowBlock(title, items) {
-      return `
-        <div class="row-block">
-          <div class="row-head"><h2>${escapeHtml(title)}</h2><span class="count">${items.length}</span></div>
-          <div class="row-scroll">${items.map(mcard).join('')}</div>
-        </div>`;
-    }
-
     function bindCards() {
       document.querySelectorAll('.mcard').forEach(card => {
         card.addEventListener('click', (e) => {

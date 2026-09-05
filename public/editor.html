@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css?v=8">
-  <link rel="stylesheet" href="css/builder.css?v=4">
+  <link rel="stylesheet" href="css/builder.css?v=5">
   <link rel="stylesheet" href="css/stream.css?v=1">
 </head>
 <body class="editor">
@@ -432,6 +432,10 @@
     function colorField(k, v) {
       return `<div class="color-row"><input type="color" data-k="${k}" value="${escapeHtml(v)}" style="width:44px;height:34px;"><input class="input" data-k="${k}" value="${escapeHtml(v)}" style="flex:1;"></div>`;
     }
+    function rangeField(k, v, min, max) {
+      const cur = Number(v) || 0;
+      return `<div class="range-row"><input type="range" data-r="${k}" min="${min}" max="${max}" step="1" value="${cur}"><span class="range-val" data-rv="${k}">${cur ? cur + 'px' : 'Auto'}</span></div>`;
+    }
 
     function pageLinkFields(b, label = 'Enlace') {
       const opts = `<option value="">Sin enlace</option>` + pages.map(p =>
@@ -476,7 +480,7 @@
         case 'heading': return field('Texto', input('text', b.text)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
         case 'text': return field('Texto', textarea('text', b.text, 5)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
         case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' })) + pageLinkFields(b, 'Al hacer clic en la imagen');
-        case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="field-row">${field('Ancho (px)', input('width', b.width, { type: 'number', ph: 'auto' }))}${field('Altura (px)', input('height', b.height, { type: 'number', ph: 'auto' }))}</div>` + field('Color del boton', colorField('bg', b.bg || theme.accent)) + field('Color del texto', colorField('textColor', b.textColor || (b.variant === 'solid' ? '#000000' : theme.accent))) + pageLinkFields(b, 'Al hacer clic en el boton');
+        case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="field-row">${field('Ancho', rangeField('width', b.width, 60, 375))}${field('Altura', rangeField('height', b.height, 36, 220))}</div>` + field('Color del boton', colorField('bg', b.bg || theme.accent)) + field('Color del texto', colorField('textColor', b.textColor || (b.variant === 'solid' ? '#000000' : theme.accent))) + pageLinkFields(b, 'Al hacer clic en el boton');
         case 'video':
         case 'youtube': return field('URL del video', input('url', b.url, { ph: b.type === 'youtube' ? 'https://youtube.com/watch?v=...' : 'https://...mp4' }));
         case 'html': return field('Codigo HTML', textarea('html', b.html, 8));
@@ -540,6 +544,17 @@
             markDirty();
           });
         }
+
+        el.querySelectorAll('[data-r]').forEach(r => {
+          const k = r.dataset.r;
+          const lbl = el.querySelector(`[data-rv="${k}"]`);
+          r.addEventListener('input', () => {
+            block[k] = Number(r.value) || '';
+            if (lbl) lbl.textContent = block[k] ? block[k] + 'px' : 'Auto';
+            renderPreview();
+            markDirty();
+          });
+        });
 
         el.querySelectorAll('[data-item-text]').forEach(inp => {
           inp.addEventListener('input', () => {

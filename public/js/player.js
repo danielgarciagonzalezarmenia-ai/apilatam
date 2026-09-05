@@ -125,7 +125,14 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
     setPlayIcon(true);
     startSpinnerTimeout();
 
-    if (isHls(streamUrl)) {
+    // Detect format: la extension es poco fiable (muchos proveedores usan .mkv
+    // en URLs que en realidad son streams HLS o MP4/WebM reproducibles).
+    let useHls = isHls(streamUrl);
+    if (!useHls && shouldProbe(streamUrl)) {
+      useHls = await probeHls(streamUrl);
+    }
+
+    if (useHls) {
       try {
         const Hls = (await import('https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.mjs')).default;
         if (Hls.isSupported()) {
@@ -138,7 +145,7 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
           });
           hls.on(Hls.Events.ERROR, (_, data) => {
             if (data.fatal) {
-              showError('No se pudo conectar con el stream HLS. Revisa el enlace del canal.');
+              showError('No se pudo conectar con el stream. Revisa el enlace del canal.');
             }
           });
           return;
@@ -148,16 +155,35 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
       }
     }
 
-    // native (mkv, mp4, webm)
+    // native (mp4, webm, y .mkv cuyos proveedores sirven un stream reproducible)
     video.src = streamUrl;
     video.addEventListener('loadedmetadata', () => spinner.classList.add('hidden'), { once: true });
     video.addEventListener('canplay', () => spinner.classList.add('hidden'), { once: true });
+    video.addEventListener('error', function e() {
+      spinner.classList.add('hidden');
+      bigplay.classList.remove('hidden');
+      showError('No se pudo reproducir este enlace. Puede estar caido o el formato no es compatible con el navegador.');
+      video.removeEventListener('error', e);
+    }, { once: true });
     tryPlay();
-    if (isMkv(streamUrl)) {
-      video.addEventListener('error', () => {
-        spinner.classList.add('hidden');
-        showError('Formato .mkv no compatible directo en este navegador. Sube el archivo en MP4/WebM o sirvelo con un servidor que lo convierta a HLS.');
-      }, { once: true });
+  }
+
+  function shouldProbe(url) {
+    if (/\.(m3u8|mp4|m4v|webm|ogv|mov|mp3|m4a|aac)($|\?)/i.test(url)) return false;
+    return (/^https?:/i.test(url));
+  }
+
+  async function probeHls(url) {
+    try {
+      const resp = await fetch(url, { headers: { Range: 'bytes=0-300' } });
+      if (!resp.ok && resp.status !== 206) return false;
+      const ct = (resp.headers.get('content-type') || '').toLowerCase();
+      if (ct.indexOf('mpegurl') !== -1 || ct.indexOf('m3u8') !== -1) return true;
+      const txt = await resp.text();
+      if (/^#EXTM3U/i.test((txt || '').trim())) return true;
+      return false;
+    } catch (e) {
+      return false;
     }
   }
 

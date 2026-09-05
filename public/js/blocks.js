@@ -20,7 +20,7 @@ export function defaultTheme() {
     font: 'Poppins',
     bg: '#0a0a0a',
     text: '#fafafa',
-    accent: '#00A3FF',
+    accent: '#ffffff',
     radius: 16,
     dark: true
   };

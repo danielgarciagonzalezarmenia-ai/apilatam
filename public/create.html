@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=6">
-  <link rel="stylesheet" href="css/builder.css?v=1">
+  <link rel="stylesheet" href="css/custom.css?v=7">
+  <link rel="stylesheet" href="css/builder.css?v=2">
   <link rel="stylesheet" href="css/stream.css?v=1">
 </head>
 <body>
@@ -71,8 +71,8 @@
         <div class="form-group">
           <label>Color principal</label>
           <div class="color-row">
-            <input type="color" id="f-accent" value="#00A3FF">
-            <span style="font-size:13px;color:var(--text-muted);" id="color-hex">#00A3FF</span>
+            <input type="color" id="f-accent" value="#ffffff">
+            <span style="font-size:13px;color:var(--text-muted);" id="color-hex">#ffffff</span>
           </div>
         </div>
         <div class="form-actions">
@@ -86,7 +86,7 @@
   <script type="module">
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
     import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-    import { db, onAuthChange, auth, logout, app, ensureUserDoc } from './js/auth.js?v=1';
+    import { db, onAuthChange, auth, logout, app, ensureUserDoc } from './js/auth.js?v=2';
     import { showToast, uid, FREE_LIMIT } from './js/util.js?v=1';
     import { defaultTheme, defaultBlocks } from './js/blocks.js?v=1';
 

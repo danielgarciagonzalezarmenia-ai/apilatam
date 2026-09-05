@@ -91,7 +91,7 @@ async function setupManifest(data, icon, name) {
       scope: './',
       display: 'standalone',
       background_color: data.theme && data.theme.bg ? data.theme.bg : '#0a0a0a',
-      theme_color: data.theme && data.theme.accent ? data.theme.accent : '#00A3FF',
+      theme_color: data.theme && data.theme.accent ? data.theme.accent : '#ffffff',
       icons: icon ? [
         { src: icon, sizes: '192x192', type: 'image/png', purpose: 'any' },
         { src: icon, sizes: '512x512', type: 'image/png', purpose: 'any' }

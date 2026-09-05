@@ -57,9 +57,21 @@
 
     let mode = 'login';
 
+    function redirectAfterAuth() {
+      let target = 'index.html';
+      try {
+        const r = localStorage.getItem('ltv-redirect');
+        if (r) {
+          localStorage.removeItem('ltv-redirect');
+          target = r;
+        }
+      } catch (e) {}
+      window.location.href = target;
+    }
+
     onAuthChange((user) => {
       if (user) {
-        window.location.href = 'index.html';
+        redirectAfterAuth();
       }
     });
 
@@ -104,7 +116,7 @@
           }
           await registerWithEmail(email, password);
         }
-        window.location.href = 'index.html';
+        redirectAfterAuth();
       } catch (error) {
         let msg = error.message || 'Error de autenticacion';
         if (error.code === 'auth/user-not-found') msg = 'No existe una cuenta con ese correo. Registrate con el boton "Registrarse".';
@@ -123,7 +135,7 @@
         btn.disabled = true;
         btn.textContent = 'Conectando...';
         await loginWithGoogle();
-        window.location.href = 'index.html';
+        redirectAfterAuth();
       } catch (error) {
         console.error(error);
         showAlert({ title: 'Error', message: 'Error al iniciar sesión: ' + error.message, okText: 'Entendido', variant: 'error' });

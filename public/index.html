@@ -339,7 +339,8 @@
       const url = item.m3u8Url || item.videoUrl || '';
       const href = 'player.html?src=' + encodeURIComponent(url)
         + '&title=' + encodeURIComponent(item.name || '')
-        + '&tag=' + encodeURIComponent(tag || '');
+        + '&tag=' + encodeURIComponent(tag || '')
+        + '&id=' + encodeURIComponent(item.id || '');
       window.location.href = href;
     }
 

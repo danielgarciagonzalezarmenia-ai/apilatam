@@ -23,7 +23,7 @@ function icon(name) {
   return paths[name] || '';
 }
 
-export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {}) {
+export async function initPlayer(host, { streamUrl, title = '', tag = '', startTime = 0 } = {}) {
   if (!host) throw new Error('No host element');
   playerSeq++;
   const id = 'ltv-player-' + playerSeq;
@@ -88,7 +88,17 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
   let uiTimer = null;
   let spinnerT = null;
   let autoplayMuted = false;
+  let resumed = false;
   const onPlaying = typeof window.__ltvOnPlaying === 'function' ? window.__ltvOnPlaying : null;
+
+  function restorePosition() {
+    if (resumed || !(startTime > 0)) return;
+    const d = video.duration;
+    if (isFinite(d) && d > startTime + 1) {
+      resumed = true;
+      video.currentTime = startTime;
+    }
+  }
 
   function setPlayIcon(paused) {
     playBtn.innerHTML = paused ? icon('play') : icon('pause');
@@ -143,6 +153,7 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
           hls.attachMedia(video);
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
             spinner.classList.add('hidden');
+            restorePosition();
             tryPlay();
           });
           hls.on(Hls.Events.ERROR, (_, data) => {
@@ -168,8 +179,14 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
 
     // native (mp4, webm, etc.)
     video.src = streamUrl;
-    video.addEventListener('loadedmetadata', () => spinner.classList.add('hidden'), { once: true });
-    video.addEventListener('canplay', () => spinner.classList.add('hidden'), { once: true });
+    video.addEventListener('loadedmetadata', () => {
+      spinner.classList.add('hidden');
+      restorePosition();
+    }, { once: true });
+    video.addEventListener('canplay', () => {
+      spinner.classList.add('hidden');
+      restorePosition();
+    }, { once: true });
     video.addEventListener('error', function e() {
       spinner.classList.add('hidden');
       bigplay.classList.remove('hidden');

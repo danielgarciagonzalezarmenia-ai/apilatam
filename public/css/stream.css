@@ -305,6 +305,26 @@
   margin-bottom: 24px;
 }
 .player-shell video { width: 100%; height: 100%; display: block; background: #000; }
+.player-shell.iframe-mode video { display: none; }
+.player-shell.iframe-mode iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+.player-shell.iframe-mode .player-top { z-index: 10; pointer-events: none; }
+.player-shell.iframe-mode .player-controls { display: none !important; }
+.player-shell.iframe-mode .player-bigplay { display: none !important; }
+.player-shell.iframe-mode .player-spinner { display: none !important; }
+.player-shell.iframe-mode .iframe-toolbar {
+  position: absolute;
+  top: 60px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.player-shell.iframe-mode.show-ui .iframe-toolbar { opacity: 1; pointer-events: auto; }
+.player-shell.iframe-mode .iframe-toolbar .btn {
+  display: inline-flex; align-items: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
 
 .player-top {
   position: absolute;

@@ -128,6 +128,8 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
     // Detect format: la extension es poco fiable (muchos proveedores usan .mkv
     // en URLs que en realidad son streams HLS o MP4/WebM reproducibles).
     let useHls = isHls(streamUrl);
+    const mkvFile = isMkv(streamUrl);
+
     if (!useHls && shouldProbe(streamUrl)) {
       useHls = await probeHls(streamUrl);
     }
@@ -151,11 +153,20 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
           return;
         }
       } catch (e) {
-        // fall back to native
+        // fall through to native
       }
     }
 
-    // native (mp4, webm, y .mkv cuyos proveedores sirven un stream reproducible)
+    // El <video> nativo no puede demultiplexar contenedores .mkv reales
+    // (Matroska). En cambio, abrir la URL directamente en el navegador SI lo
+    // reproduce. Para replicar ese comportamiento usamos un <iframe> que carga
+    // la URL y deja que el reproductor nativo del navegador haga el trabajo.
+    if (mkvFile) {
+      openNativeViewer();
+      return;
+    }
+
+    // native (mp4, webm, etc.)
     video.src = streamUrl;
     video.addEventListener('loadedmetadata', () => spinner.classList.add('hidden'), { once: true });
     video.addEventListener('canplay', () => spinner.classList.add('hidden'), { once: true });
@@ -166,6 +177,34 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
       video.removeEventListener('error', e);
     }, { once: true });
     tryPlay();
+  }
+
+  function openNativeViewer() {
+    spinner.classList.add('hidden');
+    bigplay.classList.add('hidden');
+    setTimeout(() => shell.classList.add('show-ui'), 0);
+    const iframe = document.createElement('iframe');
+    iframe.src = streamUrl;
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.border = '0';
+    iframe.style.position = 'absolute';
+    iframe.style.inset = '0';
+    shell.classList.add('iframe-mode');
+    video.replaceWith(iframe);
+    shell.querySelector('.player-controls').style.display = 'none';
+
+    // Si el servidor bloquea el iframe (X-Frame-Options / CSP), damos fallback
+    // para abrir la reproduccion en una pestana nueva, que siempre funciona.
+    const toolbar = document.createElement('div');
+    toolbar.className = 'iframe-toolbar';
+    const openBtn = document.createElement('button');
+    openBtn.className = 'btn btn-primary btn-sm';
+    openBtn.innerHTML = icon('play') + '<span style="margin-left:6px;">Abrir en pestana nueva</span>';
+    openBtn.addEventListener('click', () => { window.open(streamUrl, '_blank'); });
+    toolbar.appendChild(openBtn);
+    shell.appendChild(toolbar);
   }
 
   function shouldProbe(url) {
@@ -272,7 +311,7 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
   });
   closeBtn.addEventListener('click', () => {
     video.pause();
-    hls && hls.destroy();
+    if (hls) hls.destroy();
     host.innerHTML = '';
   });
 

@@ -166,7 +166,7 @@
       return seen;
     }
 
-    function mcard(m) {
+    function mcard(m, progress) {
       const src = m.imageUrl || '';
       return `
         <div class="mcard" data-id="${m.id}">
@@ -175,6 +175,7 @@
           <button class="btn-play" title="Ver">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           </button>
+          ${progress > 0 ? `<div class="mcard-progress"><span style="width:${Math.min(100, Math.round(progress * 100))}%"></span></div>` : ''}
           <div class="hover"><h4>${escapeHtml(m.name || '')}</h4>
             <div class="meta">${escapeHtml(m.year || '')} · ${escapeHtml(m.category || '')}</div>
           </div>
@@ -192,6 +193,11 @@
       renderHero(visible);
       const cats = uniqueCategories(visible);
       const rows = [];
+
+      // Fila "Seguir viendo": peliculas iniciadas y sin terminar, guardadas en el navegador.
+      const watching = getContinueWatching(visible);
+      if (watching.length) rows.push(rowBlock('Seguir viendo', watching, true));
+
       if (cats.length === 0) {
         rows.push(rowBlock('Todas las peliculas', visible));
       } else {
@@ -202,6 +208,71 @@
       }
       rowsEl.innerHTML = rows.join('');
       bindCards();
+      bindRowArrows();
+    }
+
+    function getContinueWatching(visibleList) {
+      const out = [];
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key || key.indexOf('ltv-progress-') !== 0) continue;
+          const raw = localStorage.getItem(key);
+          if (!raw) continue;
+          const p = JSON.parse(raw);
+          if (!p || typeof p.t !== 'number' || !(p.t > 3)) continue;
+          // Descartar terminadas (t >= d - 8)
+          if (typeof p.d === 'number' && p.d > 0 && p.t >= p.d - 8) continue;
+          const id = key.replace('ltv-progress-', '');
+          const m = visibleList.find(x => x.id === id);
+          if (!m) continue;
+          const progress = typeof p.d === 'number' && p.d > 0 ? Math.min(1, p.t / p.d) : 0;
+          out.push({ m, progress, ts: p.ts || 0 });
+        }
+      } catch (e) {}
+      out.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      return out;
+    }
+
+    function rowBlock(title, items, isWatching) {
+      const cards = isWatching
+        ? items.map(({ m, progress }) => mcard(m, progress)).join('')
+        : items.map(m => mcard(m)).join('');
+      return `
+        <div class="row-block">
+          <div class="row-head"><h2>${escapeHtml(title)}</h2><span class="count">${items.length}</span></div>
+          <div class="row-wrap">
+            <button class="row-arrow prev" aria-label="Anterior"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="row-scroll">${cards}</div>
+            <button class="row-arrow next" aria-label="Siguiente"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+          </div>
+        </div>`;
+    }
+
+    function bindRowArrows() {
+      document.querySelectorAll('.row-wrap').forEach(wrap => {
+        const scroll = wrap.querySelector('.row-scroll');
+        const prev = wrap.querySelector('.row-arrow.prev');
+        const next = wrap.querySelector('.row-arrow.next');
+        const canScroll = () => scroll.scrollWidth > scroll.clientWidth + 8;
+        const update = () => {
+          prev.classList.toggle('disabled', scroll.scrollLeft <= 2);
+          next.classList.toggle('disabled', scroll.scrollLeft + scroll.clientWidth >= scroll.scrollWidth - 2);
+        };
+        prev.addEventListener('click', () => { scroll.scrollBy({ left: -Math.max(180, scroll.clientWidth * 0.8), behavior: 'smooth' }); });
+        next.addEventListener('click', () => { scroll.scrollBy({ left: Math.max(180, scroll.clientWidth * 0.8), behavior: 'smooth' }); });
+        scroll.addEventListener('scroll', update);
+        window.addEventListener('resize', () => {
+          prev.classList.toggle('disabled', !canScroll());
+          next.classList.toggle('disabled', !canScroll());
+        });
+        if (!canScroll()) {
+          prev.classList.add('disabled');
+          next.classList.add('disabled');
+        } else {
+          update();
+        }
+      });
     }
 
     /* ---- Hero carousel (Recomendados) ---- */

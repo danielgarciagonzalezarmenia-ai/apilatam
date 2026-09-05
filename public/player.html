@@ -134,7 +134,7 @@
         return;
       }
       try {
-        localStorage.setItem(PROGRESS_KEY, JSON.stringify({ t, ts: Date.now(), title, tag }));
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify({ t, d: v.duration, ts: Date.now(), title, tag }));
       } catch (e) {}
     }
 

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Editor - AppForge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=6">
+  <link rel="stylesheet" href="css/builder.css?v=1">
+  <link rel="stylesheet" href="css/stream.css?v=1">
+</head>
+<body>
+
+  <div class="editor-top">
+    <div class="editor-top-inner">
+      <div class="app-mini">
+        <div id="mini-logo" class="fallback">A</div>
+        <div class="name" id="mini-name">Sin nombre</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-preview">Ver app</button>
+      <button class="btn btn-secondary btn-sm" id="btn-save">Guardar</button>
+      <button class="btn btn-primary btn-sm" id="btn-download">Descargar App</button>
+      <a href="dashboard.html" class="btn btn-secondary btn-sm">Panel</a>
+    </div>
+  </div>
+
+  <div class="editor-layout">
+    <!-- Paneles -->
+    <aside class="editor-panel">
+      <div class="panel-title">Agregar bloques</div>
+      <div class="block-palette" id="palette"></div>
+      <div class="panel-title" style="margin-top:28px;">Estructura</div>
+      <div class="block-list" id="block-list"></div>
+    </aside>
+
+    <!-- Preview -->
+    <section class="preview-wrap">
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-statusbar">
+          <span id="sb-time">9:41</span>
+          <span style="letter-spacing:1px;">&#128246;&#128268;&#128267;</span>
+        </div>
+        <div class="phone-screen" id="phone-screen"></div>
+      </div>
+    </section>
+
+    <!-- Inspector -->
+    <aside class="editor-panel">
+      <div class="panel-title" id="insp-title">Inspector</div>
+      <div id="inspector"></div>
+    </aside>
+  </div>
+
+  <!-- Modal descargar -->
+  <div id="dl-overlay" class="modal-overlay" style="display:none">
+    <div class="modal" style="max-width:440px;">
+      <h2>Descargar app</h2>
+      <div class="dl-grid">
+        <div class="qr-box"><div id="qr-loading" class="loading-spinner" style="margin:0;"></div><img id="qr-img" alt="Codigo QR" class="hidden"></div>
+        <p style="font-size:14px;color:var(--text-secondary);">
+          <strong style="color:var(--text-primary);">Instala en tu telefono</strong><br>
+          Escanea el codigo o abre el enlace. Desde ahi podras instalarla como una app en tu celular.
+        </p>
+        <div class="dl-url" id="dl-url"></div>
+        <div class="dl-actions">
+          <a class="btn btn-primary" id="btn-open-app" target="_blank">Abrir app</a>
+          <button class="btn btn-secondary" id="btn-copy-url">Copiar URL</button>
+          <button class="btn btn-secondary" id="dl-close">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { db, onAuthChange } from './js/auth.js?v=1';
+    import { showToast, escapeHtml, debounce, uid, copyText } from './js/util.js?v=1';
+    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks } from './js/blocks.js?v=1';
+
+    const $ = id => document.getElementById(id);
+    const params = new URLSearchParams(location.search);
+    const appId = params.get('id');
+    let currentUser = null;
+    let appData = null;
+    let blocks = [];
+    let theme = defaultTheme();
+    let selectedId = null;
+    let dirty = false;
+    let saveTimer = null;
+
+    if (!appId) { window.location.href = 'dashboard.html'; }
+
+    onAuthChange(async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUser = user;
+      await load();
+    });
+
+    async function load() {
+      const snap = await getDoc(doc(db, 'apps', appId));
+      if (!snap.exists()) { window.location.href = 'dashboard.html'; return; }
+      appData = snap.data();
+      if (appData.ownerId !== currentUser.uid) { window.location.href = 'dashboard.html'; return; }
+      blocks = appData.blocks && appData.blocks.length ? JSON.parse(JSON.stringify(appData.blocks)) : defaultBlocks();
+      theme = { ...defaultTheme(), ...(appData.theme || {}) };
+      $('mini-name').textContent = appData.name || 'Sin nombre';
+      const ml = $('mini-logo');
+      if (appData.logoUrl) { ml.innerHTML = `<img src="${escapeHtml(appData.logoUrl)}" alt="">`; ml.classList.remove('fallback'); }
+      else { ml.textContent = (appData.name || 'A')[0].toUpperCase(); }
+      renderPalette();
+      renderList();
+      selectBlock(null); // inspector = tema
+      renderPreview();
+      setupFont();
+    }
+
+    /* ---------- Fonts ---------- */
+    const FONTS = ['Poppins','Inter','Roboto','Montserrat','Oswald','Playfair Display','Lora','Space Grotesk','JetBrains Mono'];
+    function setupFont() {
+      if (!theme.font) return;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=' + theme.font.replace(/ /g, '+') + ':wght@400;600;700;800&display=swap';
+      document.head.appendChild(link);
+    }
+
+    /* ---------- Palette ---------- */
+    const ICONS = {
+      header: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+      heading: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M6 12h12"/></svg>',
+      text: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>',
+      image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="10" r="1.5"/><path d="m4 19 5-5 4 4 3-3 4 4"/></svg>',
+      button: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="10" rx="2"/></svg>',
+      video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3z"/></svg>',
+      youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18v12H3z"/><path d="m10 9 5 3-5 3z"/></svg>',
+      html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 6-5 6 5 6M16 6l5 6-5 6M13 5l-2 14"/></svg>',
+      list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>',
+      divider: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16"/></svg>',
+      spacer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6V2M8 6H4M16 6V2M16 6h4M8 18v4M8 18H4M16 18v4M16 18h4M4 8v8M20 8v8"/></svg>',
+      footer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15h16M6 18h12"/></svg>'
+    };
+    const PALETTE = [
+      { type: 'header', label: 'Encabezado' },
+      { type: 'heading', label: 'Titulo' },
+      { type: 'text', label: 'Texto' },
+      { type: 'image', label: 'Imagen' },
+      { type: 'button', label: 'Boton' },
+      { type: 'video', label: 'Video MP4' },
+      { type: 'youtube', label: 'YouTube' },
+      { type: 'html', label: 'HTML' },
+      { type: 'list', label: 'Lista' },
+      { type: 'divider', label: 'Divisor' },
+      { type: 'spacer', label: 'Espacio' },
+      { type: 'footer', label: 'Pie' }
+    ];
+
+    function renderPalette() {
+      const el = $('palette');
+      el.innerHTML = PALETTE.map(p => `
+        <button class="palette-btn" data-add="${p.type}">
+          ${ICONS[p.type] || ''}
+          <span>${p.label}</span>
+        </button>`).join('');
+      el.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => addBlock(b.dataset.add)));
+    }
+
+    function newBlock(type) {
+      const b = { id: 'b' + uid(), type };
+      switch (type) {
+        case 'header': b.text = 'Mi App'; b.subtitle = 'Subtitulo'; b.showLogo = true; b.logo = ''; b.align = 'center'; break;
+        case 'heading': b.text = 'Nuevo titulo'; b.align = 'left'; b.size = 26; break;
+        case 'text': b.text = 'Escribe aqui tu texto.'; b.align = 'left'; b.size = 15; b.opacity = 0.85; break;
+        case 'image': b.url = ''; b.align = 'center'; b.width = 100; break;
+        case 'button': b.text = 'Boton'; b.url = '#'; b.variant = 'solid'; b.align = 'center'; break;
+        case 'video': b.type = 'video'; b.url = ''; break;
+        case 'youtube': b.type = 'youtube'; b.url = ''; break;
+        case 'html': b.html = '<p style="margin:0;">Mi <strong>bloque</strong> HTML.</p>'; break;
+        case 'list': b.items = [{ icon: '\u2713', text: 'Elemento 1', desc: '' }, { icon: '\u2713', text: 'Elemento 2', desc: '' }]; break;
+        case 'divider': break;
+        case 'spacer': b.height = 24; break;
+        case 'footer': b.text = 'AppForge \u00A9 2026'; break;
+      }
+      return b;
+    }
+
+    function addBlock(type) {
+      const b = newBlock(type);
+      blocks.push(b);
+      renderList();
+      selectBlock(b.id);
+      renderPreview();
+      markDirty();
+    }
+
+    /* ---------- List ---------- */
+    function renderList() {
+      const el = $('block-list');
+      el.innerHTML = blocks.map((b, i) => `
+        <div class="block-row ${b.id === selectedId ? 'selected' : ''}" data-id="${b.id}">
+          <span class="btype">${BLOCK_TYPES[b.type] || b.type}</span>
+          <div class="btools">
+            <button data-up="${b.id}" title="Subir">${ICONS_UP}</button>
+            <button data-down="${b.id}" title="Bajar">${ICONS_DOWN}</button>
+            <button class="del" data-del="${b.id}" title="Eliminar">${ICONS_X}</button>
+          </div>
+        </div>`).join('');
+      el.querySelectorAll('.block-row[data-id]').forEach(row => row.addEventListener('click', (e) => {
+        if (e.target.closest('[data-up],[data-down],[data-del]')) return;
+        selectBlock(row.dataset.id);
+      }));
+      el.querySelectorAll('[data-up]').forEach(b => b.addEventListener('click', () => move(b.dataset.up, -1)));
+      el.querySelectorAll('[data-down]').forEach(b => b.addEventListener('click', () => move(b.dataset.down, 1)));
+      el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => removeBlock(b.dataset.del)));
+    }
+
+    const ICONS_UP = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6-6 6 6M12 3v18"/></svg>';
+    const ICONS_DOWN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 15 6 6 6-6M12 21V3"/></svg>';
+    const ICONS_X = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+    function move(id, dir) {
+      const i = blocks.findIndex(b => b.id === id);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= blocks.length) return;
+      [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
+      renderList();
+      renderPreview();
+      markDirty();
+    }
+
+    function removeBlock(id) {
+      blocks = blocks.filter(b => b.id !== id);
+      if (selectedId === id) selectBlock(null);
+      renderList();
+      renderPreview();
+      markDirty();
+    }
+
+    /* ---------- Selection & inspector ---------- */
+    function selectBlock(id) {
+      selectedId = id;
+      renderList();
+      renderInspector();
+    }
+
+    function field(label, inputHtml, key) {
+      return `<div class="inspector-field"><label>${label}</label>${inputHtml}</div>`;
+    }
+    function input(k, v, opts = {}) {
+      const type = opts.type || 'text';
+      return `<input type="${type}" class="input" data-k="${k}" value="${escapeHtml(v)}" ${opts.ph ? `placeholder="${opts.ph}"` : ''}>`;
+    }
+    function sel(k, v, options) {
+      return `<select class="select" data-k="${k}">${options.map(o => `<option value="${o}" ${String(v) === String(o) ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+    }
+    function textarea(k, v, rows = 3) {
+      return `<textarea class="input" data-k="${k}" rows="${rows}">${escapeHtml(v)}</textarea>`;
+    }
+    function colorField(k, v) {
+      return `<div class="color-row"><input type="color" data-k="${k}" value="${escapeHtml(v)}" style="width:44px;height:34px;"><input class="input" data-k="${k}" value="${escapeHtml(v)}" style="flex:1;"></div>`;
+    }
+
+    function renderInspector() {
+      const el = $('inspector');
+      const block = blocks.find(b => b.id === selectedId);
+      if (!block) {
+        // Tema global
+        $('insp-title').textContent = 'App (tema global)';
+        el.innerHTML = `
+          ${field('Tipografia', sel('font', theme.font, FONTS))}
+          ${field('Color de fondo', colorField('bg', theme.bg))}
+          ${field('Color de texto', colorField('text', theme.text))}
+          ${field('Color de acento', colorField('accent', theme.accent))}
+          ${field('Esquinas (radius)', input('radius', theme.radius, { type: 'number' }))}
+          <div class="inspector-field"><label>Modo</label><div class="seg">
+            <button data-theme-mode="dark" class="${theme.dark ? 'active' : ''}">Oscuro</button>
+            <button data-theme-mode="light" class="${!theme.dark ? 'active' : ''}">Claro</button>
+          </div></div>`;
+        el.querySelectorAll('[data-theme-mode]').forEach(b => b.addEventListener('click', () => setDark(b.dataset.themeMode === 'dark')));
+      } else {
+        $('insp-title').textContent = BLOCK_TYPES[block.type] || 'Bloque';
+        el.innerHTML = inspectorFor(block);
+      }
+      bindInspector(el, block);
+    }
+
+    function inspectorFor(b) {
+      switch (b.type) {
+        case 'header': return field('Titulo', input('text', b.text)) + field('Subtitulo', input('subtitle', b.subtitle)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="inspector-field"><label><input type="checkbox" data-k="showLogo" ${b.showLogo ? 'checked' : ''}> Mostrar logo</label></div>` + field('Logo (URL)', input('logo', b.logo));
+        case 'heading': return field('Texto', input('text', b.text)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
+        case 'text': return field('Texto', textarea('text', b.text, 5)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
+        case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' }));
+        case 'button': return field('Texto', input('text', b.text)) + field('Enlace', input('url', b.url)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right']));
+        case 'video':
+        case 'youtube': return field('URL del video', input('url', b.url, { ph: b.type === 'youtube' ? 'https://youtube.com/watch?v=...' : 'https://...mp4' }));
+        case 'html': return field('Codigo HTML', textarea('html', b.html, 8));
+        case 'list': return `
+          <div class="inspector-field"><label>Elementos</label></div>
+          ${(b.items || []).map((it, i) => `
+            <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+              <input class="input" data-item-icon="${i}" value="${escapeHtml(it.icon || '')}" style="width:52px;text-align:center;" placeholder="Icono">
+              <input class="input" data-item-text="${i}" value="${escapeHtml(it.text || '')}" placeholder="Texto">
+              <button class="btn btn-danger btn-sm" data-item-del="${i}" style="padding:7px 9px;">${ICONS_X}</button>
+            </div>
+            <input class="input" data-item-desc="${i}" value="${escapeHtml(it.desc || '')}" placeholder="Descripcion (opcional)" style="margin-bottom:10px;">`).join('')}
+          <button class="btn btn-secondary btn-sm" id="list-add" style="width:100%;">+ Agregar elemento</button>`;
+        case 'divider': return '<p style="color:var(--text-muted);font-size:13px;">Bloque divisor. No tiene opciones.</p>';
+        case 'spacer': return field('Altura (px)', input('height', b.height, { type: 'number' }));
+        case 'footer': return field('Texto', input('text', b.text));
+        default: return '<p style="color:var(--text-muted);font-size:13px;">Sin opciones.</p>';
+      }
+    }
+
+    function bindInspector(el, block) {
+      if (block) {
+        el.querySelectorAll('[data-k]').forEach(inp => {
+          const k = inp.dataset.k;
+          const evt = inp.type === 'checkbox' ? 'change' : 'input';
+          inp.addEventListener(evt, () => {
+            let val = inp.value;
+            if (inp.type === 'checkbox') val = inp.checked;
+            else if (inp.type === 'number') val = Number(val);
+            else if (inp.type === 'color' && k === 'radius') val = Number(val);
+            block[k] = val;
+            // color field sync (two inputs share k)
+            if (inp.type === 'color') {
+              el.querySelectorAll(`input[data-k="${k}"]`).forEach(x => { if (x !== inp && x.type === 'text') x.value = val; });
+            }
+            if (inp.type === 'text' && /^#/.test(String(block[k]))) {
+              el.querySelectorAll(`input[data-k="${k}"]`).forEach(x => { if (x !== inp && x.type === 'color') x.value = val; });
+            }
+            renderPreview();
+            markDirty();
+          });
+        });
+        el.querySelectorAll('[data-item-text]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            const i = +inp.dataset.itemText;
+            block.items[i].text = inp.value;
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-item-desc]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            block.items[+inp.dataset.itemDesc].desc = inp.value;
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-item-icon]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            block.items[+inp.dataset.itemIcon].icon = inp.value;
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-item-del]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            block.items.splice(+btn.dataset.itemDel, 1);
+            renderInspector(); renderPreview(); markDirty();
+          });
+        });
+        const addBtn = el.querySelector('#list-add');
+        if (addBtn) addBtn.addEventListener('click', () => {
+          block.items = block.items || [];
+          block.items.push({ icon: '\u2713', text: 'Nuevo elemento', desc: '' });
+          renderInspector(); renderPreview(); markDirty();
+        });
+      } else {
+        el.querySelectorAll('[data-k]').forEach(inp => {
+          const k = inp.dataset.k;
+          inp.addEventListener('input', () => {
+            let val = inp.value;
+            if (inp.type === 'number') val = Number(val);
+            theme[k] = val;
+            if (inp.type === 'color') {
+              el.querySelectorAll(`input[data-k="${k}"]`).forEach(x => { if (x !== inp && x.type === 'text') x.value = val; });
+            } else if (inp.type === 'text' && /^#/.test(String(val))) {
+              el.querySelectorAll(`input[data-k="${k}"]`).forEach(x => { if (x !== inp && x.type === 'color') x.value = val; });
+            }
+            renderPreview();
+            markDirty();
+          });
+        });
+      }
+    }
+
+    function setDark(dark) {
+      theme.dark = dark;
+      if (dark && !theme.bg) theme.bg = '#0a0a0a';
+      // Forzar colores coherentes segun el modo
+      if (dark) { theme.bg = '#0a0a0a'; theme.text = '#fafafa'; }
+      else { theme.bg = '#ffffff'; theme.text = '#111111'; }
+      renderInspector();
+      renderPreview();
+      markDirty();
+    }
+
+    /* ---------- Preview ---------- */
+    function renderPreview() {
+      const screen = $('phone-screen');
+      const t = { ...theme, fontReady: theme.font };
+      const inner = renderBlocks(blocks, t);
+      const bg = t.dark ? t.bg : (t.bg || '#ffffff');
+      const tc = t.dark ? t.text : (t.text || '#111111');
+      $('sb-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      screen.innerHTML = `<div class="ab-phone-root" style="--t-font:${t.font},system-ui,sans-serif;--t-bg:${bg};--t-text:${tc};--t-accent:${t.accent};--t-radius:${t.radius}px;">${inner}</div>`;
+      screen.style.background = bg;
+      screen.querySelectorAll('a').forEach(a => a.addEventListener('click', e => e.preventDefault()));
+      syncTheme(t);
+    }
+
+    function syncTheme(t) {
+      const root = $('phone-screen').querySelector('.ab-phone-root');
+      if (root) {
+        root.style.setProperty('--t-bg', t.dark ? t.bg : t.bg);
+        root.style.setProperty('--t-text', t.text);
+        root.style.setProperty('--t-accent', t.accent);
+        root.style.setProperty('--t-radius', (t.radius || 16) + 'px');
+      }
+    }
+
+    /* ---------- Save ---------- */
+    function markDirty() {
+      dirty = true;
+      scheduleSave();
+    }
+
+    function scheduleSave() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(save, 800);
+    }
+
+    async function save() {
+      if (!appId || !currentUser || !appData) return;
+      try {
+        await updateDoc(doc(db, 'apps', appId), {
+          blocks,
+          theme,
+          updatedAt: serverTimestamp(),
+          published: true
+        });
+        dirty = false;
+      } catch (e) {
+        console.error('save error', e);
+      }
+    }
+
+    $('btn-save').addEventListener('click', async () => {
+      await save();
+      showToast('Cambios guardados', 'success');
+    });
+
+    /* ---------- Download / install modal ---------- */
+    const appUrl = () => location.origin + location.pathname.replace(/editor\.html$/, '') + 'view.html?id=' + appId;
+
+    $('btn-download').addEventListener('click', async () => {
+      await save();
+      const url = appUrl();
+      $('dl-url').textContent = url;
+      $('btn-open-app').href = url;
+      const qr = $('qr-img');
+      qr.classList.add('hidden');
+      $('qr-loading').classList.remove('hidden');
+      qr.onload = () => { $('qr-loading').classList.add('hidden'); qr.classList.remove('hidden'); };
+      qr.onerror = () => { $('qr-loading').classList.add('hidden'); $('qr-img').classList.remove('hidden'); };
+      qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=8&data=' + encodeURIComponent(url);
+      $('dl-overlay').style.display = 'flex';
+      $('dl-overlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+
+    $('dl-close').addEventListener('click', () => {
+      $('dl-overlay').classList.remove('active');
+      $('dl-overlay').style.display = 'none';
+      document.body.style.overflow = '';
+    });
+    $('dl-overlay').addEventListener('click', e => {
+      if (e.target === e.currentTarget) {
+        $('dl-overlay').classList.remove('active');
+        $('dl-overlay').style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
+    $('btn-copy-url').addEventListener('click', () => copyText(appUrl()));
+
+    $('btn-preview').addEventListener('click', async () => {
+      await save();
+      window.open(appUrl(), '_blank');
+    });
+
+    window.addEventListener('beforeunload', (e) => {
+      if (dirty) { e.preventDefault(); e.returnValue = ''; }
+    });
+  </script>
+</body>
+</html>

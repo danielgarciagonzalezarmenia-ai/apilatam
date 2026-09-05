@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Nueva App - AppForge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=6">
+  <link rel="stylesheet" href="css/builder.css?v=1">
+  <link rel="stylesheet" href="css/stream.css?v=1">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="brand">App<span class="dot">Forge</span></a>
+      <div class="navbar-links">
+        <a href="dashboard.html" class="nav-link">Mis apps</a>
+      </div>
+      <a href="login.html" id="login-btn" class="btn btn-primary btn-sm">Iniciar Sesion</a>
+      <div id="profile-wrap" class="profile-wrap hidden">
+        <button id="profile-btn" class="profile-btn" aria-label="Perfil">
+          <img class="profile-avatar" id="profile-avatar" alt="Perfil">
+        </button>
+        <div id="profile-drop" class="profile-drop hidden">
+          <div class="p-name" id="profile-name"></div>
+          <div class="p-email" id="profile-email"></div>
+          <button id="logout-btn" class="btn btn-secondary btn-sm">Cerrar Sesion</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container" style="padding-top:40px;padding-bottom:80px;">
+    <div class="create-wrap">
+      <div class="dashboard-header">
+        <div>
+          <h1 style="font-size:28px;font-weight:700;letter-spacing:-0.02em;">Crear nueva app</h1>
+          <p style="color:var(--text-secondary);font-size:14px;margin-top:4px;">Llena la informacion basica. El resto lo diseñas en el editor.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:8px;">
+        <div class="form-group">
+          <label>Nombre de la app *</label>
+          <input type="text" id="f-name" class="input" placeholder="Ej. Mi Tienda" maxlength="40" required>
+        </div>
+        <div class="form-group">
+          <label>Version</label>
+          <input type="text" id="f-version" class="input" value="1.0.0" placeholder="1.0.0" maxlength="12">
+        </div>
+        <div class="form-group">
+          <label>Descripcion (opcional)</label>
+          <textarea id="f-desc" class="input" rows="3" placeholder="Describe brevemente tu app y lo que ofrece." maxlength="300"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Logo de la app</label>
+          <div class="logo-upload">
+            <div class="logo-preview" id="logo-preview">Pega una URL<br>o sube imagen</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+              <input type="url" id="f-logo" class="input" placeholder="https://ejemplo.com/logo.png">
+              <input type="file" id="f-logo-file" accept="image/png,image/jpeg,image/webp" style="color:var(--text-muted);font-size:13px;">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Color principal</label>
+          <div class="color-row">
+            <input type="color" id="f-accent" value="#00A3FF">
+            <span style="font-size:13px;color:var(--text-muted);" id="color-hex">#00A3FF</span>
+          </div>
+        </div>
+        <div class="form-actions">
+          <a href="dashboard.html" class="btn btn-secondary">Cancelar</a>
+          <button id="btn-create" class="btn btn-primary">Crear app y abrir editor</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+    import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { db, onAuthChange, auth, logout, app, ensureUserDoc } from './js/auth.js?v=1';
+    import { showToast, uid, FREE_LIMIT } from './js/util.js?v=1';
+    import { defaultTheme, defaultBlocks } from './js/blocks.js?v=1';
+
+    const $ = id => document.getElementById(id);
+    let currentUser = null;
+    let userDoc = null;
+
+    onAuthChange(async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUser = user;
+      $('profile-avatar').src = user.photoURL || '';
+      $('profile-name').textContent = user.displayName || '';
+      $('profile-email').textContent = user.email || '';
+      userDoc = await ensureUserDoc(user);
+    });
+
+    $('f-logo').addEventListener('input', () => previewLogo($('f-logo').value));
+    $('f-logo-file').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => previewLogo(reader.result, true);
+      reader.readAsDataURL(file);
+    });
+    $('f-accent').addEventListener('input', () => {
+      $('#color-hex').textContent = $('f-accent').value;
+    });
+
+    function previewLogo(src) {
+      const box = $('logo-preview');
+      if (!src) { box.innerHTML = 'Pega una URL<br>o sube imagen'; return; }
+      box.innerHTML = '<img src="' + src + '" alt="" onerror="this.parentNode.innerHTML=\'Imagen invalida\'">';
+    }
+
+    $('btn-create').addEventListener('click', async () => {
+      const name = $('f-name').value.trim();
+      if (!name) return showToast('Escribe el nombre de la app', 'error');
+      if (!currentUser) return showToast('Inicia sesion primero', 'error');
+
+      // Checar / crear el documento de usuario (limite gratis)
+      const ud = userDoc || await ensureUserDoc(currentUser);
+      if (ud && ud.plan !== 'pro') {
+        const snap = await getDocs(query(collection(db, 'apps'), where('ownerId', '==', currentUser.uid)));
+        if (snap.size >= FREE_LIMIT) {
+          showToast('Limite gratuito alcanzado. Mejora a Pro para crear mas apps.', 'error');
+          setTimeout(() => window.location.href = 'plans.html', 1400);
+          return;
+        }
+      }
+
+      const btn = $('btn-create');
+      btn.disabled = true;
+      btn.textContent = 'Creando...';
+
+      let logoUrl = $('f-logo').value.trim();
+      const file = $('f-logo-file').files && $('f-logo-file').files[0];
+      if (file && file.size < 3 * 1024 * 1024) {
+        try {
+          const storage = getStorage(app);
+          const stoRef = ref(storage, 'logos/' + currentUser.uid + '/' + Date.now() + '-' + uid() + file.name.replace(/[^a-z0-9.]/gi, ''));
+          await uploadBytes(stoRef, file);
+          logoUrl = await getDownloadURL(stoRef);
+        } catch (e) {
+          showToast('El logo quedo en la preview pero no se subio: ' + e.message, 'error');
+        }
+      }
+
+      const data = {
+        ownerId: currentUser.uid,
+        name,
+        version: ($('f-version').value.trim() || '1.0.0'),
+        description: $('f-desc').value.trim(),
+        logoUrl,
+        accent: $('f-accent').value,
+        theme: { ...defaultTheme(), accent: $('f-accent').value },
+        blocks: defaultBlocks(),
+        published: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      try {
+        const docRef = await addDoc(collection(db, 'apps'), data);
+        showToast('App creada', 'success');
+        window.location.href = 'editor.html?id=' + docRef.id;
+      } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Crear app y abrir editor';
+      }
+    });
+
+    document.getElementById('profile-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      $('profile-drop').classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => $('profile-drop').classList.add('hidden'));
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      logout();
+    });
+  </script>
+</body>
+</html>

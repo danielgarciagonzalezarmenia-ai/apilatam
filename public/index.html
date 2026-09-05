@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>AppForge - Crea tu app en minutos</title>
+  <meta name="description" content="AppForge: crea apps profesionales sin programar. Elige tu logo, colores, tipografia, agrega secciones, videos y descargala en segundos.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=6">
+  <link rel="stylesheet" href="css/builder.css?v=1">
+  <link rel="stylesheet" href="css/stream.css?v=1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2300A3FF'/%3E%3Ctext x='32' y='44' font-size='34' font-weight='bold' text-anchor='middle' fill='%23000' font-family='Arial'%3EA%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="brand">App<span class="dot">Forge</span></a>
+      <div class="navbar-links">
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#planes">Planes</a>
+        <a href="login.html" id="login-btn" class="btn btn-primary btn-sm">Comenzar</a>
+        <div id="profile-wrap" class="profile-wrap hidden">
+          <button id="profile-btn" class="profile-btn" aria-label="Perfil">
+            <img class="profile-avatar" id="profile-avatar" alt="Perfil">
+          </button>
+          <div id="profile-drop" class="profile-drop hidden">
+            <div class="p-name" id="profile-name"></div>
+            <div class="p-email" id="profile-email"></div>
+            <button id="logout-btn" class="btn btn-secondary btn-sm">Cerrar Sesion</button>
+          </div>
+        </div>
+      </div>
+      <button class="hamburger" onclick="document.querySelector('.navbar-links').classList.toggle('open')" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>Crea tu app<br>en minutos</h1>
+    <p>Elige tu logo, colores y tipografia. Agrega secciones, videos o bloques HTML. Descarga tu app y compartela con un QR. Sin programar.</p>
+    <div class="hero-buttons">
+      <a href="create.html" class="btn btn-primary btn-lg">Crear mi app gratis</a>
+      <a href="#planes" class="btn btn-secondary btn-lg">Ver planes</a>
+    </div>
+  </header>
+
+  <div class="divider-line"></div>
+
+  <section class="section" id="como-funciona">
+    <h2 class="section-title">Asi de facil</h2>
+    <p class="section-subtitle">Tres pasos y tu app esta lista para compartir.</p>
+    <div class="feature-grid" style="max-width:900px;margin:0 auto;">
+      <div class="feature-card">
+        <div class="feature-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </div>
+        <h3>1. Registrate con Google</h3>
+        <p>Un clic y ya tienes tu cuenta. Desde el panel crea hasta 2 apps gratis.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        </div>
+        <h3>2. Disena con el editor</h3>
+        <p>Agrega secciones, textos, botones, imagenes, videos o codigo HTML. Cambia colores y tipografias con vista previa en vivo.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon orange">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15V6"/><path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M12 12H3"/><path d="M16 6H3"/><path d="M12 18H3"/></svg>
+        </div>
+        <h3>3. Descargala y comparte</h3>
+        <p>Instala la app en tu telefono, copia la URL o comparte el codigo QR para que cualquiera la descargue.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider-line"></div>
+
+  <section class="section" id="planes">
+    <h2 class="section-title">Planes</h2>
+    <p class="section-subtitle">Empieza gratis. Mejora cuando lo necesites.</p>
+    <div class="plans-grid">
+      <div class="plan-card">
+        <div class="plan-name">Gratis</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-period">para siempre</div>
+        <ul class="plan-features">
+          <li>2 apps</li>
+          <li>Editor completo</li>
+          <li>Tipografias y colores</li>
+          <li>Secciones, videos y HTML</li>
+          <li>URL y QR para compartir</li>
+        </ul>
+        <a href="create.html" class="btn btn-primary" style="width:100%;">Comenzar gratis</a>
+      </div>
+      <div class="plan-card popular">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$10<span style="font-size:20px;color:var(--text-muted);">/mes</span></div>
+        <div class="plan-period">apps ilimitadas</div>
+        <ul class="plan-features">
+          <li>Apps ilimitadas</li>
+          <li>Todo lo del plan gratis</li>
+          <li>Sin marca de AppForge</li>
+          <li>Prioridad en generacion de APK</li>
+          <li>Soporte prioritario</li>
+        </ul>
+        <a href="login.html" class="btn btn-primary" style="width:100%;">Mejorar a Pro</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span style="font-size:14px;color:var(--text-muted);">2026 AppForge. Todos los derechos reservados.</span>
+      <div class="footer-links">
+        <a href="privacy.html">Privacidad</a>
+        <a href="terms.html">Terminos</a>
+        <a href="login.html">Panel</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onAuthChange, auth, logout } from './js/auth.js?v=1';
+    import { escapeHtml } from './js/util.js?v=1';
+
+    onAuthChange((user) => {
+      const wrap = document.getElementById('profile-wrap');
+      const drop = document.getElementById('profile-drop');
+      const loginBtn = document.getElementById('login-btn');
+      if (user) {
+        document.getElementById('profile-avatar').src = user.photoURL || '';
+        document.getElementById('profile-name').textContent = user.displayName || '';
+        document.getElementById('profile-email').textContent = user.email || '';
+        loginBtn.classList.add('hidden');
+        wrap.classList.remove('hidden');
+        drop.classList.add('hidden');
+      } else {
+        wrap.classList.add('hidden');
+        loginBtn.classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('profile-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('profile-drop').classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => document.getElementById('profile-drop').classList.add('hidden'));
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      logout();
+    });
+  </script>
+</body>
+</html>

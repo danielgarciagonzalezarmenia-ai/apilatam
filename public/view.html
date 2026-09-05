@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>App - AppForge</title>
+  <link rel="stylesheet" href="css/custom.css?v=6">
+  <link rel="stylesheet" href="css/stream.css?v=1">
+  <link rel="stylesheet" href="css/builder.css?v=1">
+  <script type="module">
+    (async () => {
+      const params = new URLSearchParams(location.search);
+      const appId = params.get('id');
+      try {
+        const { initAppPage } = await import('./js/appview.js?v=1');
+        initAppPage(appId);
+      } catch (e) {
+        console.error(e);
+        document.getElementById('v-root').innerHTML = '<div class="v-error">Error al cargar la app.<br><a href="index.html">Ir a AppForge</a></div>';
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div id="v-root"></div>
+  <div class="v-install" id="v-install" style="display:none;">
+    <div class="v-install-inner">
+      <img id="v-install-icon" alt="">
+      <div style="flex:1;min-width:0;">
+        <div class="v-install-name" id="v-install-name"></div>
+        <div class="v-install-sub" id="v-install-sub"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" id="v-install-btn">Instalar</button>
+    </div>
+  </div>
+</body>
+</html>

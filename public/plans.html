@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Planes - AppForge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=6">
+  <link rel="stylesheet" href="css/builder.css?v=1">
+  <link rel="stylesheet" href="css/stream.css?v=1">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="brand">App<span class="dot">Forge</span></a>
+      <div class="navbar-links">
+        <a href="dashboard.html" class="btn btn-primary btn-sm">Mi panel</a>
+        <div id="profile-wrap" class="profile-wrap hidden">
+          <button id="profile-btn" class="profile-btn" aria-label="Perfil">
+            <img class="profile-avatar" id="profile-avatar" alt="Perfil">
+          </button>
+          <div id="profile-drop" class="profile-drop hidden">
+            <div class="p-name" id="profile-name"></div>
+            <div class="p-email" id="profile-email"></div>
+            <button id="logout-btn" class="btn btn-secondary btn-sm">Cerrar Sesion</button>
+          </div>
+        </div>
+      </div>
+      <button class="hamburger" onclick="document.querySelector('.navbar-links').classList.toggle('open')" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <section class="section">
+    <h2 class="section-title">Mejora a Pro</h2>
+    <p class="section-subtitle">Apps ilimitadas por solo $10 al mes.</p>
+
+    <div id="plans-container" class="plans-grid">
+      <div class="plan-card">
+        <div class="plan-name">Gratis</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-period">para siempre</div>
+        <ul class="plan-features">
+          <li>2 apps</li>
+          <li>Editor completo</li>
+          <li>Tipografias y colores</li>
+          <li>Secciones, videos y HTML</li>
+          <li>URL y QR para compartir</li>
+        </ul>
+        <span id="free-cta" class="btn btn-secondary" style="width:100%;">Tu plan actual</span>
+      </div>
+      <div class="plan-card popular">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$10<span style="font-size:20px;color:var(--text-muted);">/mes</span></div>
+        <div class="plan-period">apps ilimitadas</div>
+        <ul class="plan-features">
+          <li>Apps ilimitadas</li>
+          <li>Todo lo del plan gratis</li>
+          <li>Sin marca de AppForge</li>
+          <li>Prioridad en generacion de APK</li>
+          <li>Soporte prioritario</li>
+        </ul>
+        <button id="pro-cta" class="btn btn-primary" style="width:100%;">Mejorar a Pro - $10/mes</button>
+      </div>
+    </div>
+
+    <div class="pro-note" style="text-align:center;max-width:560px;margin:40px auto 0;padding:20px;border:1px dashed var(--border);border-radius:var(--radius-xl);">
+      <p style="font-size:14px;color:var(--text-muted);">
+        El pago se habilitara proximamente. Si ya pagaste o quieres activar Pro
+        ahora, contactanos con tu correo y lo activamos manualmente.
+      </p>
+      <p style="font-size:13px;color:var(--warning);margin-top:8px;">Enviame un mensaje con tu correo registrado.</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span style="font-size:14px;color:var(--text-muted);">2026 AppForge. Todos los derechos reservados.</span>
+      <div class="footer-links">
+        <a href="privacy.html">Privacidad</a>
+        <a href="terms.html">Terminos</a>
+        <a href="dashboard.html">Panel</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { onAuthChange, db, getUser, logout } from './js/auth.js?v=1';
+    import { updateDoc, doc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { showToast } from './js/util.js?v=1';
+
+    const $ = id => document.getElementById(id);
+    let plan = 'free';
+
+    onAuthChange(async (user) => {
+      if (!user) {
+        $('pro-cta').textContent = 'Iniciar sesion para activar Pro';
+        return;
+      }
+      $('profile-avatar').src = user.photoURL || '';
+      $('profile-name').textContent = user.displayName || '';
+      $('profile-email').textContent = user.email || '';
+      const ud = await getUser(user.uid);
+      plan = ud && ud.plan === 'pro' ? 'pro' : 'free';
+      renderPlan();
+    });
+
+    function renderPlan() {
+      if (plan === 'pro') {
+        $('free-cta').textContent = 'Plan gratis';
+        $('free-cta').className = 'btn btn-secondary';
+        $('pro-cta').textContent = 'Pro activo';
+        $('pro-cta').disabled = true;
+        $('pro-cta').style.opacity = '0.6';
+      }
+    }
+
+    $('pro-cta').addEventListener('click', async () => {
+      const u = await new Promise(res => onAuthChange(res));
+      if (!u) { window.location.href = 'login.html'; return; }
+      showToast('El pago se habilitara pronto. Escribeme tu correo para activarlo.', 'info');
+    });
+
+    document.getElementById('profile-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      $('profile-drop').classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => $('profile-drop').classList.add('hidden'));
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      logout();
+    });
+  </script>
+</body>
+</html>

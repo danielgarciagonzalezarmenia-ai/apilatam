@@ -8,23 +8,29 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>API LATAM - API de Canales TV y Peliculas</title>
-  <meta name="description" content="Proveedor de API para canales de television en vivo y peliculas. Accede a miles de canales y peliculas a traves de nuestra API REST.">
+  <title>LatamTv - Peliculas y Canales de TV</title>
+  <meta name="description" content="LatamTv: mira peliculas y canales de television en vivo, gratis y sin limites.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=4">
+  <link rel="stylesheet" href="css/custom.css?v=5">
+  <link rel="stylesheet" href="css/stream.css?v=5">
 </head>
 <body>
 
-  <nav class="navbar">
+  <nav class="navbar stream-nav">
     <div class="navbar-inner">
-      <a href="index.html" class="navbar-logo">API LATAM</a>
+      <a href="index.html" class="brand">Latam<span class="dot">Tv</span></a>
       <div class="navbar-links">
-        <a href="#planes">Planes</a>
-        <a href="#features">Funciones</a>
-        <a href="docs.html">Documentacion</a>
-        <a href="login.html" class="btn btn-primary btn-sm">Iniciar Sesion</a>
+        <a href="index.html" id="nav-movies" class="nav-link active">Peliculas</a>
+        <a href="#canales" id="nav-channels" class="nav-link">Canales TV</a>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="search" class="input" placeholder="Buscar...">
+        </div>
+        <span id="user-chip" class="hidden" style="font-size:14px;font-weight:500;color:var(--text-secondary);padding:8px 4px;"></span>
+        <a href="login.html" id="login-btn" class="btn btn-primary btn-sm">Iniciar Sesion</a>
+        <a href="login.html" id="logout-btn" class="btn btn-secondary btn-sm hidden">Cerrar Sesion</a>
       </div>
       <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -32,133 +38,43 @@
     </div>
   </nav>
 
-  <section class="hero">
-    <div class="container">
-      <h1>API de Canales TV<br>y Peliculas</h1>
-      <p>Accede a miles de canales de television en vivo y peliculas a traves de una API REST simple y rapida. Ideal para aplicaciones IPTV, centros multimedia y proyectos de streaming.</p>
-      <div class="hero-buttons">
-        <a href="login.html" class="btn btn-primary btn-lg">Comenzar Gratis</a>
-        <a href="docs.html" class="btn btn-secondary btn-lg">Ver Documentacion</a>
-      </div>
-    </div>
-  </section>
+  <main class="container" style="padding-top: 32px; padding-bottom: 80px;">
+    <div id="loading" class="loading-spinner" style="display: block;"></div>
 
-  <div class="divider-line"></div>
+    <!-- Player area -->
+    <div id="player-area"></div>
 
-  <section class="section" id="features">
-    <div class="container">
-      <h2 class="section-title">Simple y Potente</h2>
-      <p class="section-subtitle">Una API disenaada para ser rapida, confiable y facil de integrar en cualquier proyecto.</p>
-      <div class="feature-grid">
-        <div class="feature-card glow-card">
-          <div class="feature-icon blue">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-          </div>
-          <h3>REST API</h3>
-          <p>Endpoints REST estandar con respuestas JSON. Compatible con cualquier lenguaje de programacion o framework.</p>
-        </div>
-        <div class="feature-card glow-card">
-          <div class="feature-icon green">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-          </div>
-          <h3>Velocidad</h3>
-          <p>Respuestas en milisegundos. Infraestructura optimizada para baja latencia y alta disponibilidad.</p>
-        </div>
-        <div class="feature-card glow-card">
-          <div class="feature-icon orange">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-          </div>
-          <h3>Segura</h3>
-          <p>Autenticacion por API key. Tus datos y accesos estan protegidos con encriptacion y reglas de seguridad.</p>
-        </div>
-        <div class="feature-card glow-card">
-          <div class="feature-icon blue">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-          </div>
-          <h3>Cobertura LATAM</h3>
-          <p>Canales y peliculas de toda Latinoamerica. Contenido actualizado constantemente.</p>
-        </div>
-        <div class="feature-card glow-card">
-          <div class="feature-icon green">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-          </div>
-          <h3>Documentacion Clara</h3>
-          <p>Guia completa con ejemplos de codigo en multiples lenguajes. Integrate en minutos.</p>
-        </div>
-        <div class="feature-card glow-card">
-          <div class="feature-icon orange">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-          </div>
-          <h3>Categorias</h3>
-          <p>Canales organizados por pais, idioma y genero. Peliculas clasificadas por categoria para busquedas rapidas.</p>
+    <!-- MOVIES VIEW -->
+    <section id="view-movies">
+      <div id="hero" class="hero-movie hidden"></div>
+      <div id="rows" class="rows"></div>
+    </section>
+
+    <!-- CHANNELS VIEW -->
+    <section id="view-channels" class="hidden">
+      <div class="dashboard-header">
+        <div>
+          <h1 style="font-size:28px;font-weight:700;letter-spacing:-0.02em;">Canales de TV</h1>
+          <p style="color:var(--text-secondary);font-size:14px;margin-top:4px;">Equivocacion en vivo las 24 horas.</p>
         </div>
       </div>
-    </div>
-  </section>
+      <div id="channels-grid" class="ch-grid"></div>
+    </section>
 
-  <div class="divider-line"></div>
-
-  <section class="section" id="planes">
-    <div class="container">
-      <h2 class="section-title">Planes y Precios</h2>
-      <p class="section-subtitle">Elige el plan que mejor se adapte a tu proyecto.</p>
-      <div class="plans-grid">
-        <div class="plan-card">
-          <div class="plan-name">Gratis</div>
-          <div class="plan-price">$0</div>
-          <div class="plan-period">Para siempre</div>
-          <ul class="plan-features">
-            <li>100 requests por dia</li>
-            <li>5 canales de TV</li>
-            <li>10 peliculas</li>
-            <li>3 categorias basicas</li>
-            <li>Solo para probar la API</li>
-            <li>Soporte por email</li>
-          </ul>
-          <a href="login.html" class="btn btn-secondary" style="width:100%">Comenzar Gratis</a>
-        </div>
-        <div class="plan-card popular">
-          <div class="plan-name" style="color: var(--accent);">Pro</div>
-          <div class="plan-price">$5</div>
-          <div class="plan-period">por mes</div>
-          <ul class="plan-features">
-            <li>Requests ilimitados</li>
-            <li>Todos los canales de TV</li>
-            <li>Todas las peliculas</li>
-            <li>Todas las categorias</li>
-            <li>Soporte prioritario</li>
-            <li>Acceso anticipado a nuevo contenido</li>
-          </ul>
-          <a href="login.html" class="btn btn-primary" style="width:100%">Obtener Pro</a>
-        </div>
+    <!-- Movie detail modal -->
+    <div id="detail-overlay" class="modal-overlay" style="display:none">
+      <div class="modal" style="max-width:720px;">
+        <div id="detail-content"></div>
       </div>
     </div>
-  </section>
-
-  <div class="divider-line"></div>
-
-  <section class="section">
-    <div class="container">
-      <h2 class="section-title">Ejemplo de Uso</h2>
-      <p class="section-subtitle">Integra la API en tu proyecto en solo unos pasos.</p>
-      <div class="code-block" style="max-width: 700px; margin: 0 auto;">
-        <span class="comment">// Importar la API</span><br>
-        <span class="key">import</span> { getChannels, getMovies } <span class="key">from</span> <span class="string">'https://TU_DOMINIO/js/api.js'</span>;<br><br>
-        <span class="comment">// Obtener canales</span><br>
-        <span class="key">const</span> canales = <span class="key">await</span> getChannels(<span class="string">'aplat_TU_API_KEY'</span>);<br>
-        console.log(canales.channels);<br><br>
-        <span class="comment">// Obtener peliculas</span><br>
-        <span class="key">const</span> peliculas = <span class="key">await</span> getMovies(<span class="string">'aplat_TU_API_KEY'</span>);<br>
-        console.log(peliculas.movies);
-      </div>
-    </div>
-  </section>
+  </main>
 
   <footer class="footer">
     <div class="footer-inner">
-      <span style="font-size: 14px; color: var(--text-muted);">2026 API LATAM. Todos los derechos reservados.</span>
+      <span style="font-size:14px;color:var(--text-muted);">2026 LatamTv. Todos los derechos reservados.</span>
       <div class="footer-links">
-        <a href="docs.html">Documentacion</a>
+        <a href="#peliculas" data-goto="movies">Peliculas</a>
+        <a href="#canales" data-goto="channels">Canales TV</a>
         <a href="privacy.html">Privacidad</a>
         <a href="terms.html">Terminos</a>
         <a href="admin-login.html">Panel</a>
@@ -166,10 +82,280 @@
     </div>
   </footer>
 
-  <script type="module">
-    import { toggleMobileMenu } from './js/app.js?v=4';
-    window.toggleMobileMenu = toggleMobileMenu;
-  </script>
+  <!-- Floating register prompt -->
+  <div id="reg-prompt" class="reg-prompt">
+    <div class="icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="10" cy="13" r="0.5" fill="currentColor"/></svg>
+    </div>
+    <div class="msg">
+      <h4>Registrate para seguir viendo</h4>
+      <p>Crea una cuenta gratis y disfruta del contenido sin interrupciones.</p>
+    </div>
+    <div class="actions">
+      <a href="login.html" class="btn btn-primary">Registrarse</a>
+      <button id="reg-dismiss" class="btn btn-secondary">Seguir viendo</button>
+    </div>
+  </div>
 
+  <script type="module">
+    import { collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { onAuthChange, auth, logout, db } from './js/auth.js?v=6';
+    import { toggleMobileMenu, escapeHtml } from './js/app.js?v=4';
+    import { initPlayer } from './js/player.js?v=5';
+
+    window.toggleMobileMenu = toggleMobileMenu;
+
+    const $ = id => document.getElementById(id);
+    const loading = $('loading');
+    const heroEl = $('hero');
+    const rowsEl = $('rows');
+    const gridEl = $('channels-grid');
+
+    let movies = [];
+    let channels = [];
+    let currentUser = null;
+    let currentTab = 'movies';
+    let playerApi = null;
+
+    onAuthChange((user) => {
+      currentUser = user;
+      const chip = $('user-chip');
+      const loginBtn = $('login-btn');
+      const logoutBtn = $('logout-btn');
+      if (user) {
+        chip.textContent = user.displayName || user.email.split('@')[0];
+        chip.classList.remove('hidden');
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+      } else {
+        chip.classList.add('hidden');
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      logout();
+    });
+
+    const fallbackImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='440'%3E%3Crect width='100%25' height='100%25' fill='%2318181b'/%3E%3Ctext x='50%25' y='50%25' fill='%2352525b' font-family='Arial' font-size='18' text-anchor='middle'%3ELatamTv%3C/text%3E%3C/svg%3E";
+
+    async function load() {
+      loading.style.display = 'block';
+      try {
+        const movSnap = await getDocs(query(collection(db, 'movies'), where('status', '==', 'online')));
+        const chSnap = await getDocs(query(collection(db, 'channels'), where('status', '==', 'online')));
+        movies = movSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        channels = chSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch (e) {
+        console.error('Error cargando:', e);
+      }
+      loading.style.display = 'none';
+      render();
+    }
+
+    function render() {
+      renderMovies(movies);
+      renderChannels(channels);
+    }
+
+    /* ---------- MOVIES ---------- */
+    function uniqueCategories(list) {
+      const seen = [];
+      const cat = new Set();
+      list.forEach(m => { if (m.category && !cat.has(m.category)) { cat.add(m.category); seen.push(m.category); } });
+      return seen;
+    }
+
+    function mcard(m) {
+      const src = m.imageUrl || '';
+      return `
+        <div class="mcard" data-id="${m.id}">
+          ${src ? `<img src="${escapeHtml(src)}" alt="${escapeHtml(m.name)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'fallback',textContent:'${escapeHtml(m.name||'')}'}))">`
+                : `<div class="fallback">${escapeHtml(m.name || '')}</div>`}
+          <button class="btn-play" title="Ver">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <div class="hover"><h4>${escapeHtml(m.name || '')}</h4>
+            <div class="meta">${escapeHtml(m.year || '')} · ${escapeHtml(m.category || '')}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderMovies(list) {
+      const visible = list.filter(m => !q || (m.name && m.name.toLowerCase().includes(q)));
+      heroEl.classList.add('hidden');
+      if (!visible.length) {
+        rowsEl.innerHTML = '<div class="empty-block"><h3>Sin resultados</h3><p>No encontramos peliculas con ese filtro.</p></div>';
+        return;
+      }
+      showHero(visible);
+      const cats = uniqueCategories(visible);
+      const rows = [];
+      if (cats.length === 0) {
+        rows.push(rowBlock('Todas las peliculas', visible));
+      } else {
+        cats.forEach(cat => {
+          const items = visible.filter(m => m.category === cat);
+          if (items.length) rows.push(rowBlock(cat, items));
+        });
+      }
+      rowsEl.innerHTML = rows.join('');
+      bindCards();
+    }
+
+    function showHero(list) {
+      const f = list[0];
+      const src = f.imageUrl || '';
+      heroEl.innerHTML = `
+        <div class="backdrop" style="background-image:url('${escapeHtml(src)}')" ></div>
+        <div class="overlay"></div>
+        <div class="content">
+          <h1>${escapeHtml(f.name || '')}</h1>
+          <div class="meta">
+            ${f.year ? `<span>${escapeHtml(String(f.year))}</span>` : ''}
+            ${f.category ? `<span class="badge badge-info">${escapeHtml(f.category)}</span>` : ''}
+          </div>
+          <p class="desc">${escapeHtml(f.description || '')}</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-lg" data-ver="${f.id}">Ver Ahora</button>
+          </div>
+        </div>`;
+      heroEl.classList.remove('hidden');
+      heroEl.querySelector('[data-ver]') && heroEl.querySelector('[data-ver]').addEventListener('click', () => openDetail(f));
+    }
+
+    function rowBlock(title, items) {
+      return `
+        <div class="row-block">
+          <div class="row-head"><h2>${escapeHtml(title)}</h2><span class="count">${items.length}</span></div>
+          <div class="row-scroll">${items.map(mcard).join('')}</div>
+        </div>`;
+    }
+
+    function bindCards() {
+      document.querySelectorAll('.mcard').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.btn-play')) { playDirect(card.dataset.id); return; }
+          const m = movies.find(x => x.id === card.dataset.id);
+          if (m) openDetail(m);
+        });
+      });
+    }
+
+    function openDetail(m) {
+      const src = m.imageUrl || '';
+      $('detail-content').innerHTML = `
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+          <img src="${escapeHtml(src)}" alt="${escapeHtml(m.name)}" style="width:200px;height:290px;object-fit:cover;border-radius:16px;border:1px solid var(--border);" onerror="this.style.display='none'">
+          <div style="flex:1;min-width:240px;">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <h2 style="font-size:24px;">${escapeHtml(m.name || '')}</h2>
+              ${m.year ? `<span class="badge badge-info">${escapeHtml(String(m.year))}</span>` : ''}
+            </div>
+            ${m.category ? `<p style="color:var(--accent);font-size:13px;font-weight:600;margin:8px 0;">${escapeHtml(m.category)}</p>` : ''}
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:20px;">${escapeHtml(m.description || 'Sin descripcion disponible.')}</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button id="detail-play" class="btn btn-primary btn-lg">Ver Ahora</button>
+              <button id="detail-close" class="btn btn-secondary btn-lg">Cerrar</button>
+            </div>
+          </div>
+        </div>`;
+      $('detail-overlay').style.display = 'flex';
+      $('detail-overlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      $('detail-play').addEventListener('click', () => { closeDetail(); playStream(m, 'Película'); });
+      $('detail-close').addEventListener('click', closeDetail);
+      $('detail-overlay').addEventListener('click', function h(e) { if (e.target === this) closeDetail(); });
+    }
+
+    function closeDetail() {
+      $('detail-overlay').classList.remove('active');
+      $('detail-overlay').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    /* ---------- CHANNELS ---------- */
+    function renderChannels(list) {
+      const visible = list.filter(c => !q || (c.name && c.name.toLowerCase().includes(q)));
+      if (!visible.length) {
+        gridEl.innerHTML = '<div class="empty-block" style="grid-column:1/-1;"><h3>Sin canales</h3><p>Pronto agregaremos mas canales.</p></div>';
+        return;
+      }
+      gridEl.innerHTML = visible.map(c => `
+        <div class="ch-card" data-id="${c.id}">
+          <span class="live">EN VIVO</span>
+          ${c.imageUrl ? `<img class="logo" src="${escapeHtml(c.imageUrl)}" loading="lazy" onerror="this.title='${escapeHtml(c.name||'')}'">` : ''}
+          <div class="name">${escapeHtml(c.name || '')}</div>
+        </div>`).join('');
+      gridEl.querySelectorAll('.ch-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const c = channels.find(x => x.id === card.dataset.id);
+          if (c) playStream(c, 'Canal');
+        });
+      });
+    }
+
+    /* ---------- PLAYER ---------- */
+    function playStream(item, tag) {
+      const area = $('player-area');
+      area.innerHTML = '';
+      try {
+        playerApi = null;
+        window.__ltvOnPlaying = handlePlaybackStart;
+        initPlayer(area, { streamUrl: item.m3u8Url || item.videoUrl || '', title: item.name || '', tag });
+        window.scrollTo({ top: area.offsetTop - 90, behavior: 'smooth' });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function playDirect(id) {
+      const m = movies.find(x => x.id === id);
+      if (m) playStream(m, 'Película');
+    }
+
+    // registration prompt after 30s
+    let promptShown = false;
+    function handlePlaybackStart() {
+      if (currentUser || promptShown) return;
+      setTimeout(() => {
+        if (currentUser || promptShown) return;
+        promptShown = true;
+        $('reg-prompt').classList.add('show');
+      }, 30000);
+    }
+    document.getElementById('reg-dismiss').addEventListener('click', () => {
+      $('reg-prompt').classList.remove('show');
+    });
+
+    /* ---------- TABS & SEARCH ---------- */
+    let q = '';
+    function setTab(tab) {
+      currentTab = tab;
+      $('view-movies').classList.toggle('hidden', tab !== 'movies');
+      $('view-channels').classList.toggle('hidden', tab !== 'channels');
+      $('nav-movies').classList.toggle('active', tab === 'movies');
+      $('nav-channels').classList.toggle('active', tab === 'channels');
+      if (tab === 'movies') renderMovies(movies); else renderChannels(channels);
+    }
+    document.getElementById('nav-movies').addEventListener('click', (e) => { e.preventDefault(); setTab('movies'); });
+    document.getElementById('nav-channels').addEventListener('click', (e) => { e.preventDefault(); setTab('channels'); });
+    document.querySelectorAll('[data-goto]').forEach(a => {
+      a.addEventListener('click', (e) => { e.preventDefault(); setTab(a.dataset.goto); });
+    });
+
+    let searchDeb;
+    document.getElementById('search').addEventListener('input', (e) => {
+      clearTimeout(searchDeb);
+      searchDeb = setTimeout(() => {
+        q = e.target.value.trim().toLowerCase();
+        if (currentTab === 'movies') renderMovies(movies); else renderChannels(channels);
+      }, 220);
+    });
+
+    load();
+  </script>
 </body>
 </html>

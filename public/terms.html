@@ -8,20 +8,21 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Terminos de Servicio - API LATAM</title>
+  <title>Terminos de Uso - LatamTv</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=4">
+  <link rel="stylesheet" href="css/custom.css?v=5">
+  <link rel="stylesheet" href="css/stream.css?v=5">
 </head>
 <body>
 
-  <nav class="navbar">
+  <nav class="navbar stream-nav">
     <div class="navbar-inner">
-      <a href="index.html" class="navbar-logo">API LATAM</a>
+      <a href="index.html" class="brand">Latam<span class="dot">Tv</span></a>
       <div class="navbar-links">
-        <a href="index.html">Inicio</a>
-        <a href="docs.html">Documentacion</a>
+        <a href="index.html">Peliculas</a>
+        <a href="#canales" id="nav-channels" class="nav-link">Canales TV</a>
         <a href="login.html" class="btn btn-primary btn-sm">Iniciar Sesion</a>
       </div>
       <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
@@ -32,65 +33,56 @@
 
   <main class="container">
     <div class="legal-content">
-      <h1>Terminos de Servicio</h1>
+      <h1>Terminos de Uso</h1>
       <p style="color: var(--text-muted); margin-bottom: 32px;">Ultima actualizacion: 4 de septiembre de 2026</p>
 
       <h2>1. Aceptacion de los Terminos</h2>
-      <p>Al acceder y utilizar API LATAM, aceptas estos Terminos de Servicio en su totalidad. Si no estas de acuerdo con alguno de estos terminos, no utilices nuestro servicio.</p>
+      <p>Al acceder y utilizar LatamTv, aceptas estos Terminos de Uso en su totalidad. Si no estas de acuerdo con alguno de estos terminos, te pedimos que no utilices el servicio.</p>
 
       <h2>2. Descripcion del Servicio</h2>
-      <p>API LATAM proporciona una API REST para acceder a contenido de canales de television en vivo y peliculas. El servicio incluye:</p>
-      <ul>
-        <li>Acceso a endpoints REST con respuestas en formato JSON.</li>
-        <li>Autenticacion mediante API keys.</li>
-        <li>Planes de acceso gratuito y de pago.</li>
-      </ul>
+      <p>LatamTv es una plataforma de entretenimiento que permite a los usuarios ver peliculas y canales de television en vivo de forma gratuita. El servicio es de acceso libre y no requiere suscripcion de pago.</p>
 
       <h2>3. Cuentas de Usuario</h2>
-      <p>Para utilizar el servicio debes crear una cuenta a traves de Google Authentication. Eres responsable de:</p>
+      <p>Puedes navegar y mirar contenido libremente sin crear una cuenta. Si deseas registrarte e iniciar sesion, eres responsable de:</p>
       <ul>
-        <li>Mantener la confidencialidad de tu API key.</li>
+        <li>Mantener la confidencialidad de tus datos de acceso.</li>
         <li>Todas las actividades que ocurran bajo tu cuenta.</li>
-        <li>Notificarnos inmediatamente sobre cualquier uso no autorizado.</li>
+        <li>Notificarnos inmediatamente cualquier uso no autorizado.</li>
       </ul>
 
       <h2>4. Uso Aceptable</h2>
       <p>Te comprometes a no:</p>
       <ul>
-        <li>Compartir tu API key con terceros.</li>
-        <li>Intentar evadir los limites de uso o rate limiting.</li>
         <li>Utilizar el servicio para actividades ilegales.</li>
-        <li>Realizar ingenieria inversa o intentar acceder al codigo fuente.</li>
-        <li>Sobrecargar la infraestructura con peticiones automatizadas excesivas.</li>
-        <li>Revender el acceso a la API sin autorizacion.</li>
+        <li>Intentar acceder, descargar o reproducir el contenido sin autorizacion de los titulares.</li>
+        <li>Redistribuir o revender el contenido disponible en la plataforma.</li>
+        <li>Intentar vulnerar la seguridad o la infraestructura del sitio.</li>
+        <li>Sobrecargar el servicio con peticiones automatizadas excesivas.</li>
       </ul>
 
-      <h2>5. Planes y Pagos</h2>
-      <p><strong style="color: var(--text-primary);">Plan Gratis:</strong> Acceso limitado con 100 peticiones diarias, 20 canales y 20 peliculas.</p>
-      <p><strong style="color: var(--text-primary);">Plan Pro:</strong> Acceso completo por $5/mes con requests ilimitados y todo el contenido disponible.</p>
-      <p>Los precios pueden cambiar con previo aviso de 30 dias.</p>
+      <h2>5. Costo del Servicio</h2>
+      <p><strong style="color: var(--text-primary);">LatamTv es gratuito.</strong> No se cobra por el acceso a peliculas ni a canales de TV. No se requiere ningun plan de pago ni suscripcion para disfrutar del contenido.</p>
 
       <h2>6. Propiedad Intelectual</h2>
-      <p>Todo el contenido, codigo, diseno y documentacion de API LATAM son propiedad exclusiva del servicio. No adquieres ningun derecho de propiedad sobre el servicio al utilizarlo.</p>
+      <p>Los tres marcas, logotipos, diseno e interfaz de LatamTv son propiedad del servicio. Los contenidos transmitidos pertenecen a sus respectivos titulares y se muestran con fines de entretenimiento. LatamTv no reclama la propiedad de las peliculas ni de las senales de television que reproduzca.</p>
 
       <h2>7. Disponibilidad del Servicio</h2>
-      <p>Nos esforzamos por mantener el servicio disponible 24/7, pero no garantizamos disponibilidad ininterrumpida. Nos reservamos el derecho de realizar mantenimiento programado con aviso previo.</p>
+      <p>Nos esforzamos por mantener el servicio disponible 24/7, pero no garantizamos disponibilidad ininterrumpida. Nos reservamos el derecho de realizar mantenimiento programado y de modificar o eliminar contenido en cualquier momento.</p>
 
       <h2>8. Limitacion de Responsabilidad</h2>
-      <p>API LATAM no sera responsable por:</p>
+      <p>LatamTv no sera responsable por:</p>
       <ul>
         <li>Perdidas o danos derivados del uso del servicio.</li>
-        <li>Interrupciones del servicio por causas mayores.</li>
-        <li>Contenido de terceros accesible a traves de la API.</li>
-        <li>Decisiones tomadas basadas en la informacion proporcionada por la API.</li>
+        <li>Interrupciones del servicio por causas ajenas a nuestro control.</li>
+        <li>La disponibilidad o calidad de las fuentes de contenido de terceros.</li>
       </ul>
 
       <h2>9. Terminacion</h2>
-      <p>Podemos suspender o terminar tu acceso al servicio si:</p>
+      <p>Podemos suspender o limitar el acceso al servicio si:</p>
       <ul>
-        <li>Violas estos terminos de servicio.</li>
-        <li>Realizas uso fraudulento del servicio.</li>
-        <li>Realizas pagos no autorizados.</li>
+        <li>Violas estos terminos de uso.</li>
+        <li>Realizas uso fraudulento o ilegal del servicio.</li>
+        <li>Intentas comprometer la seguridad de la plataforma.</li>
       </ul>
 
       <h2>10. Modificaciones</h2>
@@ -106,9 +98,9 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <span style="font-size: 14px; color: var(--text-muted);">2026 API LATAM. Todos los derechos reservados.</span>
-<div class="footer-links">
-        <a href="docs.html">Documentacion</a>
+      <span style="font-size: 14px; color: var(--text-muted);">2026 LatamTv. Todos los derechos reservados.</span>
+      <div class="footer-links">
+        <a href="index.html">Peliculas</a>
         <a href="privacy.html">Privacidad</a>
         <a href="terms.html">Terminos</a>
         <a href="admin-login.html">Panel</a>
@@ -119,6 +111,7 @@
   <script type="module">
     import { toggleMobileMenu } from './js/app.js?v=4';
     window.toggleMobileMenu = toggleMobileMenu;
+    document.getElementById('nav-channels') && document.getElementById('nav-channels').addEventListener('click', (e) => { e.preventDefault(); window.location.href = 'index.html#canales'; });
   </script>
 
 </body>

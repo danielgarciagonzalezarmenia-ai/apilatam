@@ -8,7 +8,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Panel Admin - API LATAM</title>
+  <title>Panel Admin - LatamTv</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -16,13 +16,12 @@
 </head>
 <body>
 
-  <nav class="navbar">
+<nav class="navbar">
     <div class="navbar-inner">
-      <a href="index.html" class="navbar-logo">API LATAM</a>
+      <a href="index.html" class="brand">Latam<span class="dot">Tv</span></a>
       <div class="navbar-links">
-        <a href="dashboard.html">Dashboard</a>
+        <a href="index.html">Ver Sitio</a>
         <a href="admin.html" class="active">Admin</a>
-        <a href="docs.html">Docs</a>
         <button id="logout-btn" class="btn btn-secondary btn-sm">Cerrar Sesion</button>
       </div>
       <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
@@ -143,9 +142,17 @@
           <label for="modal-m3u8">URL M3U8</label>
           <input type="url" id="modal-m3u8" class="input" placeholder="https://ejemplo.com/stream.m3u8">
         </div>
-        <div class="form-group">
+<div class="form-group" id="field-category">
           <label for="modal-category">Categoria</label>
           <select id="modal-category" class="select"></select>
+        </div>
+        <div class="form-group" id="field-year" style="display:none;">
+          <label for="modal-year">Año de estreno</label>
+          <input type="number" id="modal-year" class="input" placeholder="2025" min="1900" max="2100">
+        </div>
+        <div class="form-group" id="field-desc" style="display:none;">
+          <label for="modal-desc">Descripcion</label>
+          <textarea id="modal-desc" class="input" rows="3" placeholder="Sinopsis o descripcion de la pelicula"></textarea>
         </div>
         <input type="hidden" id="modal-item-id">
         <input type="hidden" id="modal-item-type">
@@ -168,9 +175,19 @@
         if (typeEl) typeEl.value = type || 'channel';
         if (titleEl) titleEl.textContent = itemId ? (type === 'movie' ? 'Editar Pelicula' : 'Editar Canal') : (type === 'movie' ? 'Nueva Pelicula' : 'Nuevo Canal');
         if (idEl) idEl.value = itemId || '';
+        toggleMovieFields(type || 'channel');
         overlay.style.display = 'flex';
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
+      }
+      function toggleMovieFields(type) {
+        var isMovie = type === 'movie';
+        var fYear = document.getElementById('field-year');
+        var fDesc = document.getElementById('field-desc');
+        if (fYear) fYear.style.display = isMovie ? '' : 'none';
+        if (fDesc) fDesc.style.display = isMovie ? '' : 'none';
+        var l = document.querySelector('label[for="modal-m3u8"]');
+        if (l) l.textContent = isMovie ? 'URL del video (m3u8, mp4 o mkv)' : 'URL M3U8';
       }
       function closeModal() {
         var overlay = document.getElementById('modal-overlay');

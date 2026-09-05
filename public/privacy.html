@@ -8,20 +8,21 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Politica de Privacidad - API LATAM</title>
+  <title>Politica de Privacidad - LatamTv</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=4">
+  <link rel="stylesheet" href="css/custom.css?v=5">
+  <link rel="stylesheet" href="css/stream.css?v=5">
 </head>
 <body>
 
-  <nav class="navbar">
+  <nav class="navbar stream-nav">
     <div class="navbar-inner">
-      <a href="index.html" class="navbar-logo">API LATAM</a>
+      <a href="index.html" class="brand">Latam<span class="dot">Tv</span></a>
       <div class="navbar-links">
-        <a href="index.html">Inicio</a>
-        <a href="docs.html">Documentacion</a>
+        <a href="index.html">Peliculas</a>
+        <a href="#canales" id="nav-channels" class="nav-link">Canales TV</a>
         <a href="login.html" class="btn btn-primary btn-sm">Iniciar Sesion</a>
       </div>
       <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
@@ -36,25 +37,22 @@
       <p style="color: var(--text-muted); margin-bottom: 32px;">Ultima actualizacion: 4 de septiembre de 2026</p>
 
       <h2>1. Informacion que Recopilamos</h2>
-      <p>Recopilamos la siguiente informacion cuando utilizas nuestro servicio:</p>
+      <p>LatamTv te permite ver peliculas y canales de TV sin necesidad de crear una cuenta. Si decides registrarte, recopilamos la siguiente informacion:</p>
       <ul>
-        <li><strong style="color: var(--text-primary);">Informacion de cuenta:</strong> Nombre, direccion de correo electronico y foto de perfil proporcionados a traves de Google Authentication.</li>
-        <li><strong style="color: var(--text-primary);">Datos de uso:</strong> Numero de peticiones API realizadas, fecha y hora de las peticiones, y endpoints consultados.</li>
-        <li><strong style="color: var(--text-primary);">API Keys:</strong> Claves de acceso generadas para autenticar las peticiones a la API.</li>
+        <li><strong style="color: var(--text-primary);">Informacion de cuenta:</strong> Nombre, direccion de correo electronico y foto de perfil proporcionados al iniciar sesion.</li>
+        <li><strong style="color: var(--text-primary);">Datos de uso:</strong> Informacion basica sobre como utilizas el sitio para mejorar la experiencia.</li>
       </ul>
 
       <h2>2. Uso de la Informacion</h2>
       <p>Utilizamos la informacion recopilada para:</p>
       <ul>
-        <li>Proveer y mantener nuestro servicio de API.</li>
-        <li>Autenticar y autorizar el acceso a los endpoints.</li>
-        <li>Controlar los limites de uso segun el plan contratado.</li>
-        <li>Mejorar la calidad y seguridad del servicio.</li>
+        <li>Permitirte iniciar sesion y mantener tu cuenta.</li>
+        <li>Mejorar la calidad y el rendimiento del servicio.</li>
         <li>Comunicarnos contigo sobre actualizaciones o cambios en el servicio.</li>
       </ul>
 
       <h2>3. Autenticacion con Google</h2>
-      <p>Utilizamos Firebase Authentication con Google como proveedor de identidad. Al iniciar sesion con Google:</p>
+      <p>Utilizamos Firebase Authentication con Google como proveedor de identidad opcional. Al iniciar sesion con Google:</p>
       <ul>
         <li>Recibimos tu nombre, correo electronico y foto de perfil.</li>
         <li>Google no nos proporciona tu contrasena.</li>
@@ -68,7 +66,7 @@
       <p>No vendemos, alquilamos ni compartimos tu informacion personal con terceros, excepto:</p>
       <ul>
         <li>Cuando sea requerido por ley.</li>
-        <li>Para proteger los derechos y seguridad de API LATAM y sus usuarios.</li>
+        <li>Para proteger los derechos y seguridad de LatamTv y sus usuarios.</li>
         <li>Con proveedores de servicios necesarios para operar (Google Cloud/Firebase).</li>
       </ul>
 
@@ -82,13 +80,7 @@
       <p>Puedes controlar las cookies desde la configuracion de tu navegador.</p>
 
       <h2>7. Seguridad</h2>
-      <p>Implementamos medidas de seguridad tecnicas y organizativas para proteger tu informacion, incluyendo:</p>
-      <ul>
-        <li>Encriptacion de datos en transito (TLS/SSL).</li>
-        <li>Autenticacion segura via Google OAuth.</li>
-        <li>Reglas de seguridad en la base de datos.</li>
-        <li>Acceso restringido a datos sensibles.</li>
-      </ul>
+      <p>Implementamos medidas de seguridad tecnicas y organizativas para proteger tu informacion, incluyendo encriptacion en transito (TLS/SSL), autenticacion segura y reglas de seguridad en la base de datos.</p>
 
       <h2>8. Retencion de Datos</h2>
       <p>Conservamos tu informacion personal mientras tu cuenta este activa. Si eliminas tu cuenta, eliminaremos tus datos personales dentro de 30 dias, excepto cuando debamos conservarlos por obligaciones legales.</p>
@@ -100,7 +92,6 @@
         <li>Corregir datos inexactos.</li>
         <li>Solicitar la eliminacion de tus datos.</li>
         <li>Oponerte al procesamiento de tus datos.</li>
-        <li>Solicitar la portabilidad de tus datos.</li>
       </ul>
 
       <h2>10. Cambios en esta Politica</h2>
@@ -113,9 +104,9 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <span style="font-size: 14px; color: var(--text-muted);">2026 API LATAM. Todos los derechos reservados.</span>
-<div class="footer-links">
-        <a href="docs.html">Documentacion</a>
+      <span style="font-size: 14px; color: var(--text-muted);">2026 LatamTv. Todos los derechos reservados.</span>
+      <div class="footer-links">
+        <a href="index.html">Peliculas</a>
         <a href="privacy.html">Privacidad</a>
         <a href="terms.html">Terminos</a>
         <a href="admin-login.html">Panel</a>
@@ -126,6 +117,7 @@
   <script type="module">
     import { toggleMobileMenu } from './js/app.js?v=4';
     window.toggleMobileMenu = toggleMobileMenu;
+    document.getElementById('nav-channels') && document.getElementById('nav-channels').addEventListener('click', (e) => { e.preventDefault(); window.location.href = 'index.html#canales'; });
   </script>
 
 </body>

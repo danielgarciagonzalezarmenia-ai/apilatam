@@ -14,20 +14,14 @@ async function ensureUserDoc(user) {
   const userRef = doc(db, 'users', user.uid);
   const userSnap = await getDoc(userRef);
   if (!userSnap.exists()) {
-    const apiKey = generateApiKey();
     await setDoc(userRef, {
       email: user.email,
       displayName: user.displayName || user.email.split('@')[0],
       photoURL: user.photoURL || null,
-      plan: 'free',
-      apiKey: apiKey,
-      requestsToday: 0,
-      lastRequestDate: new Date().toISOString().split('T')[0],
       createdAt: serverTimestamp()
     });
-    return { user, isNew: true, apiKey };
   }
-  return { user, isNew: false, apiKey: userSnap.data().apiKey };
+  return { user };
 }
 
 async function ensureOwnerAdmin(user) {
@@ -84,15 +78,6 @@ function onAuthChange(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
-function generateApiKey() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let key = 'aplat_';
-  for (let i = 0; i < 32; i++) {
-    key += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return key;
-}
-
 async function getUserData(uid) {
   const userRef = doc(db, 'users', uid);
   const userSnap = await getDoc(userRef);
@@ -106,21 +91,4 @@ async function isAdmin(uid) {
   return adminSnap.exists();
 }
 
-async function regenerateApiKey(uid) {
-  const userRef = doc(db, 'users', uid);
-  const newKey = generateApiKey();
-  await setDoc(userRef, { apiKey: newKey }, { merge: true });
-  return newKey;
-}
-
-async function ensureUserApiKey(uid, existing) {
-  if (existing) return existing;
-  try {
-    return await regenerateApiKey(uid);
-  } catch (error) {
-    console.error('No se pudo generar la API key:', error);
-    return null;
-  }
-}
-
-export { auth, db, loginWithGoogle, loginWithEmail, registerWithEmail, logout, onAuthChange, getUserData, isAdmin, regenerateApiKey, ensureUserApiKey, OWNER_EMAIL };
+export { auth, db, loginWithGoogle, loginWithEmail, registerWithEmail, logout, onAuthChange, getUserData, isAdmin, OWNER_EMAIL };

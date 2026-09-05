@@ -9,7 +9,7 @@ import { showToast, toggleMobileMenu, formatDate, escapeHtml, debounce } from '.
 import { showConfirm } from './dialog.js?v=6';
 
 const OWNER_EMAIL = 'danigar222009@gmail.com';
-console.log('admin.js loaded v9');
+console.log('admin.js loaded v12');
 window.toggleMobileMenu = toggleMobileMenu;
 
 let app, auth, db;
@@ -55,7 +55,7 @@ if (auth) {
         if (user.email && user.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
           await setDoc(adminRef, { roles: ['admin'], email: user.email });
         } else {
-          window.location.href = 'dashboard.html';
+          window.location.href = 'index.html';
           return;
         }
       }
@@ -161,7 +161,7 @@ function renderMovies() {
     <tr>
       <td><img src="${escapeHtml(mv.imageUrl || '')}" class="thumb" alt="" onerror="this.style.display='none'"></td>
       <td style="font-weight: 600;">${escapeHtml(mv.name)}</td>
-      <td><span class="badge badge-info">${escapeHtml(mv.category || '-')}</span></td>
+      <td><span class="badge badge-info">${escapeHtml(mv.category || '-')}</span> ${mv.year ? `<span style="font-size:12px;color:var(--text-muted);margin-left:6px;">${escapeHtml(String(mv.year))}</span>` : ''}</td>
       <td><span class="badge ${mv.status === 'online' ? 'badge-success' : mv.status === 'offline' ? 'badge-danger' : 'badge-warning'}">${mv.status || 'verificar'}</span></td>
       <td style="font-size: 13px; color: var(--text-muted);">${formatDate(mv.createdAt)}</td>
       <td>
@@ -230,16 +230,20 @@ function openModal(type, itemId) {
     title.textContent = type === 'channel' ? 'Editar Canal' : 'Editar Pelicula';
     document.getElementById('modal-name').value = item ? (item.name || '') : '';
     document.getElementById('modal-image').value = item ? (item.imageUrl || '') : '';
-    document.getElementById('modal-m3u8').value = item ? (item.m3u8Url || '') : '';
+    document.getElementById('modal-m3u8').value = item ? (item.m3u8Url || item.videoUrl || '') : '';
     idInput.value = itemId;
     updateModalCategories();
     document.getElementById('modal-category').value = item ? (item.category || '') : '';
+    document.getElementById('modal-year').value = item ? (item.year || '') : '';
+    document.getElementById('modal-desc').value = item ? (item.description || '') : '';
   } else {
     title.textContent = type === 'channel' ? 'Nuevo Canal' : 'Nueva Pelicula';
     form.reset();
     idInput.value = '';
     updateModalCategories();
   }
+
+  window.toggleMovieFields && window.toggleMovieFields(type);
 
   overlay.style.display = 'flex';
   overlay.classList.add('active');
@@ -288,6 +292,12 @@ document.getElementById('modal-form').addEventListener('submit', async (e) => {
     category: document.getElementById('modal-category').value,
     status: 'pending'
   };
+
+  if (type === 'movie') {
+    const year = document.getElementById('modal-year').value.trim();
+    data.year = year ? Number(year) : 0;
+    data.description = document.getElementById('modal-desc').value.trim();
+  }
 
   try {
     if (id) {

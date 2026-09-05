@@ -171,7 +171,7 @@ function blockHeader(b, css) {
   let logo = '';
   if (b.showLogo) {
     if (b.logoIcon) {
-      logo = iconSpan(b.logoIcon, { size: 38, color: 'var(--t-accent)' });
+      logo = iconSpan(b.logoIcon, { size: b.logoIconSize || 38, color: b.logoIconColor ? b.logoIconColor : 'var(--t-accent)' });
     } else if (b.logo) {
       logo = `<img class="ab-logo" src="${escapeHtml(b.logo)}" alt="" onerror="this.style.display='none'">`;
     }
@@ -216,7 +216,7 @@ function blockButton(b, css) {
   let attrs = 'href="#"';
   if (b.linkTarget) attrs = `data-af-page="${escapeHtml(b.linkTarget)}"`;
   else if (b.linkUrl) attrs = `href="${escapeHtml(b.linkUrl)}" target="_blank" rel="noopener"`;
-  const iconHtml = b.icon ? iconSpan(b.icon, { size: 17 }) : '';
+  const iconHtml = b.icon ? iconSpan(b.icon, { size: b.iconSize || 17, color: b.iconColor ? b.iconColor : 'currentColor' }) : '';
   const txt = escapeHtml(b.text || '');
   const label = txt || (!b.icon ? 'Boton' : '');
   return `<div class="ab-button" style="${css};text-align:${b.align || 'center'};"><a style="${style}" ${attrs}>${iconHtml}${label}</a></div>`;
@@ -243,7 +243,7 @@ function blockHtml(b, css) {
 function blockList(b, css) {
   const items = (b.items || []).filter(x => x && x.text);
   const list = items.map(x => {
-    const iconHtml = x.icon ? `<span class="ab-list-icon">${iconSpan(x.icon, { size: 16 })}</span>` : '';
+    const iconHtml = x.icon ? `<span class="ab-list-icon">${iconSpan(x.icon, { size: x.iconSize || 16, color: x.iconColor ? x.iconColor : 'var(--t-accent)' })}</span>` : '';
     const content = `${iconHtml}
       <div><div class="ab-list-title">${escapeHtml(x.text)}</div>${x.desc ? `<div class="ab-list-desc">${escapeHtml(x.desc)}</div>` : ''}</div>`;
     const lk = x.linkTarget || x.linkUrl ? linkMarkup(x) : null;

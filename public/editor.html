@@ -86,7 +86,7 @@
     import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { db, onAuthChange } from './js/auth.js?v=3';
     import { showToast, escapeHtml, uid, copyText } from './js/util.js?v=1';
-    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks, FONTS, loadFont, initHls } from './js/blocks.js?v=5';
+    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks, FONTS, loadFont, initHls } from './js/blocks.js?v=6';
     import { setupProfile } from './js/profile.js?v=1';
     import { iconSpan, ALL_ICONS, ICON_CATEGORIES, loadIconFont } from './js/icons.js?v=1';
 
@@ -309,11 +309,11 @@
     function newBlock(type) {
       const b = { id: 'b' + uid(), type };
       switch (type) {
-        case 'header': b.text = 'Mi App'; b.subtitle = 'Subtitulo'; b.showLogo = true; b.logo = ''; b.logoIcon = ''; b.align = 'center'; break;
+        case 'header': b.text = 'Mi App'; b.subtitle = 'Subtitulo'; b.showLogo = true; b.logo = ''; b.logoIcon = ''; b.logoIconSize = ''; b.logoIconColor = ''; b.align = 'center'; break;
         case 'heading': b.text = 'Nuevo titulo'; b.align = 'left'; b.size = 26; break;
         case 'text': b.text = 'Escribe aqui tu texto.'; b.align = 'left'; b.size = 15; b.opacity = 0.85; break;
         case 'image': b.url = ''; b.align = 'center'; b.width = 100; break;
-        case 'button': b.text = 'Boton'; b.url = '#'; b.variant = 'solid'; b.align = 'center'; b.bg = ''; b.textColor = ''; b.width = ''; b.height = ''; b.icon = ''; b.linkTarget = ''; b.linkUrl = ''; break;
+        case 'button': b.text = 'Boton'; b.url = '#'; b.variant = 'solid'; b.align = 'center'; b.bg = ''; b.textColor = ''; b.width = ''; b.height = ''; b.icon = ''; b.iconSize = ''; b.iconColor = ''; b.linkTarget = ''; b.linkUrl = ''; break;
         case 'video': b.type = 'video'; b.url = ''; break;
         case 'youtube': b.type = 'youtube'; b.url = ''; break;
         case 'html': b.html = '<p style="margin:0;">Mi <strong>bloque</strong> HTML.</p>'; break;
@@ -432,7 +432,8 @@
       return `<textarea class="input" data-k="${k}" rows="${rows}">${escapeHtml(v)}</textarea>`;
     }
     function colorField(k, v) {
-      return `<div class="color-row"><input type="color" data-k="${k}" value="${escapeHtml(v)}" style="width:44px;height:34px;"><input class="input" data-k="${k}" value="${escapeHtml(v)}" style="flex:1;"></div>`;
+      const hex = /^#[0-9a-f]{6}$/i.test(v || '') ? v : '';
+      return `<div class="color-row">${hex ? `<input type="color" data-k="${k}" value="${escapeHtml(hex)}" style="width:44px;height:34px;">` : `<span class="range-val" style="width:44px;text-align:center;">Tema</span>`}<input class="input" data-k="${k}" value="${escapeHtml(v || '')}" placeholder="#rrggbb" style="flex:1;"></div>`;
     }
     function rangeField(k, v, min, max) {
       const cur = Number(v) || 0;
@@ -485,11 +486,11 @@
 
     function inspectorFor(b) {
       switch (b.type) {
-        case 'header': return field('Titulo', input('text', b.text)) + field('Subtitulo', input('subtitle', b.subtitle)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="inspector-field"><label><input type="checkbox" data-k="showLogo" ${b.showLogo ? 'checked' : ''}> Mostrar logo</label></div>` + iconPickField('logoIcon', b.logoIcon, 'Icono del logo') + field('Logo (URL)', input('logo', b.logo));
+        case 'header': return field('Titulo', input('text', b.text)) + field('Subtitulo', input('subtitle', b.subtitle)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="inspector-field"><label><input type="checkbox" data-k="showLogo" ${b.showLogo ? 'checked' : ''}> Mostrar logo</label></div>` + iconPickField('logoIcon', b.logoIcon, 'Icono del logo') + (b.logoIcon ? `<div class="field-row">${field('Tamano icono', rangeField('logoIconSize', b.logoIconSize, 20, 72))}${field('Color icono', colorField('logoIconColor', b.logoIconColor || ''))}</div>` : '') + field('Logo (URL)', input('logo', b.logo));
         case 'heading': return field('Texto', input('text', b.text)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
         case 'text': return field('Texto', textarea('text', b.text, 5)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
         case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' })) + pageLinkFields(b, 'Al hacer clic en la imagen');
-        case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + iconPickField('icon', b.icon, 'Icono (antes del texto)') + `<div class="field-row">${field('Ancho', rangeField('width', b.width, 60, 375))}${field('Altura', rangeField('height', b.height, 36, 220))}</div>` + field('Color del boton', colorField('bg', b.bg || theme.accent)) + field('Color del texto', colorField('textColor', b.textColor || (b.variant === 'solid' ? '#000000' : theme.accent))) + pageLinkFields(b, 'Al hacer clic en el boton');
+        case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + iconPickField('icon', b.icon, 'Icono (antes del texto)') + (b.icon ? `<div class="field-row">${field('Tamano icono', rangeField('iconSize', b.iconSize, 12, 48))}${field('Color icono', colorField('iconColor', b.iconColor || ''))}</div>` : '') + `<div class="field-row">${field('Ancho', rangeField('width', b.width, 60, 375))}${field('Altura', rangeField('height', b.height, 36, 220))}</div>` + field('Color del boton', colorField('bg', b.bg || theme.accent)) + field('Color del texto', colorField('textColor', b.textColor || (b.variant === 'solid' ? '#000000' : theme.accent))) + pageLinkFields(b, 'Al hacer clic en el boton');
         case 'video':
         case 'youtube': return field('URL del video', input('url', b.url, { ph: b.type === 'youtube' ? 'https://youtube.com/watch?v=...' : 'https://...mp4' }));
         case 'html': return field('Codigo HTML', textarea('html', b.html, 8));
@@ -503,6 +504,10 @@
               <button class="btn btn-danger btn-sm" data-item-del="${i}" style="padding:7px 9px;">${ICONS_X}</button>
             </div>
             <input class="input" data-item-desc="${i}" value="${escapeHtml(it.desc || '')}" placeholder="Descripcion (opcional)" style="margin-bottom:8px;">
+            ${it.icon ? `<div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+              <input class="input" data-item-icon-size="${i}" value="${it.iconSize || ''}" placeholder="Tam. (px)" style="flex:0 0 72px;">
+              <input class="input" data-item-icon-color="${i}" value="${escapeHtml(it.iconColor || '')}" placeholder="Color icono (hex)" style="flex:1;">
+            </div>` : ''}
             <div class="item-link-row">
               <select class="select" data-item-target="${i}">
                 <option value="">Sin enlace</option>
@@ -575,6 +580,19 @@
         el.querySelectorAll('[data-item-desc]').forEach(inp => {
           inp.addEventListener('input', () => {
             block.items[+inp.dataset.itemDesc].desc = inp.value;
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-item-icon-size]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            const v = Number(inp.value);
+            block.items[+inp.dataset.itemIconSize].iconSize = v ? Math.min(64, Math.max(8, v)) : '';
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-item-icon-color]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            block.items[+inp.dataset.itemIconColor].iconColor = inp.value;
             renderPreview(); markDirty();
           });
         });

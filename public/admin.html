@@ -78,7 +78,8 @@
         <select id="filter-category-movies" class="select">
           <option value="">Todas las categorias</option>
         </select>
-        <button id="add-movie-btn" class="btn btn-primary btn-sm" onclick="typeof openModal==='function' && openModal('movie')">+ Nueva Pelicula</button>
+<button id="add-movie-btn" class="btn btn-primary btn-sm" onclick="typeof openModal==='function' && openModal('movie')">+ Nueva Pelicula</button>
+        <button id="import-btn" class="btn btn-secondary btn-sm" onclick="typeof openImportModal==='function' && openImportModal()">Importar desde Lista</button>
         <button id="check-movies-btn" class="btn btn-secondary btn-sm">Verificar M3U8</button>
       </div>
       <div class="table-wrap">
@@ -176,6 +177,27 @@
     </div>
   </div>
 
+  <div id="import-overlay" class="modal-overlay" style="display:none">
+    <div class="modal" style="max-width:900px;">
+      <h2>Importar Peliculas desde Lista</h2>
+      <form id="import-form">
+        <div class="form-group">
+          <label for="import-category">Categoria destino</label>
+          <select id="import-category" class="select"></select>
+        </div>
+        <div class="form-group">
+          <label for="import-text">Pega aqui tu lista (M3U / texto)</label>
+          <textarea id="import-text" class="input" rows="10" placeholder="#EXTINF:-1 tvg-logo=&quot;...&quot; group-title=&quot;Suspenso&quot;,Nombre de la pelicula (2024)&#10;https://ejemplo.com/pelicula.mp4"></textarea>
+        </div>
+        <div class="import-result" id="import-result" style="display:none;"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Analizar y agregar</button>
+          <button type="button" id="import-cancel" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     (function () {
       function openModal(type, itemId) {
@@ -248,7 +270,7 @@
     })();
   </script>
 
-  <script type="module" src="js/admin.js?v=11"></script>
+  <script type="module" src="js/admin.js?v=12"></script>
 
 </body>
 </html>

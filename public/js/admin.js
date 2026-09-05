@@ -213,6 +213,14 @@ function updateModalCategories() {
   const filtered = categories.filter(c => c.type === type);
   modalSelect.innerHTML = '<option value="">Sin categoria</option>' +
     filtered.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
+
+  const importSelect = document.getElementById('import-category');
+  if (importSelect) {
+    const cur = importSelect.value;
+    importSelect.innerHTML = '<option value="">Sin categoria</option>' +
+      categories.filter(c => c.type === 'movie').map(c =>
+        `<option value="${escapeHtml(c.name)}" ${c.name === cur ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+  }
 }
 
 function openModal(type, itemId) {
@@ -419,3 +427,165 @@ document.getElementById('search-channels').addEventListener('input', debounce(()
 document.getElementById('search-movies').addEventListener('input', debounce(() => renderMovies()));
 document.getElementById('filter-category-channels').addEventListener('change', renderChannels);
 document.getElementById('filter-category-movies').addEventListener('change', renderMovies);
+
+/* ---------- IMPORTACION DESDE LISTA ---------- */
+
+const importOverlay = document.getElementById('import-overlay');
+const importResult = document.getElementById('import-result');
+
+window.openImportModal = function() {
+  if (!importOverlay) return;
+  updateModalCategories();
+  document.getElementById('import-text').value = '';
+  if (importResult) { importResult.style.display = 'none'; importResult.innerHTML = ''; }
+  importOverlay.style.display = 'flex';
+  importOverlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+};
+
+function closeImportModal() {
+  if (!importOverlay) return;
+  importOverlay.classList.remove('active');
+  importOverlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
+window.closeImportModal = closeImportModal;
+
+document.getElementById('import-cancel').addEventListener('click', closeImportModal);
+if (importOverlay) importOverlay.addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeImportModal();
+});
+
+function importDecodeExt(url) {
+  try {
+    const m = url.match(/[?&]v=([^&]+)/);
+    if (m) {
+      let b64 = decodeURIComponent(m[1]);
+      b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+      let decoded = '';
+      try { decoded = decodeURIComponent(atob(b64)); }
+      catch (e) { decoded = atob(b64); }
+      const ext = (decoded.match(/\.(mp4|mkv|avi|m4v|webm|mov|m3u8)(?:[?#]|$)/i) || [])[1];
+      if (ext) return ext.toLowerCase();
+    }
+  } catch (e) {}
+  const fext = (url.match(/[?&]f=\.(mp4|mkv|avi|m4v|webm|mov|m3u8)/i) || [])[1];
+  if (fext) return fext.toLowerCase();
+  const uext = (url.match(/\.(mp4|mkv|avi|m4v|webm|mov|m3u8)(?:[?#]|$)/i) || [])[1];
+  return uext ? uext.toLowerCase() : '';
+}
+
+function importSplitYear(name) {
+  let year = 0;
+  let clean = name;
+  const m = name.match(/\((\d{4})\)/);
+  if (m) {
+    year = parseInt(m[1], 10) || 0;
+    clean = name.replace(/\(\d{4}\)/, '').trim();
+  } else {
+    const m2 = name.match(/\b(19\d{2}|20\d{2})\b/);
+    if (m2) { year = parseInt(m2[1], 10) || 0; clean = name.replace(/\b(19\d{2}|20\d{2})\b/, '').trim(); }
+  }
+  return { name: clean, year };
+}
+
+const IMPORT_DESCRIPTIONS = {
+  "7500": "Un copiloto intenta negociar con los secuestradores de su avion.",
+  "blood and money": "Un cazador encuentra el botin de un robo en el bosque.",
+  "a mother on the edge": "Una madre debe salvar a su hija en peligro.",
+  "hypnotic": "Un detective persigue a un ladron que usa la hipnosis.",
+  "memory": "Un sicario con Alzheimer decide proteger a una nina.",
+  "llaman a la puerta": "Una pareja es tomada como rehen por cuatro extranos.",
+  "nightbreed": "Un hombre descubre un submundo de criaturas.",
+  "dark skies": "Una familia es aterrorizada por entidades en su hogar.",
+  "perdida": "Una esposa desaparece y su esposo se vuelve sospechoso.",
+  "observador": "Un policia espia a sus vecinos y descubre un secreto.",
+  "abduction": "Un joven descubre que su identidad fue inventada.",
+  "señal de rescate": "Un astronauta perdido debe regresar a salvo.",
+  "protocolo fantasma": "Enfrenta una amenaza tras la muerte de un agente.",
+  "el experimento": "Voluntarios en una prision simulada pierden el control."
+};
+
+async function importFromList() {
+  const text = document.getElementById('import-text').value;
+  const category = document.getElementById('import-category').value;
+  if (!text.trim()) return showToast('Pega tu lista primero', 'error');
+
+  const seenNames = new Set(movies.map(m => (m.name || '').trim().toLowerCase()));
+  const entries = [];
+  let pending = null;
+
+  const lines = text.split(/\r?\n/);
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    if (line.startsWith('#EXTINF')) {
+      const logo = (line.match(/tvg-logo="([^"]*)"/) || [])[1] || '';
+      const grp = (line.match(/group-title="([^"]*)"/) || [])[1] || '';
+      const comma = line.lastIndexOf(',');
+      const name = comma >= 0 ? line.slice(comma + 1).trim() : '';
+      pending = { name, logo, grp };
+    } else if (!line.startsWith('#') && pending) {
+      pending.url = line;
+      entries.push(pending);
+      pending = null;
+    }
+  }
+
+  const filtered = [];
+  const added = [];
+  const duplicates = [];
+  const skipped = [];
+  for (const e of entries) {
+    const ext = importDecodeExt(e.url || '');
+    if (ext !== 'mp4') { skipped.push(e.name || 'sin nombre'); continue; }
+    const { name, year } = importSplitYear(e.name || '');
+    if (!name) { skipped.push(e.name || 'sin nombre'); continue; }
+    const key = name.trim().toLowerCase();
+    if (seenNames.has(key)) { duplicates.push(name); continue; }
+    filtered.push({
+      name: name.trim(),
+      url: e.url,
+      logo: e.logo,
+      year,
+      category: category || e.grp || '',
+      description: IMPORT_DESCRIPTIONS[key] || ''
+    });
+  }
+
+  if (filtered.length === 0) {
+    importResult.innerHTML = `<div class="empty-state" style="padding:20px;text-align:left;"><h3>Nada que importar</h3><p>No se encontraron peliculas .mp4 nuevas. ${skipped.length ? 'Descartadas (no .mp4): ' + skipped.slice(0, 10).join(', ') : ''}</p></div>`;
+    importResult.style.display = 'block';
+    return showToast('No hay .mp4 para agregar', 'error');
+  }
+
+  try {
+    const batch = filtered.map(m => addDoc(collection(db, 'movies'), {
+      name: m.name,
+      imageUrl: m.logo,
+      m3u8Url: m.url,
+      videoUrl: m.url,
+      category: m.category,
+      year: m.year || 0,
+      description: m.description,
+      status: 'pending',
+      createdAt: serverTimestamp()
+    }));
+    await Promise.all(batch);
+    added.push(...filtered.map(f => f.name));
+    await loadMovies();
+    const dupNote = duplicates.length ? `<br><span style="color:var(--text-muted);font-size:13px;">Ya existian: ${duplicates.slice(0, 8).join(', ')}</span>` : '';
+    const skipNote = skipped.length ? `<br><span style="color:var(--text-muted);font-size:13px;">Descartadas por no ser .mp4: ${skipped.slice(0, 8).join(', ')} ${skipped.length > 8 ? '...' : ''}</span>` : '';
+    importResult.innerHTML = `<div class="empty-state" style="padding:20px;text-align:left;"><h3>Importacion completada</h3><p>Agregadas: ${added.length} peliculas.</p>${dupNote}${skipNote}</div>`;
+    importResult.style.display = 'block';
+    closeImportModal();
+    showToast(`Se agregaron ${added.length} peliculas`, 'success');
+  } catch (error) {
+    showToast('Error: ' + error.message, 'error');
+  }
+}
+
+document.getElementById('import-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  importFromList();
+});

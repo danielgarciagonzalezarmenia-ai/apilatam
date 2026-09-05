@@ -546,6 +546,15 @@
   color: var(--text-secondary);
   border: 1px solid var(--border);
 }
+.profile-avatar.pp-letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--surface), var(--bg-card));
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
 .profile-drop {
   position: absolute;
   top: calc(100% + 10px);

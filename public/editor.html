@@ -11,10 +11,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css?v=8">
-  <link rel="stylesheet" href="css/builder.css?v=3">
+  <link rel="stylesheet" href="css/builder.css?v=4">
   <link rel="stylesheet" href="css/stream.css?v=1">
 </head>
-<body>
+<body class="editor">
 
   <div class="editor-top">
     <div class="editor-top-inner">
@@ -26,6 +26,7 @@
       <button class="btn btn-secondary btn-sm" id="btn-save">Guardar</button>
       <button class="btn btn-primary btn-sm" id="btn-download">Descargar App</button>
       <a href="dashboard.html" class="btn btn-secondary btn-sm">Panel</a>
+      <div id="profile-wrap" class="profile-wrap"></div>
     </div>
   </div>
 
@@ -44,13 +45,15 @@
     </aside>
 
     <section class="preview-wrap">
-      <div class="phone-frame">
-        <div class="phone-notch"></div>
-        <div class="phone-statusbar">
-          <span id="sb-time">9:41</span>
-          <span style="letter-spacing:1px;">&#128246;&#128268;&#128267;</span>
+      <div class="phone-box">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-statusbar">
+            <span id="sb-time">9:41</span>
+            <span style="letter-spacing:1px;">&#128246;&#128268;&#128267;</span>
+          </div>
+          <div class="phone-screen" id="phone-screen"></div>
         </div>
-        <div class="phone-screen" id="phone-screen"></div>
       </div>
     </section>
 
@@ -83,7 +86,8 @@
     import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { db, onAuthChange } from './js/auth.js?v=3';
     import { showToast, escapeHtml, uid, copyText } from './js/util.js?v=1';
-    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks } from './js/blocks.js?v=3';
+    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks, FONTS, loadFont, initHls } from './js/blocks.js?v=4';
+    import { setupProfile } from './js/profile.js?v=1';
 
     const $ = id => document.getElementById(id);
     const params = new URLSearchParams(location.search);
@@ -103,6 +107,7 @@
     onAuthChange(async (user) => {
       if (!user) { window.location.href = 'login.html'; return; }
       currentUser = user;
+      setupProfile($('profile-wrap'), user, { onSaved: () => showToast('Perfil actualizado', 'success') });
       await load();
     });
 
@@ -115,9 +120,7 @@
       pages = normalizePages(appData);
       pages.forEach(p => migrateLinks(p.blocks));
       $('mini-name').textContent = appData.name || 'Sin nombre';
-      const ml = $('mini-logo');
-      if (appData.logoUrl) { ml.innerHTML = `<img src="${escapeHtml(appData.logoUrl)}" alt="">`; ml.classList.remove('fallback'); }
-      else { ml.textContent = (appData.name || 'A')[0].toUpperCase(); }
+      updateMiniApp();
       selectPage(pages[0].id);
       renderPalette();
       setupFont();
@@ -153,13 +156,11 @@
     }
 
     /* ---------- Fonts ---------- */
-    const FONTS = ['Poppins','Inter','Roboto','Montserrat','Oswald','Playfair Display','Lora','Space Grotesk','JetBrains Mono'];
     function setupFont() {
       if (!theme.font) return;
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=' + theme.font.replace(/ /g, '+') + ':wght@400;600;700;800&display=swap';
-      document.head.appendChild(link);
+      loadFont(theme.font, () => {
+        if (currentPageId) renderPreview();
+      });
     }
 
     /* ---------- Pages ---------- */
@@ -310,7 +311,7 @@
         case 'heading': b.text = 'Nuevo titulo'; b.align = 'left'; b.size = 26; break;
         case 'text': b.text = 'Escribe aqui tu texto.'; b.align = 'left'; b.size = 15; b.opacity = 0.85; break;
         case 'image': b.url = ''; b.align = 'center'; b.width = 100; break;
-        case 'button': b.text = 'Boton'; b.url = '#'; b.variant = 'solid'; b.align = 'center'; break;
+        case 'button': b.text = 'Boton'; b.url = '#'; b.variant = 'solid'; b.align = 'center'; b.bg = ''; b.textColor = ''; b.width = ''; b.height = ''; b.linkTarget = ''; b.linkUrl = ''; break;
         case 'video': b.type = 'video'; b.url = ''; break;
         case 'youtube': b.type = 'youtube'; b.url = ''; break;
         case 'html': b.html = '<p style="margin:0;">Mi <strong>bloque</strong> HTML.</p>'; break;
@@ -446,6 +447,11 @@
       if (!block) {
         $('insp-title').textContent = 'App (tema global)';
         el.innerHTML = `
+          ${field('Nombre de la app', `<input class="input" data-app-name value="${escapeHtml(appData.name || '')}">`)}
+          ${field('Version', `<input class="input" data-app-version value="${escapeHtml(appData.version || '')}">`)}
+          ${field('Descripcion', `<textarea class="input" data-app-desc rows="3">${escapeHtml(appData.description || '')}</textarea>`)}
+          ${field('Logo (URL)', `<input class="input" data-app-logo value="${escapeHtml(appData.logoUrl || '')}">`)}
+          <div class="inspector-field" style="margin-top:6px;"><label>Tema de la app</label></div>
           ${field('Tipografia', sel('font', theme.font, FONTS))}
           ${field('Color de fondo', colorField('bg', theme.bg))}
           ${field('Color de texto', colorField('text', theme.text))}
@@ -470,7 +476,7 @@
         case 'heading': return field('Texto', input('text', b.text)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
         case 'text': return field('Texto', textarea('text', b.text, 5)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
         case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' })) + pageLinkFields(b, 'Al hacer clic en la imagen');
-        case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + pageLinkFields(b, 'Al hacer clic en el boton');
+        case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="field-row">${field('Ancho (px)', input('width', b.width, { type: 'number', ph: 'auto' }))}${field('Altura (px)', input('height', b.height, { type: 'number', ph: 'auto' }))}</div>` + field('Color del boton', colorField('bg', b.bg || theme.accent)) + field('Color del texto', colorField('textColor', b.textColor || (b.variant === 'solid' ? '#000000' : theme.accent))) + pageLinkFields(b, 'Al hacer clic en el boton');
         case 'video':
         case 'youtube': return field('URL del video', input('url', b.url, { ph: b.type === 'youtube' ? 'https://youtube.com/watch?v=...' : 'https://...mp4' }));
         case 'html': return field('Codigo HTML', textarea('html', b.html, 8));
@@ -589,10 +595,35 @@
             } else if (inp.type === 'text' && /^#/.test(String(val))) {
               el.querySelectorAll(`input[data-k="${k}"]`).forEach(x => { if (x !== inp && x.type === 'color') x.value = val; });
             }
+            if (k === 'font') loadFont(theme.font, () => renderPreview());
             renderPreview();
             markDirty();
           });
         });
+
+        el.querySelectorAll('[data-app-name],[data-app-version],[data-app-desc],[data-app-logo]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            if (inp.dataset.appName) appData.name = inp.value.trim();
+            else if (inp.dataset.appVersion) appData.version = inp.value.trim();
+            else if (inp.dataset.appDesc) appData.description = inp.value.trim();
+            else appData.logoUrl = inp.value.trim();
+            updateMiniApp();
+            markDirty();
+          });
+        });
+      }
+    }
+
+    /* ---------- App mini ---------- */
+    function updateMiniApp() {
+      $('mini-name').textContent = appData.name || 'Sin nombre';
+      const ml = $('mini-logo');
+      if (appData.logoUrl) {
+        ml.innerHTML = `<img src="${escapeHtml(appData.logoUrl)}" alt="">`;
+        ml.classList.remove('fallback');
+      } else {
+        ml.textContent = (appData.name || 'A')[0].toUpperCase();
+        ml.classList.add('fallback');
       }
     }
 
@@ -619,7 +650,19 @@
         const target = getPage(a.dataset.afPage);
         if (target) { previewPageId = target.id; renderPreview(); }
       }));
+      initHls(screen);
+      fitPhone();
     }
+
+    function fitPhone() {
+      if (window.matchMedia('(max-width: 1100px)').matches) return;
+      const wrap = document.querySelector('.preview-wrap');
+      const box = document.querySelector('.phone-box');
+      if (!wrap || !box) return;
+      const scale = Math.min(1, (wrap.clientWidth - 48) / 375, (wrap.clientHeight - 48) / 715);
+      box.style.transform = 'scale(' + Math.max(0.1, scale) + ')';
+    }
+    window.addEventListener('resize', fitPhone);
 
     /* ---------- Save ---------- */
     function markDirty() {
@@ -636,12 +679,19 @@
       if (!appId || !currentUser || !appData) return;
       try {
         await updateDoc(doc(db, 'apps', appId), {
+          name: (appData.name || '').trim() || 'Sin nombre',
+          version: (appData.version || '').trim() || '1.0.0',
+          description: (appData.description || '').trim(),
+          logoUrl: (appData.logoUrl || '').trim(),
           pages: JSON.parse(JSON.stringify(pages)),
           blocks: JSON.parse(JSON.stringify(pages[0].blocks || [])),
-          theme,
+          theme: JSON.parse(JSON.stringify(theme)),
           updatedAt: serverTimestamp(),
           published: true
         });
+        appData.name = (appData.name || '').trim() || 'Sin nombre';
+        appData.version = (appData.version || '').trim() || '1.0.0';
+        updateMiniApp();
         dirty = false;
       } catch (e) {
         console.error('save error', e);

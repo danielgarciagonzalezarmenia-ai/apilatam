@@ -22,16 +22,7 @@
       <div class="navbar-links">
         <a href="create.html" class="btn btn-primary btn-sm">+ Nueva App</a>
         <a href="plans.html" class="nav-link" id="nav-plans">Mejorar a Pro</a>
-        <div id="profile-wrap" class="profile-wrap hidden">
-          <button id="profile-btn" class="profile-btn" aria-label="Perfil">
-            <img class="profile-avatar" id="profile-avatar" alt="Perfil">
-          </button>
-          <div id="profile-drop" class="profile-drop hidden">
-            <div class="p-name" id="profile-name"></div>
-            <div class="p-email" id="profile-email"></div>
-            <button id="logout-btn" class="btn btn-secondary btn-sm">Cerrar Sesion</button>
-          </div>
-        </div>
+        <div id="profile-wrap" class="profile-wrap"></div>
       </div>
       <button class="hamburger" onclick="document.querySelector('.navbar-links').classList.toggle('open')" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -65,7 +56,8 @@
   </main>
 
   <script type="module">
-    import { onAuthChange, db, logout, ensureUserDoc } from './js/auth.js?v=2';
+    import { onAuthChange, db, ensureUserDoc } from './js/auth.js?v=2';
+    import { setupProfile } from './js/profile.js?v=1';
     import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { escapeHtml, showToast, FREE_LIMIT } from './js/util.js?v=1';
 
@@ -75,9 +67,7 @@
     onAuthChange(async (user) => {
       if (!user) { window.location.href = 'login.html'; return; }
       currentUser = user;
-      $('profile-avatar').src = user.photoURL || '';
-      $('profile-name').textContent = user.displayName || '';
-      $('profile-email').textContent = user.email || '';
+      setupProfile($('profile-wrap'), user);
       const udoc = await ensureUserDoc(user);
       renderPlan(udoc);
       const q = query(collection(db, 'apps'), where('ownerId', '==', user.uid), orderBy('updatedAt', 'desc'));
@@ -149,15 +139,6 @@
       });
     }
 
-    document.getElementById('profile-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      $('profile-drop').classList.toggle('hidden');
-    });
-    document.addEventListener('click', () => $('profile-drop').classList.add('hidden'));
-    document.getElementById('logout-btn').addEventListener('click', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      logout();
-    });
-  </script>
+    </script>
 </body>
 </html>

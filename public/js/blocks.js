@@ -26,11 +26,111 @@ export function defaultTheme() {
   };
 }
 
+export const FONTS = [
+  'Inter', 'Poppins', 'Roboto', 'Montserrat', 'Space Grotesk', 'Outfit', 'Manrope', 'Work Sans',
+  'Oswald', 'Anton', 'Archivo Black', 'Bebas Neue', 'Bungee', 'Righteous',
+  'Playfair Display', 'Lora', 'Merriweather', 'DM Serif Display', 'Abril Fatface',
+  'JetBrains Mono', 'Caveat', 'Pacifico', 'Shadows Into Light'
+];
+
+const FONT_W = {
+  'Inter': '400;500;600;700;800',
+  'Poppins': '400;500;600;700;800',
+  'Roboto': '400;500;700;900',
+  'Montserrat': '400;600;700;800;900',
+  'Space Grotesk': '400;500;600;700',
+  'Outfit': '300;400;600;700;800',
+  'Manrope': '400;500;600;700;800',
+  'Work Sans': '400;500;600;700;800',
+  'Oswald': '400;500;600;700',
+  'Playfair Display': '400;500;600;700;800',
+  'Lora': '400;500;600;700',
+  'Merriweather': '400;700;900',
+  'JetBrains Mono': '400;600;700;800',
+  'Caveat': '400;600;700',
+  'Anton': '400',
+  'Archivo Black': '400',
+  'Bebas Neue': '400',
+  'Bungee': '400',
+  'Righteous': '400',
+  'DM Serif Display': '400',
+  'Abril Fatface': '400',
+  'Pacifico': '400',
+  'Shadows Into Light': '400'
+};
+
+export function fontHref(name) {
+  if (!name) return '';
+  const w = FONT_W[name] || '400;600;700;800';
+  return 'https://fonts.googleapis.com/css2?family=' + name.replace(/ /g, '+') + ':wght@' + w + '&display=swap';
+}
+
+export function loadFont(name, onApplied) {
+  if (!name) return Promise.resolve();
+  const href = fontHref(name);
+  return new Promise((resolve) => {
+    let link = document.querySelector('link[data-af-font]');
+    const done = () => { link.onload = link.onerror = null; if (onApplied) onApplied(); resolve(); };
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.dataset.afFont = '';
+      link.onload = done;
+      link.onerror = done;
+      link.href = href;
+      document.head.appendChild(link);
+      return;
+    }
+    if (link.href === href) { if (onApplied) onApplied(); resolve(); return; }
+    link.onload = done;
+    link.onerror = done;
+    link.href = href;
+  });
+}
+
+let hlsPromise = null;
+export function initHls(root) {
+  const vids = root.querySelectorAll('video[data-hls]');
+  if (!vids.length) return Promise.resolve();
+  const loadLib = () => {
+    if (window.Hls) return Promise.resolve();
+    if (hlsPromise) return hlsPromise;
+    hlsPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('hls.js no cargo'));
+      document.head.appendChild(s);
+    });
+    return hlsPromise;
+  };
+  return loadLib().then(() => {
+    vids.forEach(v => {
+      if (v.__hls) return;
+      if (window.Hls && window.Hls.isSupported()) {
+        const hls = new window.Hls({ liveSyncDurationCount: 2 });
+        hls.loadSource(v.dataset.hls);
+        hls.attachMedia(v);
+        hls.on(window.Hls.Events.ERROR, (ev, data) => {
+          if (data && data.fatal) {
+            try { v.src = v.dataset.hls; } catch (e) {}
+          }
+        });
+        v.__hls = hls;
+      } else {
+        try { v.src = v.dataset.hls; } catch (e) {}
+      }
+    });
+  }).catch(() => {
+    vids.forEach(v => { try { v.src = v.dataset.hls; } catch (e) {} });
+  });
+}
+
 export function defaultBlocks() {
   return [
     { id: 'b' + Date.now() + 'a', type: 'header', text: 'Mi App', subtitle: 'Creada con AppForge', showLogo: true, logo: '', align: 'center' },
     { id: 'b' + Date.now() + 'b', type: 'text', text: 'Escribe aqui la bienvenida de tu app. Personaliza este texto desde el editor.', align: 'center' },
-    { id: 'b' + Date.now() + 'c', type: 'button', text: 'Empezar', url: 'https://example.com', variant: 'solid' },
+    { id: 'b' + Date.now() + 'c', type: 'button', text: 'Empezar', url: '#', linkUrl: 'https://example.com', variant: 'solid', align: 'center' },
     { id: 'b' + Date.now() + 'd', type: 'footer', text: 'AppForge \u00A9 2026' }
   ];
 }
@@ -94,11 +194,19 @@ function linkMarkup(b) {
 
 function blockButton(b, css) {
   const variant = b.variant || 'solid';
+  const accent = 'var(--t-accent)';
   let style = '';
-  if (variant === 'solid') style = `background:var(--t-accent);color:#000;`;
-  else if (variant === 'outline') style = `border:1.5px solid var(--t-accent);color:var(--t-accent);background:transparent;`;
-  else style = `color:var(--t-accent);background:transparent;`;
-  style = 'display:inline-block;padding:13px 28px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;' + style;
+  if (variant === 'solid') {
+    style = `background:${b.bg || accent};color:${b.textColor || '#000'};`;
+  } else if (variant === 'outline') {
+    style = `border:1.5px solid ${b.bg || accent};color:${b.textColor || accent};background:transparent;`;
+  } else {
+    style = `color:${b.textColor || accent};background:transparent;`;
+  }
+  const dims = [];
+  if (b.width) dims.push(`width:${b.width}px;`);
+  if (b.height) dims.push(`height:${b.height}px;`);
+  style = 'position:relative;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;padding:13px 28px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;' + style + dims.join(' ');
   let attrs = 'href="#"';
   if (b.linkTarget) attrs = `data-af-page="${escapeHtml(b.linkTarget)}"`;
   else if (b.linkUrl) attrs = `href="${escapeHtml(b.linkUrl)}" target="_blank" rel="noopener"`;
@@ -112,7 +220,11 @@ function blockVideo(b, css) {
       return `<div class="ab-video" style="${css};"><div class="ab-video-box" style="position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--t-radius);overflow:hidden;background:#000;"><iframe src="https://www.youtube.com/embed/${id}" style="position:absolute;inset:0;width:100%;height:100%;border:0;" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe></div></div>`;
     }
   }
-  return `<div class="ab-video" style="${css};"><video controls playsinline preload="metadata" style="width:100%;border-radius:var(--t-radius);background:#000;aspect-ratio:16/9;" src="${escapeHtml(b.url || '')}"></video></div>`;
+  const url = b.url || '';
+  if (/\.m3u8(\?|$)/i.test(url)) {
+    return `<div class="ab-video" style="${css};"><video class="ab-hls" data-hls="${escapeHtml(url)}" controls playsinline preload="metadata" style="width:100%;border-radius:var(--t-radius);background:#000;aspect-ratio:16/9;"></video></div>`;
+  }
+  return `<div class="ab-video" style="${css};"><video controls playsinline preload="metadata" style="width:100%;border-radius:var(--t-radius);background:#000;aspect-ratio:16/9;" src="${escapeHtml(url)}"></video></div>`;
 }
 
 function blockHtml(b, css) {

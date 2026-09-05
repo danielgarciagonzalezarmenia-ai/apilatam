@@ -1,6 +1,7 @@
 const params = new URLSearchParams(location.search);
 const appId = params.get('id');
 
+let blocksMod = null;
 const state = { pages: [], theme: null, data: null };
 
 async function initAppPage(id) {
@@ -10,16 +11,17 @@ async function initAppPage(id) {
   }
 
   try {
-    const [firestore, authMod, utilMod, blocksMod] = await Promise.all([
+    const [firestore, authMod, utilMod, blkMod] = await Promise.all([
       import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'),
       import('./auth.js?v=2'),
       import('./util.js?v=1'),
-      import('./blocks.js?v=3')
+      import('./blocks.js?v=4')
     ]);
     const { doc, getDoc } = firestore;
     const { db } = authMod;
     const { escapeHtml } = utilMod;
-    const { renderBlocks, defaultTheme } = blocksMod;
+    const { renderBlocks, defaultTheme, initHls, loadFont } = blkMod;
+    blocksMod = blkMod;
 
     const snap = await getDoc(doc(db, 'apps', id));
     if (!snap.exists()) {
@@ -39,6 +41,7 @@ async function initAppPage(id) {
       ? data.pages.map(p => ({ ...p, blocks: p.blocks || [] }))
       : [{ id: 'p-home', name: 'Inicio', blocks: data.blocks || [] }];
     state.pages.forEach(p => migrateLinks(p.blocks));
+    await loadFont(state.theme.font || 'Poppins');
 
     await setupShell(data, id);
     renderCurrentPage(true);
@@ -98,6 +101,8 @@ function renderCurrentPage(isInit) {
   if (isInit) {
     document.title = (state.data.name || 'App') + ' - AppForge';
   }
+
+  if (blocksMod && blocksMod.initHls) blocksMod.initHls(root);
 }
 
 async function setupShell(data, id) {

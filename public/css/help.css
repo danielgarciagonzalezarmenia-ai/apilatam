@@ -1,0 +1,53 @@
+/* Panel: pestanas y guia "Como usar" */
+.dash-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+.dash-tab {
+  padding: 9px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.dash-tab:hover { color: var(--text-primary); }
+.dash-tab.active { border-color: var(--accent); color: var(--text-primary); box-shadow: 0 0 0 1px var(--accent); }
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding-top: 8px;
+}
+.help-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl, 20px);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.help-card h3 { font-size: 16px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px; }
+.help-tag {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+}
+.help-card ol { margin: 0; padding-left: 18px; }
+.help-card li { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 6px; }
+.help-card li::marker { color: var(--accent); font-weight: 700; }

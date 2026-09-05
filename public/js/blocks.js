@@ -11,6 +11,7 @@ export const BLOCK_TYPES = {
   youtube: 'YouTube',
   html: 'Bloque HTML',
   list: 'Lista',
+  grid: 'Cuadricula',
   divider: 'Divisor',
   spacer: 'Espacio',
   footer: 'Pie de pagina'
@@ -156,6 +157,7 @@ export function renderBlock(block, theme) {
     case 'youtube': return blockVideo(block, css);
     case 'html': return blockHtml(block, css);
     case 'list': return blockList(block, css);
+    case 'grid': return blockGrid(block, css);
     case 'divider': return blockDivider(block, css);
     case 'spacer': return blockSpacer(block, css);
     case 'footer': return blockFooter(block, css);
@@ -253,6 +255,26 @@ function blockList(b, css) {
     return `<div class="ab-list-item">${content}</div>`;
   }).join('');
   return `<div class="ab-list" style="${css};">${list}</div>`;
+}
+
+function blockGrid(b, css) {
+  const cols = [2, 3, 4].includes(Number(b.cols)) ? Number(b.cols) : 2;
+  const cells = (b.cells || []).filter(x => x && x.text);
+  if (!cells.length) return '';
+  const gap = b.gap || 12;
+  const minH = b.minH || 0;
+  const inner = cells.map(c => {
+    const icon = c.icon ? `<span class="ab-grid-icon">${iconSpan(c.icon, { size: c.iconSize || 22, color: c.iconColor ? c.iconColor : 'var(--t-accent)' })}</span>` : '';
+    const content = `${icon}${c.text ? `<div class="ab-grid-title">${escapeHtml(c.text)}</div>` : ''}${c.desc ? `<div class="ab-grid-desc">${escapeHtml(c.desc)}</div>` : ''}`;
+    const cellStyle = `text-decoration:none;${minH ? 'min-height:' + minH + 'px;' : ''}`;
+    const lk = c.linkTarget || c.linkUrl ? linkMarkup(c) : null;
+    if (lk) {
+      const attrs = lk.open.includes('data-af-page') ? `data-af-page="${escapeHtml(c.linkTarget)}"` : `href="${escapeHtml(c.linkUrl)}" target="_blank" rel="noopener"`;
+      return `<a class="ab-grid-cell" style="${cellStyle}" ${attrs}>${content}</a>`;
+    }
+    return `<div class="ab-grid-cell" style="${cellStyle}">${content}</div>`;
+  }).join('');
+  return `<div class="ab-grid" style="${css};display:grid;grid-template-columns:repeat(${cols},1fr);gap:${gap}px;">${inner}</div>`;
 }
 
 function blockDivider(b, css) {

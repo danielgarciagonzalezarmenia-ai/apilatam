@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="css/custom.css?v=7">
   <link rel="stylesheet" href="css/builder.css?v=2">
   <link rel="stylesheet" href="css/stream.css?v=1">
+  <link rel="stylesheet" href="css/help.css?v=1">
 </head>
 <body>
 
@@ -34,24 +35,41 @@
     <div id="loading" class="loading-spinner" style="display:none;"></div>
 
     <div id="content" class="hidden">
-      <div class="dashboard-header">
-        <div>
-          <h1 style="font-size:28px;font-weight:700;letter-spacing:-0.02em;">Mis apps</h1>
-          <p style="color:var(--text-secondary);font-size:14px;margin-top:4px;">Gestiona y edita tus aplicaciones.</p>
-        </div>
-        <span id="plan-badge" class="plan-badge free">Plan Gratis</span>
+      <div class="dash-tabs">
+        <button class="dash-tab active" data-tab="apps">Mis apps</button>
+        <button class="dash-tab" data-tab="help">Como usar</button>
       </div>
 
-      <div id="plan-banner" class="plan-banner">
-        <div>
-          <h3>Limitaciones del plan Gratis</h3>
-          <p id="plan-text">Tienes 0 de 2 apps creadas.</p>
-          <div class="limit-bar"><span id="limit-fill" style="width:0%"></span></div>
+      <div id="apps-panel">
+        <div class="dashboard-header">
+          <div>
+            <h1 style="font-size:28px;font-weight:700;letter-spacing:-0.02em;">Mis apps</h1>
+            <p style="color:var(--text-secondary);font-size:14px;margin-top:4px;">Gestiona y edita tus aplicaciones.</p>
+          </div>
+          <span id="plan-badge" class="plan-badge free">Plan Gratis</span>
         </div>
-        <a href="plans.html" class="btn btn-primary">Mejorar a Pro por $10/mes</a>
+
+        <div id="plan-banner" class="plan-banner">
+          <div>
+            <h3>Limitaciones del plan Gratis</h3>
+            <p id="plan-text">Tienes 0 de 2 apps creadas.</p>
+            <div class="limit-bar"><span id="limit-fill" style="width:0%"></span></div>
+          </div>
+          <a href="plans.html" class="btn btn-primary">Mejorar a Pro por $10/mes</a>
+        </div>
+
+        <div id="apps-grid" class="app-grid"></div>
       </div>
 
-      <div id="apps-grid" class="app-grid"></div>
+      <div id="help-panel" class="hidden">
+        <div class="dashboard-header">
+          <div>
+            <h1 style="font-size:28px;font-weight:700;letter-spacing:-0.02em;">Como usar</h1>
+            <p style="color:var(--text-secondary);font-size:14px;margin-top:4px;">Guia rapida de cada herramienta y bloque para crear tus apps.</p>
+          </div>
+        </div>
+        <div class="help-grid" id="help-grid"></div>
+      </div>
     </div>
   </main>
 
@@ -138,6 +156,44 @@
         });
       });
     }
+
+    const HELP = [
+      { tag: 'P', title: 'Paginas', steps: ['Usa "+ Pagina" para crear varias vistas.', 'Renombra o elimina desde los botones junto a cada pagina.', 'Conecta tus bloques a otras paginas con el selector "pagina" en el enlace.'] },
+      { tag: 'T', title: 'Tema global', steps: ['Sin ningun bloque seleccionado ves el tema de la app.', 'Elige la tipografia entre mas de 20 estilos, y ajusta colores y esquinas.', 'Cambia entre modo Oscuro y Claro; aplica a toda la app.'] },
+      { tag: 'I', title: 'Info de la app', steps: ['Nombre, version y descripcion se ven en tu panel y en la app.', 'El logo aparece en el encabezado de la app y en la tarjeta del panel.'] },
+      { tag: 'V', title: 'Ver y publicar', steps: ['Guarda con el boton Guardar: tu app queda publicada al instante.', 'Usa "Ver app" o "Descargar App" para abrirla y compartirla.', 'El link y el codigo QR sirven para abrir la app en el celular.'] },
+      { tag: 'E', title: 'Encabezado', steps: ['Titulo y subtitulo principales de la app.', 'Puedes mostrar un icono grande, una imagen (logo) o ambos.', 'Elige alineacion, y tamano y color del icono.'] },
+      { tag: 'T', title: 'Titulo y Texto', steps: ['Titulo: encabezados de seccion con tamano ajustable.', 'Texto: parrafos con tamano, alineacion y opacidad.'] },
+      { tag: 'I', title: 'Imagen', steps: ['Pega la URL de la imagen (puede ser de la web).', 'Ajusta el ancho en porciento y la alineacion.', 'Puede enlazar a una pagina interna o a una URL externa.'] },
+      { tag: 'B', title: 'Boton', steps: ['Texto + estilos: solido, contorno o fantasma.', 'Ancho y alto con barras; valor 0 = automatico.', 'Agrega un icono y ajusta tamano y color.', 'Enlaza a una pagina de la app o a una URL externa.'] },
+      { tag: 'V', title: 'Video', steps: ['Video MP4: pega el enlace del archivo .mp4.', 'YouTube: pega el enlace del video.', 'Tambien funciona HLS (.m3u8) para transmisiones en vivo.'] },
+      { tag: 'H', title: 'HTML', steps: ['Para avanzados: pega codigo HTML propio.', 'Se renderiza tal cual dentro de tu app.'] },
+      { tag: 'L', title: 'Lista', steps: ['Filas con icono, titulo y descripcion.', 'Cada fila puede enlazar a una pagina o a una URL.', 'Tamano y color del icono se ajustan por fila.'] },
+      { tag: 'C', title: 'Cuadricula', steps: ['Cuadros en proporciones: elige 2x, 3x o 4x por fila.', 'Ajusta la separacion y el alto minimo con barras.', 'Cada cuadro lleva icono, texto, descripcion y enlace.'] },
+      { tag: 'D', title: 'Divisor y Espacio', steps: ['Divisor: linea separadora.', 'Espacio: margen vertical para airear el diseno.'] },
+      { tag: 'F', title: 'Pie de pagina', steps: ['Texto final, ideal para contacto o copyright.'] },
+      { tag: 'I', title: 'Iconos', steps: ['Abre el selector y busca por nombre o categoria.', 'Guardar confirma; "Sin icono" lo quita.', 'Tamano y color se ajustan en cada bloque.'] },
+      { tag: 'A', title: 'Perfil', steps: ['Haz clic en tu avatar arriba a la derecha.', 'Cambia tu nombre y tu foto de perfil.'] }
+    ];
+
+    function renderHelp() {
+      $('help-grid').innerHTML = HELP.map(h => `
+        <div class="help-card">
+          <h3><span class="help-tag">${h.tag}</span>${escapeHtml(h.title)}</h3>
+          <ol>${h.steps.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>
+        </div>`).join('');
+    }
+
+    document.querySelectorAll('.dash-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.dash-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.tab;
+        $('apps-panel').classList.toggle('hidden', tab !== 'apps');
+        $('help-panel').classList.toggle('hidden', tab !== 'help');
+        if (tab === 'help') renderHelp();
+      });
+    });
 
     </script>
 </body>

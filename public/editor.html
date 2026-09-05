@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css?v=8">
-  <link rel="stylesheet" href="css/builder.css?v=6">
+  <link rel="stylesheet" href="css/builder.css?v=7">
   <link rel="stylesheet" href="css/stream.css?v=1">
 </head>
 <body class="editor">
@@ -86,7 +86,7 @@
     import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { db, onAuthChange } from './js/auth.js?v=3';
     import { showToast, escapeHtml, uid, copyText } from './js/util.js?v=1';
-    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks, FONTS, loadFont, initHls } from './js/blocks.js?v=6';
+    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks, FONTS, loadFont, initHls } from './js/blocks.js?v=7';
     import { setupProfile } from './js/profile.js?v=1';
     import { iconSpan, ALL_ICONS, ICON_CATEGORIES, loadIconFont } from './js/icons.js?v=1';
 
@@ -277,6 +277,7 @@
       youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18v12H3z"/><path d="m10 9 5 3-5 3z"/></svg>',
       html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 6-5 6 5 6M16 6l5 6-5 6M13 5l-2 14"/></svg>',
       list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>',
+      grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
       divider: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16"/></svg>',
       spacer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6V2M8 6H4M16 6V2M16 6h4M8 18v4M8 18H4M16 18v4M16 18h4M4 8v8M20 8v8"/></svg>',
       footer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15h16M6 18h12"/></svg>'
@@ -291,6 +292,7 @@
       { type: 'youtube', label: 'YouTube' },
       { type: 'html', label: 'HTML' },
       { type: 'list', label: 'Lista' },
+      { type: 'grid', label: 'Cuadricula' },
       { type: 'divider', label: 'Divisor' },
       { type: 'spacer', label: 'Espacio' },
       { type: 'footer', label: 'Pie' }
@@ -318,6 +320,7 @@
         case 'youtube': b.type = 'youtube'; b.url = ''; break;
         case 'html': b.html = '<p style="margin:0;">Mi <strong>bloque</strong> HTML.</p>'; break;
         case 'list': b.items = [{ icon: '\u2713', text: 'Elemento 1', desc: '' }, { icon: '\u2713', text: 'Elemento 2', desc: '' }]; break;
+        case 'grid': b.cols = 2; b.gap = 12; b.minH = ''; b.cells = [{ icon: '', text: 'Cuadro 1', desc: 'Descripcion' }, { icon: '', text: 'Cuadro 2', desc: 'Descripcion' }, { icon: '', text: 'Cuadro 3', desc: 'Descripcion' }, { icon: '', text: 'Cuadro 4', desc: 'Descripcion' }]; break;
         case 'divider': break;
         case 'spacer': b.height = 24; break;
         case 'footer': b.text = 'AppForge \u00A9 2026'; break;
@@ -516,6 +519,28 @@
               <input class="input" data-item-url="${i}" value="${escapeHtml(it.linkUrl || '')}" placeholder="URL externa (opcional)">
             </div>`).join('')}
           <button class="btn btn-secondary btn-sm" id="list-add" style="width:100%;margin-top:12px;">+ Agregar elemento</button>`;
+        case 'grid': return field('Cuadros por fila', sel('cols', b.cols, [2, 3, 4])) + `<div class="field-row">${field('Separacion', rangeField('gap', b.gap, 4, 32))}${field('Alto minimo (px)', rangeField('minH', b.minH, 0, 220))}</div>` + `
+          <div class="inspector-field"><label>Cuadros</label></div>
+          ${(b.cells || []).map((it, i) => `
+            <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+              <button class="btn btn-secondary btn-sm" data-cell-iconpick="${i}" title="Elegir icono" style="padding:7px 9px;display:inline-flex;align-items:center;gap:6px;">${it.icon ? iconSpan(it.icon, { size: 16 }) + ' ' + escapeHtml(it.icon) : 'Icono'}</button>
+              <button class="btn btn-danger btn-sm" data-cell-iconclear="${i}" title="Quitar icono" style="padding:7px 9px;">${ICONS_X}</button>
+              <input class="input" data-cell-text="${i}" value="${escapeHtml(it.text || '')}" placeholder="Texto" style="flex:1;min-width:0;">
+              <button class="btn btn-danger btn-sm" data-cell-del="${i}" style="padding:7px 9px;">${ICONS_X}</button>
+            </div>
+            <input class="input" data-cell-desc="${i}" value="${escapeHtml(it.desc || '')}" placeholder="Descripcion (opcional)" style="margin-bottom:8px;">
+            ${it.icon ? `<div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+              <input class="input" data-cell-icon-size="${i}" value="${it.iconSize || ''}" placeholder="Tam. (px)" style="flex:0 0 72px;">
+              <input class="input" data-cell-icon-color="${i}" value="${escapeHtml(it.iconColor || '')}" placeholder="Color icono (hex)" style="flex:1;">
+            </div>` : ''}
+            <div class="item-link-row">
+              <select class="select" data-cell-target="${i}">
+                <option value="">Sin enlace</option>
+                ${pages.map(p => `<option value="${escapeHtml(p.id)}" ${it.linkTarget === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('')}
+              </select>
+              <input class="input" data-cell-url="${i}" value="${escapeHtml(it.linkUrl || '')}" placeholder="URL externa (opcional)">
+            </div>`).join('')}
+          <button class="btn btn-secondary btn-sm" id="grid-add" style="width:100%;margin-top:12px;">+ Agregar cuadro</button>`;
         case 'divider': return '<p class="empty-inspector">Bloque divisor. No tiene opciones.</p>';
         case 'spacer': return field('Altura (px)', input('height', b.height, { type: 'number' }));
         case 'footer': return field('Texto', input('text', b.text));
@@ -527,7 +552,7 @@
       if (block) {
         el.querySelectorAll('[data-k]').forEach(inp => {
           const k = inp.dataset.k;
-          const evt = inp.type === 'checkbox' ? 'change' : 'input';
+          const evt = inp.tagName === 'SELECT' || inp.type === 'checkbox' ? 'change' : 'input';
           inp.addEventListener(evt, () => {
             let val = inp.value;
             if (inp.type === 'checkbox') val = inp.checked;
@@ -642,10 +667,72 @@
           block.items.push({ icon: '\u2713', text: 'Nuevo elemento', desc: '' });
           renderInspector(); renderPreview(); markDirty();
         });
+
+        el.querySelectorAll('[data-cell-text]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            block.cells[+inp.dataset.cellText].text = inp.value;
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-cell-desc]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            block.cells[+inp.dataset.cellDesc].desc = inp.value;
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-cell-icon-size]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            const v = Number(inp.value);
+            block.cells[+inp.dataset.cellIconSize].iconSize = v ? Math.min(64, Math.max(8, v)) : '';
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-cell-icon-color]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            block.cells[+inp.dataset.cellIconColor].iconColor = inp.value;
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-cell-iconpick]').forEach(btn => btn.addEventListener('click', () => {
+          const i = +btn.dataset.cellIconpick;
+          openIconPicker({
+            initial: (block.cells[i] && block.cells[i].icon) || '',
+            onPick: (name) => { block.cells[i].icon = name || ''; renderInspector(); renderPreview(); markDirty(); }
+          });
+        }));
+        el.querySelectorAll('[data-cell-iconclear]').forEach(btn => btn.addEventListener('click', () => {
+          block.cells[+btn.dataset.cellIconclear].icon = '';
+          renderInspector(); renderPreview(); markDirty();
+        }));
+        el.querySelectorAll('[data-cell-target]').forEach(inp => {
+          inp.addEventListener('change', () => {
+            block.cells[+inp.dataset.cellTarget].linkTarget = inp.value || '';
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-cell-url]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            block.cells[+inp.dataset.cellUrl].linkUrl = inp.value;
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-cell-del]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            block.cells.splice(+btn.dataset.cellDel, 1);
+            renderInspector(); renderPreview(); markDirty();
+          });
+        });
+        const gaddBtn = el.querySelector('#grid-add');
+        if (gaddBtn) gaddBtn.addEventListener('click', () => {
+          block.cells = block.cells || [];
+          block.cells.push({ icon: '', text: 'Nuevo cuadro', desc: '' });
+          renderInspector(); renderPreview(); markDirty();
+        });
       } else {
         el.querySelectorAll('[data-k]').forEach(inp => {
           const k = inp.dataset.k;
-          inp.addEventListener('input', () => {
+          const evt = inp.tagName === 'SELECT' || inp.type === 'checkbox' ? 'change' : 'input';
+          inp.addEventListener(evt, () => {
             let val = inp.value;
             if (inp.type === 'number') val = Number(val);
             theme[k] = val;

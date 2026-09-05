@@ -294,6 +294,15 @@ body.editor { height: 100dvh; overflow: hidden; }
 }
 .ab-list-title { font-size: 14px; font-weight: 600; }
 .ab-list-desc { font-size: 12.5px; opacity: 0.65; }
+.ab-grid-cell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center;
+  padding: 16px 10px; border-radius: var(--t-radius, 16px);
+  background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.09);
+  box-sizing: border-box; color: inherit;
+}
+.ab-grid-title { font-size: 14px; font-weight: 650; }
+.ab-grid-desc { font-size: 12px; opacity: 0.65; }
+.ab-grid-icon { display: inline-flex; }
 
 /* Published app (full screen) */
 .ab-app-body {

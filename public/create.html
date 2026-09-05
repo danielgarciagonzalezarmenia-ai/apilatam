@@ -154,6 +154,7 @@
         }
       }
 
+      const homePageId = 'p' + uid();
       const data = {
         ownerId: currentUser.uid,
         name,
@@ -162,6 +163,7 @@
         logoUrl,
         accent: $('f-accent').value,
         theme: { ...defaultTheme(), accent: $('f-accent').value },
+        pages: [{ id: homePageId, name: 'Inicio', blocks: defaultBlocks() }],
         blocks: defaultBlocks(),
         published: false,
         createdAt: serverTimestamp(),

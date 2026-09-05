@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=7">
-  <link rel="stylesheet" href="css/builder.css?v=2">
+  <link rel="stylesheet" href="css/custom.css?v=8">
+  <link rel="stylesheet" href="css/builder.css?v=3">
   <link rel="stylesheet" href="css/stream.css?v=1">
 </head>
 <body>
@@ -29,16 +29,20 @@
     </div>
   </div>
 
+  <div class="pages-bar">
+    <span class="pages-label">Paginas</span>
+    <div class="pages-chips" id="pages-chips"></div>
+    <button class="btn btn-secondary btn-sm" id="btn-add-page" style="flex-shrink:0;">+ Pagina</button>
+  </div>
+
   <div class="editor-layout">
-    <!-- Paneles -->
     <aside class="editor-panel">
-      <div class="panel-title">Agregar bloques</div>
+      <div class="panel-title">Agregar bloques a esta pagina</div>
       <div class="block-palette" id="palette"></div>
-      <div class="panel-title" style="margin-top:28px;">Estructura</div>
-      <div class="block-list" id="block-list"></div>
+      <div class="panel-title" style="margin-top:28px;">Estructura <span style="text-transform:none;font-weight:500;letter-spacing:0;">(arrastra para reordenar)</span></div>
+      <div class="block-list" id="block-list" style="margin-top:6px;"></div>
     </aside>
 
-    <!-- Preview -->
     <section class="preview-wrap">
       <div class="phone-frame">
         <div class="phone-notch"></div>
@@ -50,14 +54,12 @@
       </div>
     </section>
 
-    <!-- Inspector -->
     <aside class="editor-panel">
       <div class="panel-title" id="insp-title">Inspector</div>
       <div id="inspector"></div>
     </aside>
   </div>
 
-  <!-- Modal descargar -->
   <div id="dl-overlay" class="modal-overlay" style="display:none">
     <div class="modal" style="max-width:440px;">
       <h2>Descargar app</h2>
@@ -79,16 +81,18 @@
 
   <script type="module">
     import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
-    import { db, onAuthChange } from './js/auth.js?v=2';
-    import { showToast, escapeHtml, debounce, uid, copyText } from './js/util.js?v=1';
-    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks } from './js/blocks.js?v=1';
+    import { db, onAuthChange } from './js/auth.js?v=3';
+    import { showToast, escapeHtml, uid, copyText } from './js/util.js?v=1';
+    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks } from './js/blocks.js?v=2';
 
     const $ = id => document.getElementById(id);
     const params = new URLSearchParams(location.search);
     const appId = params.get('id');
     let currentUser = null;
     let appData = null;
-    let blocks = [];
+    let pages = [];
+    let currentPageId = null;
+    let previewPageId = null;
     let theme = defaultTheme();
     let selectedId = null;
     let dirty = false;
@@ -107,17 +111,45 @@
       if (!snap.exists()) { window.location.href = 'dashboard.html'; return; }
       appData = snap.data();
       if (appData.ownerId !== currentUser.uid) { window.location.href = 'dashboard.html'; return; }
-      blocks = appData.blocks && appData.blocks.length ? JSON.parse(JSON.stringify(appData.blocks)) : defaultBlocks();
       theme = { ...defaultTheme(), ...(appData.theme || {}) };
+      pages = normalizePages(appData);
+      pages.forEach(p => migrateLinks(p.blocks));
       $('mini-name').textContent = appData.name || 'Sin nombre';
       const ml = $('mini-logo');
       if (appData.logoUrl) { ml.innerHTML = `<img src="${escapeHtml(appData.logoUrl)}" alt="">`; ml.classList.remove('fallback'); }
       else { ml.textContent = (appData.name || 'A')[0].toUpperCase(); }
+      selectPage(pages[0].id);
       renderPalette();
-      renderList();
-      selectBlock(null); // inspector = tema
-      renderPreview();
       setupFont();
+    }
+
+    function normalizePages(d) {
+      let pgs = d.pages && d.pages.length ? JSON.parse(JSON.stringify(d.pages)) : null;
+      if (!pgs) {
+        pgs = [{
+          id: 'p' + uid(),
+          name: 'Inicio',
+          blocks: (d.blocks && d.blocks.length) ? JSON.parse(JSON.stringify(d.blocks)) : defaultBlocks()
+        }];
+      }
+      return pgs.map(p => ({ ...p, blocks: (p.blocks && p.blocks.length) ? p.blocks : [] }));
+    }
+
+    function migrateLinks(list) {
+      (list || []).forEach(b => {
+        if (b.type === 'button' && !b.linkTarget && !b.linkUrl && b.url && b.url !== '#') {
+          b.linkUrl = b.url;
+        }
+      });
+    }
+
+    function curBlocks() {
+      const p = pages.find(p => p.id === currentPageId) || pages[0];
+      return p ? p.blocks : [];
+    }
+
+    function getPage(id) {
+      return pages.find(p => p.id === id);
     }
 
     /* ---------- Fonts ---------- */
@@ -128,6 +160,107 @@
       link.rel = 'stylesheet';
       link.href = 'https://fonts.googleapis.com/css2?family=' + theme.font.replace(/ /g, '+') + ':wght@400;600;700;800&display=swap';
       document.head.appendChild(link);
+    }
+
+    /* ---------- Pages ---------- */
+    function renderChips() {
+      const chips = $('pages-chips');
+      chips.innerHTML = pages.map(p => `
+        <div class="page-chip ${p.id === currentPageId ? 'active' : ''}" data-page="${p.id}">
+          <span class="pc-name">${escapeHtml(p.name)}</span>
+          <button class="pc-btn" data-rename="${p.id}" title="Renombrar">${ICON_EDIT}</button>
+          <button class="pc-btn danger" data-del="${p.id}" title="Eliminar">${ICONS_X}</button>
+        </div>`).join('');
+      chips.querySelectorAll('[data-page]').forEach(c => c.addEventListener('click', (e) => {
+        if (e.target.closest('[data-rename],[data-del]')) return;
+        selectPage(c.dataset.page);
+      }));
+      chips.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => delPage(b.dataset.del)));
+      chips.querySelectorAll('[data-rename]').forEach(b => b.addEventListener('click', () => renamePage(b.dataset.rename)));
+    }
+
+    function selectPage(id) {
+      currentPageId = id;
+      previewPageId = id;
+      selectedId = null;
+      renderChips();
+      renderList();
+      renderInspector();
+      renderPreview();
+    }
+
+    $('btn-add-page').addEventListener('click', addPage);
+
+    function addPage() {
+      const n = pages.length + 1;
+      const header = newBlock('header');
+      header.text = 'Pagina ' + n;
+      header.subtitle = '';
+      const text = newBlock('text');
+      text.text = 'Escribe aqui el contenido de la pagina ' + n + '.';
+      const p = { id: 'p' + uid(), name: 'Pagina ' + n, blocks: [header, text] };
+      pages.push(p);
+      currentPageId = p.id;
+      previewPageId = p.id;
+      selectedId = null;
+      renderChips();
+      renderList();
+      renderInspector();
+      renderPreview();
+      markDirty();
+      showToast('Pagina creada: ' + p.name, 'success');
+    }
+
+    function renamePage(id) {
+      const p = getPage(id);
+      if (!p) return;
+      const chip = document.querySelector(`[data-page="${id}"] .pc-name`);
+      if (!chip) return;
+      const inp = document.createElement('input');
+      inp.className = 'input';
+      inp.value = p.name;
+      inp.maxLength = 30;
+      inp.style.padding = '4px 8px';
+      inp.style.fontSize = '13px';
+      inp.style.width = '130px';
+      chip.replaceWith(inp);
+      inp.focus();
+      inp.select();
+      const commit = () => {
+        const v = inp.value.trim();
+        if (v && v !== p.name) { p.name = v; markDirty(); }
+        renderChips();
+      };
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        if (e.key === 'Escape') renderChips();
+      });
+      inp.addEventListener('blur', commit);
+    }
+
+    function delPage(id) {
+      if (pages.length <= 1) return showToast('Debe quedar al menos una pagina', 'error');
+      const p = getPage(id);
+      if (!p) return;
+      if (!confirm('Eliminar la pagina "' + p.name + '"? Sus bloques se eliminaran.')) return;
+      pages.splice(pages.indexOf(p), 1);
+      pages.forEach(pg => pg.blocks.forEach(b => {
+        if ((b.linkTarget || '') === id) { b.linkTarget = ''; b.linkUrl = ''; }
+        (b.items || []).forEach(it => {
+          if ((it.linkTarget || '') === id) { it.linkTarget = ''; it.linkUrl = ''; }
+        });
+      }));
+      if (currentPageId === id || previewPageId === id) {
+        currentPageId = pages[0].id;
+        previewPageId = currentPageId;
+        selectedId = null;
+      }
+      renderChips();
+      renderList();
+      renderInspector();
+      renderPreview();
+      markDirty();
+      showToast('Pagina eliminada', 'error');
     }
 
     /* ---------- Palette ---------- */
@@ -191,50 +324,84 @@
 
     function addBlock(type) {
       const b = newBlock(type);
-      blocks.push(b);
+      curBlocks().push(b);
       renderList();
       selectBlock(b.id);
       renderPreview();
       markDirty();
     }
 
-    /* ---------- List ---------- */
+    /* ---------- Block list (drag & drop) ---------- */
+    const ICON_EDIT = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+    const ICONS_X = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+    const HANDLE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+
+    let dragId = null;
     function renderList() {
       const el = $('block-list');
-      el.innerHTML = blocks.map((b, i) => `
-        <div class="block-row ${b.id === selectedId ? 'selected' : ''}" data-id="${b.id}">
+      const bl = curBlocks();
+      if (!bl.length) {
+        el.innerHTML = '<p class="empty-inspector" style="padding:14px 8px;">Aun no hay bloques. Haz clic en uno de arriba para agregarlo.</p>';
+        return;
+      }
+      el.innerHTML = bl.map(b => `
+        <div class="block-row ${b.id === selectedId ? 'selected' : ''}" data-id="${b.id}" draggable="true">
+          <span class="drag-handle">${HANDLE}</span>
           <span class="btype">${BLOCK_TYPES[b.type] || b.type}</span>
           <div class="btools">
-            <button data-up="${b.id}" title="Subir">${ICONS_UP}</button>
-            <button data-down="${b.id}" title="Bajar">${ICONS_DOWN}</button>
-            <button class="del" data-del="${b.id}" title="Eliminar">${ICONS_X}</button>
+            <button class="del" data-del="${b.id}" title="Eliminar" draggable="false">${ICONS_X}</button>
           </div>
         </div>`).join('');
-      el.querySelectorAll('.block-row[data-id]').forEach(row => row.addEventListener('click', (e) => {
-        if (e.target.closest('[data-up],[data-down],[data-del]')) return;
-        selectBlock(row.dataset.id);
-      }));
-      el.querySelectorAll('[data-up]').forEach(b => b.addEventListener('click', () => move(b.dataset.up, -1)));
-      el.querySelectorAll('[data-down]').forEach(b => b.addEventListener('click', () => move(b.dataset.down, 1)));
+
+      el.querySelectorAll('.block-row[data-id]').forEach(row => {
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('[data-del]')) return;
+          selectBlock(row.dataset.id);
+        });
+        row.addEventListener('dragstart', (e) => {
+          dragId = row.dataset.id;
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', dragId);
+          requestAnimationFrame(() => row.classList.add('dragging'));
+        });
+        row.addEventListener('dragend', () => {
+          dragId = null;
+          row.classList.remove('dragging');
+          el.querySelectorAll('.drop-target').forEach(x => x.classList.remove('drop-target'));
+        });
+        row.addEventListener('dragenter', (e) => {
+          e.preventDefault();
+          if (row.dataset.id === dragId) return;
+          el.querySelectorAll('.drop-target').forEach(x => x.classList.remove('drop-target'));
+          row.classList.add('drop-target');
+        });
+        row.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        });
+        row.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const arr = curBlocks();
+          const from = arr.findIndex(b => b.id === dragId);
+          const to = arr.findIndex(b => b.id === row.dataset.id);
+          if (from < 0 || to < 0 || from === to) return;
+          const [moved] = arr.splice(from, 1);
+          const newTo = arr.findIndex(b => b.id === row.dataset.id);
+          arr.splice(newTo < 0 ? Math.min(from, arr.length) : newTo, 0, moved);
+          dragId = null;
+          renderList();
+          renderPreview();
+          markDirty();
+        });
+      });
       el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => removeBlock(b.dataset.del)));
     }
 
-    const ICONS_UP = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6-6 6 6M12 3v18"/></svg>';
-    const ICONS_DOWN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 15 6 6 6-6M12 21V3"/></svg>';
-    const ICONS_X = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
-
-    function move(id, dir) {
-      const i = blocks.findIndex(b => b.id === id);
-      const j = i + dir;
-      if (i < 0 || j < 0 || j >= blocks.length) return;
-      [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
-      renderList();
-      renderPreview();
-      markDirty();
-    }
-
     function removeBlock(id) {
-      blocks = blocks.filter(b => b.id !== id);
+      const arr = curBlocks();
+      const i = arr.findIndex(b => b.id === id);
+      if (i < 0) return;
+      arr.splice(i, 1);
       if (selectedId === id) selectBlock(null);
       renderList();
       renderPreview();
@@ -248,7 +415,7 @@
       renderInspector();
     }
 
-    function field(label, inputHtml, key) {
+    function field(label, inputHtml) {
       return `<div class="inspector-field"><label>${label}</label>${inputHtml}</div>`;
     }
     function input(k, v, opts = {}) {
@@ -265,22 +432,30 @@
       return `<div class="color-row"><input type="color" data-k="${k}" value="${escapeHtml(v)}" style="width:44px;height:34px;"><input class="input" data-k="${k}" value="${escapeHtml(v)}" style="flex:1;"></div>`;
     }
 
+    function pageLinkFields(b, label = 'Enlace') {
+      const opts = `<option value="">Sin enlace</option>` + pages.map(p =>
+        `<option value="${escapeHtml(p.id)}" ${b.linkTarget === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('');
+      return `
+        <div class="inspector-field"><label>${label}: pagina de la app</label><select class="select" data-linktarget>${opts}</select></div>
+        <div class="inspector-field"><label>${label}: URL externa (opcional)</label><input class="input" data-linkurl placeholder="https://ejemplo.com" value="${escapeHtml(b.linkUrl || '')}"></div>`;
+    }
+
     function renderInspector() {
       const el = $('inspector');
-      const block = blocks.find(b => b.id === selectedId);
+      const block = curBlocks().find(b => b.id === selectedId);
       if (!block) {
-        // Tema global
         $('insp-title').textContent = 'App (tema global)';
         el.innerHTML = `
           ${field('Tipografia', sel('font', theme.font, FONTS))}
           ${field('Color de fondo', colorField('bg', theme.bg))}
           ${field('Color de texto', colorField('text', theme.text))}
           ${field('Color de acento', colorField('accent', theme.accent))}
-          ${field('Esquinas (radius)', input('radius', theme.radius, { type: 'number' }))}
+          ${field('Esquinas (radius)', input('radius', theme.radius, { type: 'number', ph: '16' }))}
           <div class="inspector-field"><label>Modo</label><div class="seg">
             <button data-theme-mode="dark" class="${theme.dark ? 'active' : ''}">Oscuro</button>
             <button data-theme-mode="light" class="${!theme.dark ? 'active' : ''}">Claro</button>
-          </div></div>`;
+          </div></div>
+          <p class="empty-inspector" style="margin-top:18px;">Haz clic en un bloque para editar su contenido, colores y enlaces.</p>`;
         el.querySelectorAll('[data-theme-mode]').forEach(b => b.addEventListener('click', () => setDark(b.dataset.themeMode === 'dark')));
       } else {
         $('insp-title').textContent = BLOCK_TYPES[block.type] || 'Bloque';
@@ -294,8 +469,8 @@
         case 'header': return field('Titulo', input('text', b.text)) + field('Subtitulo', input('subtitle', b.subtitle)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="inspector-field"><label><input type="checkbox" data-k="showLogo" ${b.showLogo ? 'checked' : ''}> Mostrar logo</label></div>` + field('Logo (URL)', input('logo', b.logo));
         case 'heading': return field('Texto', input('text', b.text)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
         case 'text': return field('Texto', textarea('text', b.text, 5)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
-        case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' }));
-        case 'button': return field('Texto', input('text', b.text)) + field('Enlace', input('url', b.url)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right']));
+        case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' })) + pageLinkFields(b, 'Al hacer clic en la imagen');
+        case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + pageLinkFields(b, 'Al hacer clic en el boton');
         case 'video':
         case 'youtube': return field('URL del video', input('url', b.url, { ph: b.type === 'youtube' ? 'https://youtube.com/watch?v=...' : 'https://...mp4' }));
         case 'html': return field('Codigo HTML', textarea('html', b.html, 8));
@@ -307,12 +482,19 @@
               <input class="input" data-item-text="${i}" value="${escapeHtml(it.text || '')}" placeholder="Texto">
               <button class="btn btn-danger btn-sm" data-item-del="${i}" style="padding:7px 9px;">${ICONS_X}</button>
             </div>
-            <input class="input" data-item-desc="${i}" value="${escapeHtml(it.desc || '')}" placeholder="Descripcion (opcional)" style="margin-bottom:10px;">`).join('')}
-          <button class="btn btn-secondary btn-sm" id="list-add" style="width:100%;">+ Agregar elemento</button>`;
-        case 'divider': return '<p style="color:var(--text-muted);font-size:13px;">Bloque divisor. No tiene opciones.</p>';
+            <input class="input" data-item-desc="${i}" value="${escapeHtml(it.desc || '')}" placeholder="Descripcion (opcional)" style="margin-bottom:8px;">
+            <div class="item-link-row">
+              <select class="select" data-item-target="${i}">
+                <option value="">Sin enlace</option>
+                ${pages.map(p => `<option value="${escapeHtml(p.id)}" ${it.linkTarget === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('')}
+              </select>
+              <input class="input" data-item-url="${i}" value="${escapeHtml(it.linkUrl || '')}" placeholder="URL externa (opcional)">
+            </div>`).join('')}
+          <button class="btn btn-secondary btn-sm" id="list-add" style="width:100%;margin-top:12px;">+ Agregar elemento</button>`;
+        case 'divider': return '<p class="empty-inspector">Bloque divisor. No tiene opciones.</p>';
         case 'spacer': return field('Altura (px)', input('height', b.height, { type: 'number' }));
         case 'footer': return field('Texto', input('text', b.text));
-        default: return '<p style="color:var(--text-muted);font-size:13px;">Sin opciones.</p>';
+        default: return '<p class="empty-inspector">Sin opciones.</p>';
       }
     }
 
@@ -325,23 +507,37 @@
             let val = inp.value;
             if (inp.type === 'checkbox') val = inp.checked;
             else if (inp.type === 'number') val = Number(val);
-            else if (inp.type === 'color' && k === 'radius') val = Number(val);
             block[k] = val;
-            // color field sync (two inputs share k)
             if (inp.type === 'color') {
               el.querySelectorAll(`input[data-k="${k}"]`).forEach(x => { if (x !== inp && x.type === 'text') x.value = val; });
-            }
-            if (inp.type === 'text' && /^#/.test(String(block[k]))) {
+            } else if (inp.type === 'text' && /^#/.test(String(val))) {
               el.querySelectorAll(`input[data-k="${k}"]`).forEach(x => { if (x !== inp && x.type === 'color') x.value = val; });
             }
             renderPreview();
             markDirty();
           });
         });
+
+        const lt = el.querySelector('[data-linktarget]');
+        if (lt) {
+          lt.addEventListener('change', () => {
+            block.linkTarget = lt.value || '';
+            renderPreview();
+            markDirty();
+          });
+        }
+        const lu = el.querySelector('[data-linkurl]');
+        if (lu) {
+          lu.addEventListener('input', () => {
+            block.linkUrl = lu.value;
+            renderPreview();
+            markDirty();
+          });
+        }
+
         el.querySelectorAll('[data-item-text]').forEach(inp => {
           inp.addEventListener('input', () => {
-            const i = +inp.dataset.itemText;
-            block.items[i].text = inp.value;
+            block.items[+inp.dataset.itemText].text = inp.value;
             renderPreview(); markDirty();
           });
         });
@@ -354,6 +550,18 @@
         el.querySelectorAll('[data-item-icon]').forEach(inp => {
           inp.addEventListener('input', () => {
             block.items[+inp.dataset.itemIcon].icon = inp.value;
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-item-target]').forEach(inp => {
+          inp.addEventListener('change', () => {
+            block.items[+inp.dataset.itemTarget].linkTarget = inp.value || '';
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-item-url]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            block.items[+inp.dataset.itemUrl].linkUrl = inp.value;
             renderPreview(); markDirty();
           });
         });
@@ -390,8 +598,6 @@
 
     function setDark(dark) {
       theme.dark = dark;
-      if (dark && !theme.bg) theme.bg = '#0a0a0a';
-      // Forzar colores coherentes segun el modo
       if (dark) { theme.bg = '#0a0a0a'; theme.text = '#fafafa'; }
       else { theme.bg = '#ffffff'; theme.text = '#111111'; }
       renderInspector();
@@ -402,25 +608,17 @@
     /* ---------- Preview ---------- */
     function renderPreview() {
       const screen = $('phone-screen');
-      const t = { ...theme, fontReady: theme.font };
-      const inner = renderBlocks(blocks, t);
-      const bg = t.dark ? t.bg : (t.bg || '#ffffff');
-      const tc = t.dark ? t.text : (t.text || '#111111');
+      const t = { ...theme };
+      const pg = getPage(previewPageId) || pages[0];
+      const inner = renderBlocks(pg.blocks, t);
+      screen.innerHTML = `<div class="ab-phone-root" style="--t-font:${t.font},system-ui,sans-serif;--t-bg:${t.bg};--t-text:${t.text};--t-accent:${t.accent};--t-radius:${t.radius}px;">${inner}</div>`;
+      screen.style.background = t.bg;
       $('sb-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-      screen.innerHTML = `<div class="ab-phone-root" style="--t-font:${t.font},system-ui,sans-serif;--t-bg:${bg};--t-text:${tc};--t-accent:${t.accent};--t-radius:${t.radius}px;">${inner}</div>`;
-      screen.style.background = bg;
-      screen.querySelectorAll('a').forEach(a => a.addEventListener('click', e => e.preventDefault()));
-      syncTheme(t);
-    }
-
-    function syncTheme(t) {
-      const root = $('phone-screen').querySelector('.ab-phone-root');
-      if (root) {
-        root.style.setProperty('--t-bg', t.dark ? t.bg : t.bg);
-        root.style.setProperty('--t-text', t.text);
-        root.style.setProperty('--t-accent', t.accent);
-        root.style.setProperty('--t-radius', (t.radius || 16) + 'px');
-      }
+      screen.querySelectorAll('[data-af-page]').forEach(a => a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = getPage(a.dataset.afPage);
+        if (target) { previewPageId = target.id; renderPreview(); }
+      }));
     }
 
     /* ---------- Save ---------- */
@@ -438,7 +636,8 @@
       if (!appId || !currentUser || !appData) return;
       try {
         await updateDoc(doc(db, 'apps', appId), {
-          blocks,
+          pages: JSON.parse(JSON.stringify(pages)),
+          blocks: JSON.parse(JSON.stringify(pages[0].blocks || [])),
           theme,
           updatedAt: serverTimestamp(),
           published: true

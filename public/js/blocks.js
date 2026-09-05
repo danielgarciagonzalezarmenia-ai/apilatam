@@ -82,7 +82,14 @@ function blockText(b, css) {
 }
 
 function blockImage(b, css) {
-  return `<div class="ab-image" style="${css};text-align:${b.align || 'center'};"><img src="${escapeHtml(b.url || '')}" alt="" style="border-radius:var(--t-radius);${b.width ? 'width:' + b.width + '%;' : 'width:100%;'}max-width:100%;object-fit:cover;border:1px solid rgba(255,255,255,0.08);" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%2318181b%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%2352525b%22 font-family=%22Arial%22 font-size=%2216%22 text-anchor=%22middle%22%3EImagen%3C/text%3E%3C/svg%3E';"></div>`;
+  const lk = b.linkTarget || b.linkUrl ? linkMarkup(b) : null;
+  return `<div class="ab-image" style="${css};text-align:${b.align || 'center'};">${lk ? lk.open.replace('<a', '<a style="cursor:pointer;"') : ''}<img src="${escapeHtml(b.url || '')}" alt="" style="border-radius:var(--t-radius);${b.width ? 'width:' + b.width + '%;' : 'width:100%;'}max-width:100%;object-fit:cover;border:1px solid rgba(255,255,255,0.08);" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%2318181b%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%2352525b%22 font-family=%22Arial%22 font-size=%2216%22 text-anchor=%22middle%22%3EImagen%3C/text%3E%3C/svg%3E';">${lk ? lk.close : ''}</div>`;
+}
+
+function linkMarkup(b) {
+  if (b.linkTarget) return { open: `<a data-af-page="${escapeHtml(b.linkTarget)}">`, close: '</a>' };
+  if (b.linkUrl) return { open: `<a href="${escapeHtml(b.linkUrl)}" target="_blank" rel="noopener">`, close: '</a>' };
+  return null;
 }
 
 function blockButton(b, css) {
@@ -91,7 +98,10 @@ function blockButton(b, css) {
   if (variant === 'solid') style = `background:var(--t-accent);color:#000;`;
   else if (variant === 'outline') style = `border:1.5px solid var(--t-accent);color:var(--t-accent);background:transparent;`;
   else style = `color:var(--t-accent);background:transparent;`;
-  return `<div class="ab-button" style="${css};text-align:${b.align || 'center'};"><a href="${escapeHtml(b.url || '#')}" target="_blank" rel="noopener" style="display:inline-block;padding:13px 28px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;${style}">${escapeHtml(b.text || 'Boton')}</a></div>`;
+  const inner = `style="display:inline-block;padding:13px 28px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;${style}"`;
+  const lk = linkMarkup(b);
+  const open = lk ? lk.open.replace('<a', `<a ${inner.slice(0, -1)} href="#"`) : `<a href="#" ${inner}`;
+  return `<div class="ab-button" style="${css};text-align:${b.align || 'center'};">${open}>${escapeHtml(b.text || 'Boton')}</a></div>`;
 }
 
 function blockVideo(b, css) {
@@ -110,11 +120,15 @@ function blockHtml(b, css) {
 
 function blockList(b, css) {
   const items = (b.items || []).filter(x => x && x.text);
-  const list = items.map(x => `
-    <div class="ab-list-item">
-      ${x.icon ? `<span class="ab-list-icon" style="background:var(--t-accent);">${escapeHtml(x.icon)}</span>` : ''}
-      <div><div class="ab-list-title">${escapeHtml(x.text)}</div>${x.desc ? `<div class="ab-list-desc">${escapeHtml(x.desc)}</div>` : ''}</div>
-    </div>`).join('');
+  const list = items.map(x => {
+    const content = `${x.icon ? `<span class="ab-list-icon" style="background:var(--t-accent);">${escapeHtml(x.icon)}</span>` : ''}
+      <div><div class="ab-list-title">${escapeHtml(x.text)}</div>${x.desc ? `<div class="ab-list-desc">${escapeHtml(x.desc)}</div>` : ''}</div>`;
+    const lk = x.linkTarget || x.linkUrl ? linkMarkup(x) : null;
+    if (lk) {
+      return `<a class="ab-list-item" ${lk.open.includes('data-af-page') ? `data-af-page="${escapeHtml(x.linkTarget)}"` : `href="${escapeHtml(x.linkUrl)}" target="_blank" rel="noopener"`} style="text-decoration:none;">${content}</a>`;
+    }
+    return `<div class="ab-list-item">${content}</div>`;
+  }).join('');
   return `<div class="ab-list" style="${css};">${list}</div>`;
 }
 

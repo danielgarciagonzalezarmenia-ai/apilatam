@@ -41,9 +41,6 @@
   <main class="container" style="padding-top: 32px; padding-bottom: 80px;">
     <div id="loading" class="loading-spinner" style="display: block;"></div>
 
-    <!-- Player area -->
-    <div id="player-area"></div>
-
     <!-- MOVIES VIEW -->
     <section id="view-movies">
       <div id="hero" class="hero-movie hidden"></div>
@@ -82,26 +79,10 @@
     </div>
   </footer>
 
-  <!-- Floating register prompt -->
-  <div id="reg-prompt" class="reg-prompt">
-    <div class="icon">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="10" cy="13" r="0.5" fill="currentColor"/></svg>
-    </div>
-    <div class="msg">
-      <h4>Registrate para seguir viendo</h4>
-      <p>Crea una cuenta gratis y disfruta del contenido sin interrupciones.</p>
-    </div>
-    <div class="actions">
-      <a href="login.html" class="btn btn-primary">Registrarse</a>
-      <button id="reg-dismiss" class="btn btn-secondary">Seguir viendo</button>
-    </div>
-  </div>
-
   <script type="module">
     import { collection, getDocs, query } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { onAuthChange, auth, logout, db } from './js/auth.js?v=6';
     import { toggleMobileMenu, escapeHtml } from './js/app.js?v=4';
-    import { initPlayer } from './js/player.js?v=5';
 
     window.toggleMobileMenu = toggleMobileMenu;
 
@@ -115,7 +96,6 @@
     let channels = [];
     let currentUser = null;
     let currentTab = 'movies';
-    let playerApi = null;
 
     onAuthChange((user) => {
       currentUser = user;
@@ -297,38 +277,19 @@
       });
     }
 
-    /* ---------- PLAYER ---------- */
+    /* ---------- PLAYER (page) ---------- */
     function playStream(item, tag) {
-      const area = $('player-area');
-      area.innerHTML = '';
-      try {
-        playerApi = null;
-        window.__ltvOnPlaying = handlePlaybackStart;
-        initPlayer(area, { streamUrl: item.m3u8Url || item.videoUrl || '', title: item.name || '', tag });
-        window.scrollTo({ top: area.offsetTop - 90, behavior: 'smooth' });
-      } catch (e) {
-        console.error(e);
-      }
+      const url = item.m3u8Url || item.videoUrl || '';
+      const href = 'player.html?src=' + encodeURIComponent(url)
+        + '&title=' + encodeURIComponent(item.name || '')
+        + '&tag=' + encodeURIComponent(tag || '');
+      window.location.href = href;
     }
 
     function playDirect(id) {
       const m = movies.find(x => x.id === id);
       if (m) playStream(m, 'Película');
     }
-
-    // registration prompt after 30s
-    let promptShown = false;
-    function handlePlaybackStart() {
-      if (currentUser || promptShown) return;
-      setTimeout(() => {
-        if (currentUser || promptShown) return;
-        promptShown = true;
-        $('reg-prompt').classList.add('show');
-      }, 30000);
-    }
-    document.getElementById('reg-dismiss').addEventListener('click', () => {
-      $('reg-prompt').classList.remove('show');
-    });
 
     /* ---------- TABS & SEARCH ---------- */
     let q = '';

@@ -244,6 +244,7 @@ function openModal(type, itemId) {
   }
 
   window.toggleMovieFields && window.toggleMovieFields(type);
+  window.updateImgPreview && window.updateImgPreview();
 
   overlay.style.display = 'flex';
   overlay.classList.add('active');

@@ -134,9 +134,10 @@
           <label for="modal-name">Nombre</label>
           <input type="text" id="modal-name" class="input" required>
         </div>
-        <div class="form-group">
+<div class="form-group">
           <label for="modal-image">URL de Imagen</label>
           <input type="url" id="modal-image" class="input" placeholder="https://ejemplo.com/imagen.jpg">
+          <div id="modal-img-preview" style="margin-top:10px;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:12px;"></div>
         </div>
         <div class="form-group">
           <label for="modal-m3u8">URL M3U8</label>
@@ -189,6 +190,18 @@
         var l = document.querySelector('label[for="modal-m3u8"]');
         if (l) l.textContent = isMovie ? 'URL del video (m3u8, mp4 o mkv)' : 'URL M3U8';
       }
+      window.toggleMovieFields = toggleMovieFields;
+      function updateImgPreview() {
+        var input = document.getElementById('modal-image');
+        var box = document.getElementById('modal-img-preview');
+        if (!input || !box) return;
+        var val = input.value.trim();
+        if (!val) { box.innerHTML = 'Vista previa de la imagen'; box.style.background = 'var(--surface)'; return; }
+        box.innerHTML = '<img src="' + val + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentNode.innerHTML=\'Imagen no disponible\';this.parentNode.style.background=\'var(--surface)\';this.parentNode.style.display=\'flex\'">';
+        box.style.background = 'transparent';
+      }
+      var imgIn = document.getElementById('modal-image');
+      if (imgIn) imgIn.addEventListener('input', updateImgPreview);
       function closeModal() {
         var overlay = document.getElementById('modal-overlay');
         if (!overlay) return;

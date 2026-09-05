@@ -14,7 +14,7 @@ async function initAppPage(id) {
       import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'),
       import('./auth.js?v=2'),
       import('./util.js?v=1'),
-      import('./blocks.js?v=2')
+      import('./blocks.js?v=3')
     ]);
     const { doc, getDoc } = firestore;
     const { db } = authMod;

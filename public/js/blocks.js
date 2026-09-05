@@ -98,10 +98,11 @@ function blockButton(b, css) {
   if (variant === 'solid') style = `background:var(--t-accent);color:#000;`;
   else if (variant === 'outline') style = `border:1.5px solid var(--t-accent);color:var(--t-accent);background:transparent;`;
   else style = `color:var(--t-accent);background:transparent;`;
-  const inner = `style="display:inline-block;padding:13px 28px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;${style}"`;
-  const lk = linkMarkup(b);
-  const open = lk ? lk.open.replace('<a', `<a ${inner.slice(0, -1)} href="#"`) : `<a href="#" ${inner}`;
-  return `<div class="ab-button" style="${css};text-align:${b.align || 'center'};">${open}>${escapeHtml(b.text || 'Boton')}</a></div>`;
+  style = 'display:inline-block;padding:13px 28px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;' + style;
+  let attrs = 'href="#"';
+  if (b.linkTarget) attrs = `data-af-page="${escapeHtml(b.linkTarget)}"`;
+  else if (b.linkUrl) attrs = `href="${escapeHtml(b.linkUrl)}" target="_blank" rel="noopener"`;
+  return `<div class="ab-button" style="${css};text-align:${b.align || 'center'};"><a style="${style}" ${attrs}>${escapeHtml(b.text || 'Boton')}</a></div>`;
 }
 
 function blockVideo(b, css) {

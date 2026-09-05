@@ -98,7 +98,7 @@
   </div>
 
   <script type="module">
-    import { collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { collection, getDocs, query } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { onAuthChange, auth, logout, db } from './js/auth.js?v=6';
     import { toggleMobileMenu, escapeHtml } from './js/app.js?v=4';
     import { initPlayer } from './js/player.js?v=5';
@@ -144,8 +144,8 @@
     async function load() {
       loading.style.display = 'block';
       try {
-        const movSnap = await getDocs(query(collection(db, 'movies'), where('status', '==', 'online')));
-        const chSnap = await getDocs(query(collection(db, 'channels'), where('status', '==', 'online')));
+        const movSnap = await getDocs(query(collection(db, 'movies')));
+        const chSnap = await getDocs(query(collection(db, 'channels')));
         movies = movSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         channels = chSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       } catch (e) {

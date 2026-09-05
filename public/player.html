@@ -24,9 +24,17 @@
         Volver
       </a>
       <a href="index.html" class="brand">Latam<span class="dot">Tv</span></a>
-      <span id="user-chip" class="hidden" style="font-size:14px;font-weight:500;color:var(--text-secondary);padding:8px 4px;"></span>
       <a href="login.html" id="login-btn" class="btn btn-primary btn-sm">Iniciar Sesion</a>
-      <a href="login.html" id="logout-btn" class="btn btn-secondary btn-sm hidden">Cerrar Sesion</a>
+      <div id="profile-wrap" class="profile-wrap hidden">
+        <button id="profile-btn" class="profile-btn" aria-label="Perfil">
+          <img class="profile-avatar" id="profile-avatar" alt="Perfil">
+        </button>
+        <div id="profile-drop" class="profile-drop hidden">
+          <div class="p-name" id="profile-name"></div>
+          <div class="p-email" id="profile-email"></div>
+          <button id="logout-btn" class="btn btn-secondary btn-sm">Cerrar Sesion</button>
+        </div>
+      </div>
     </div>
   </nav>
 
@@ -63,24 +71,37 @@
     const title = params.get('title') || 'Reproduccion';
     const tag = params.get('tag') || '';
 
+    const AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%236b4f3a'/%3E%3Ccircle cx='32' cy='23' r='13' fill='%23d9c4a8'/%3E%3Cpath d='M32 38c-15 0-24 11-24 24h48c0-13-9-24-24-24z' fill='%23d9c4a8'/%3E%3C/svg%3E";
+
     let currentUser = null;
     onAuthChange((user) => {
       currentUser = user;
-      const chip = document.getElementById('user-chip');
+      const wrap = document.getElementById('profile-wrap');
+      const drop = document.getElementById('profile-drop');
       const loginBtn = document.getElementById('login-btn');
-      const logoutBtn = document.getElementById('logout-btn');
       if (user) {
-        chip.textContent = user.displayName || user.email.split('@')[0];
-        chip.classList.remove('hidden');
+        document.getElementById('profile-avatar').src = user.photoURL || AVATAR;
+        document.getElementById('profile-name').textContent = user.displayName || '';
+        document.getElementById('profile-email').textContent = user.email || '';
         loginBtn.classList.add('hidden');
-        logoutBtn.classList.remove('hidden');
+        wrap.classList.remove('hidden');
+        drop.classList.add('hidden');
       } else {
-        chip.classList.add('hidden');
+        wrap.classList.add('hidden');
         loginBtn.classList.remove('hidden');
-        logoutBtn.classList.add('hidden');
       }
     });
-    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+
+    document.getElementById('profile-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('profile-drop').classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => { document.getElementById('profile-drop').classList.add('hidden'); });
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      logout();
+    });
 
     let promptShown = false;
     function handlePlaybackStart() {

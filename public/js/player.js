@@ -86,6 +86,8 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
   let hls = null;
   let playingReported = false;
   let uiTimer = null;
+  let spinnerT = null;
+  let autoplayMuted = false;
   const onPlaying = typeof window.__ltvOnPlaying === 'function' ? window.__ltvOnPlaying : null;
 
   function setPlayIcon(paused) {
@@ -121,6 +123,7 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
     spinner.classList.remove('hidden');
     bigplay.classList.remove('hidden');
     setPlayIcon(true);
+    startSpinnerTimeout();
 
     if (isHls(streamUrl)) {
       try {
@@ -131,7 +134,7 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
           hls.attachMedia(video);
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
             spinner.classList.add('hidden');
-            video.play().then(() => bigplay.classList.add('hidden')).catch(() => {});
+            tryPlay();
           });
           hls.on(Hls.Events.ERROR, (_, data) => {
             if (data.fatal) {
@@ -149,17 +152,58 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
     video.src = streamUrl;
     video.addEventListener('loadedmetadata', () => spinner.classList.add('hidden'), { once: true });
     video.addEventListener('canplay', () => spinner.classList.add('hidden'), { once: true });
-    const p = video.play();
-    if (p && p.catch) p.catch(() => {
-      spinner.classList.add('hidden');
-      // leave bigplay so user can click to start (autoplay policy)
-    });
+    tryPlay();
     if (isMkv(streamUrl)) {
       video.addEventListener('error', () => {
         spinner.classList.add('hidden');
         showError('Formato .mkv no compatible directo en este navegador. Sube el archivo en MP4/WebM o sirvelo con un servidor que lo convierta a HLS.');
       }, { once: true });
     }
+  }
+
+  function tryPlay() {
+    const p = video.play();
+    if (p && p.catch) p.catch(() => {
+      if (!video.muted) {
+        autoplayMuted = true;
+        video.muted = true;
+        muteBtn.innerHTML = icon('mute');
+        const r = video.play();
+        if (r && r.catch) r.catch(() => {
+          spinner.classList.add('hidden');
+          bigplay.classList.remove('hidden');
+          showUI();
+        });
+      } else {
+        spinner.classList.add('hidden');
+        bigplay.classList.remove('hidden');
+        showUI();
+      }
+    });
+  }
+
+  function unmuteIfAutoplay() {
+    if (autoplayMuted) {
+      autoplayMuted = false;
+      video.muted = false;
+      muteBtn.innerHTML = video.volume > 0 ? icon('vol') : icon('mute');
+    }
+  }
+
+  function startSpinnerTimeout() {
+    clearTimeout(spinnerT);
+    spinnerT = setTimeout(() => {
+      spinner.classList.add('hidden');
+      if (video.paused) {
+        bigplay.classList.remove('hidden');
+        showUI();
+      }
+      if (autoplayMuted && video.paused) {
+        autoplayMuted = false;
+        video.muted = false;
+        muteBtn.innerHTML = icon('vol');
+      }
+    }, 12000);
   }
 
   // events
@@ -181,13 +225,14 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
     }
   });
 
-  playBtn.addEventListener('click', () => { video.paused ? video.play() : video.pause(); });
-  bigplay.addEventListener('click', () => { video.play(); });
+  playBtn.addEventListener('click', () => { unmuteIfAutoplay(); video.paused ? video.play() : video.pause(); });
+  bigplay.addEventListener('click', () => { unmuteIfAutoplay(); video.play(); });
   seek.addEventListener('input', () => {
     if (video.duration) video.currentTime = (seek.value / 100) * video.duration;
   });
   muteBtn.addEventListener('click', () => {
     video.muted = !video.muted;
+    autoplayMuted = false;
     muteBtn.innerHTML = video.muted ? icon('mute') : icon('vol');
   });
   volBar.addEventListener('input', () => {
@@ -207,6 +252,10 @@ export async function initPlayer(host, { streamUrl, title = '', tag = '' } = {})
 
   shell.addEventListener('mousemove', showUI);
   shell.addEventListener('touchstart', showUI, { passive: true });
+  shell.addEventListener('pointerdown', function firstTap() {
+    unmuteIfAutoplay();
+    shell.removeEventListener('pointerdown', firstTap);
+  }, { once: true });
 
   await load();
   video.addEventListener('loadedmetadata', () => {

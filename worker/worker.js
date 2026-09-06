@@ -224,7 +224,7 @@ async function buildEndpoint(request, env) {
   await fsSet(env, `apps/${appId}/build/latest`, { status: 'queued', ts: String(Date.now()) });
   const r = await fetch(`https://api.github.com/repos/${env.GH_REPO}/dispatches`, {
     method: 'POST',
-    headers: { Authorization: 'Bearer ' + env.GH_PAT, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+    headers: { Authorization: 'Bearer ' + env.GH_PAT, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'apilatam-worker' },
     body: JSON.stringify({
       event_type: 'build-app',
       client_payload: {
@@ -235,7 +235,10 @@ async function buildEndpoint(request, env) {
       }
     })
   });
-  if (!r.ok) return json({ error: 'dispatch fallo: ' + r.status }, 502);
+  if (!r.ok) {
+    const bodyText = (await r.text()).slice(0, 300);
+    return json({ error: 'dispatch fallo: ' + r.status + ' ' + bodyText }, 502);
+  }
   return json({ ok: true, status: 'queued' });
 }
 

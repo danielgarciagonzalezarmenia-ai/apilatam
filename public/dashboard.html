@@ -90,9 +90,10 @@ import { onAuthChange, db, ensureUserDoc } from './js/auth.js?v=2';
       setupProfile($('profile-wrap'), user);
       const udoc = await ensureUserDoc(user);
       renderPlan(udoc);
-      const q = query(collection(db, 'apps'), where('ownerId', '==', user.uid), orderBy('updatedAt', 'desc'));
+      const q = query(collection(db, 'apps'), where('ownerId', '==', user.uid));
       onSnapshot(q, (snap) => {
-        const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const apps = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
         renderApps(apps, udoc);
         renderPlan(udoc, apps.length);
       });

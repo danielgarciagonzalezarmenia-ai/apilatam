@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css?v=7">
-  <link rel="stylesheet" href="css/builder.css?v=2">
+  <link rel="stylesheet" href="css/builder.css?v=9">
   <link rel="stylesheet" href="css/stream.css?v=1">
 </head>
 <body>
@@ -41,7 +41,7 @@
       <div class="dashboard-header">
         <div>
           <h1 style="font-size:28px;font-weight:700;letter-spacing:-0.02em;">Crear nueva app</h1>
-          <p style="color:var(--text-secondary);font-size:14px;margin-top:4px;">Llena la informacion basica. El resto lo diseñas en el editor.</p>
+          <p style="color:var(--text-secondary);font-size:14px;margin-top:4px;">Llena la informacion basica. El resto lo diseÃ±as en el editor.</p>
         </div>
       </div>
 
@@ -88,7 +88,7 @@
     import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { db, onAuthChange, auth, logout, app, ensureUserDoc } from './js/auth.js?v=2';
     import { showToast, uid, FREE_LIMIT } from './js/util.js?v=1';
-    import { defaultTheme, defaultBlocks } from './js/blocks.js?v=8';
+    import { defaultTheme, defaultBlocks } from './js/blocks.js?v=9';
 
     const $ = id => document.getElementById(id);
     let currentUser = null;

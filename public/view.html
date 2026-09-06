@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -10,13 +10,13 @@
   <title>App - AppForge</title>
   <link rel="stylesheet" href="css/custom.css?v=7">
   <link rel="stylesheet" href="css/stream.css?v=1">
-  <link rel="stylesheet" href="css/builder.css?v=2">
+  <link rel="stylesheet" href="css/builder.css?v=9">
   <script type="module">
     (async () => {
       const params = new URLSearchParams(location.search);
       const appId = params.get('id');
       try {
-        const { initAppPage } = await import('./js/appview.js?v=1');
+        const { initAppPage } = await import('./js/appview.js?v=3');
         initAppPage(appId);
       } catch (e) {
         console.error(e);

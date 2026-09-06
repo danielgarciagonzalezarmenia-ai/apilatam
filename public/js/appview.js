@@ -2,6 +2,11 @@ const params = new URLSearchParams(location.search);
 const appId = params.get('id');
 
 let blocksMod = null;
+let renderBlocks = null;
+let defaultTheme = null;
+let initHls = null;
+let loadFont = null;
+let initBlocks = null;
 const state = { pages: [], theme: null, data: null };
 
 async function initAppPage(id) {
@@ -15,12 +20,12 @@ async function initAppPage(id) {
       import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'),
       import('./auth.js?v=2'),
       import('./util.js?v=1'),
-      import('./blocks.js?v=8')
+      import('./blocks.js?v=9')
     ]);
     const { doc, getDoc } = firestore;
     const { db } = authMod;
     const { escapeHtml } = utilMod;
-    const { renderBlocks, defaultTheme, initHls, loadFont } = blkMod;
+    ({ renderBlocks, defaultTheme, initHls, loadFont, initBlocks } = blkMod);
     const { loadIconFont } = await import('./icons.js?v=1');
     blocksMod = blkMod;
 
@@ -105,6 +110,7 @@ function renderCurrentPage(isInit) {
   }
 
   if (blocksMod && blocksMod.initHls) blocksMod.initHls(root);
+  if (blocksMod && blocksMod.initBlocks) blocksMod.initBlocks(root);
 }
 
 async function setupShell(data, id) {

@@ -153,10 +153,6 @@ async function tokenEndpoint(request, env) {
   if (!appId || !token) return json({ error: 'appId y token requeridos' }, 400);
   const app = await fsGet(env, `apps/${appId}`);
   if (!app) return json({ error: 'app no existe' }, 404);
-  if (app.ownerId) {
-    const owner = await fsGet(env, `users/${app.ownerId}`);
-    if (owner && owner.plan !== 'pro') return json({ error: 'solo apps Pro' }, 403);
-  }
   const key = token.replace(/[:\/]/g, '_').slice(0, 120);
   await fsSet(env, `apps/${appId}/devices/${key}`, { token, platform: 'android', ts: String(Date.now()) });
   return json({ ok: true });
@@ -168,8 +164,6 @@ async function notifyEndpoint(request, env) {
   const idToken = auth.replace('Bearer ', '');
   const uid = await verifyUser(env, idToken);
   if (!uid) return json({ error: 'sesion invalida' }, 401);
-  const me = await fsGet(env, `users/${uid}`);
-  if (!me || me.plan !== 'pro') return json({ error: 'solo Pro' }, 403);
   const b = await body(request);
   const appId = (b.appId || '').trim();
   const title = (b.title || '').trim().slice(0, 60);
@@ -213,8 +207,6 @@ async function buildEndpoint(request, env) {
   const idToken = auth.replace('Bearer ', '');
   const uid = await verifyUser(env, idToken);
   if (!uid) return json({ error: 'sesion invalida' }, 401);
-  const me = await fsGet(env, `users/${uid}`);
-  if (!me || me.plan !== 'pro') return json({ error: 'solo Pro' }, 403);
   const b = await body(request);
   const appId = (b.appId || '').trim();
   const app = await fsGet(env, `apps/${appId}`);

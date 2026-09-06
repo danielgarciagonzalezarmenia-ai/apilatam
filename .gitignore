@@ -8,3 +8,5 @@ firebase-debug.*.log
 Thumbs.db
 functions/node_modules/
 apk-template/
+worker/.wrangler/
+

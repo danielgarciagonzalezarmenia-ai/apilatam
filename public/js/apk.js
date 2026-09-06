@@ -1,4 +1,4 @@
-export const APK_WORKER_URL = 'https://apilatam.workers.dev';
+export const APK_WORKER_URL = 'https://apilatam.mundofutbolcol.workers.dev';
 
 export async function apkApi(path, { token, body } = {}) {
   const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };

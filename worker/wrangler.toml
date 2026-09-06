@@ -1,3 +1,9 @@
 name = "apilatam"
 main = "worker.js"
 compatibility_date = "2024-12-01"
+
+[vars]
+API_KEY = "AIzaSyA4lFjAcn7ebAZF9SkVfpm1RPYnThN8roA"
+PROJECT_ID = "appforge-20549"
+BASE_URL = "https://danielgarciagonzalezarmenia-ai.github.io/apilatam"
+GH_REPO = "danielgarciagonzalezarmenia-ai/apilatam-apk-template"

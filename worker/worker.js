@@ -3,8 +3,8 @@
 // Secrets: FIREBASE_SA (cuenta de servicio JSON), GEMINI_API_KEY, GH_PAT, BUILD_TOKEN
 // Vars: API_KEY (opcional, fallback a la key publica), BASE_URL, GH_REPO, PROJECT_ID
 
-const DEFAULT_API_KEY = 'AIzaSyDG3eozkzXFZn6MSAdNYV1tYDd45XpZHdA';
-const DEFAULT_PROJECT = 'apilatam-13fb4';
+const DEFAULT_API_KEY = 'AIzaSyA4lFjAcn7ebAZF9SkVfpm1RPYnThN8roA';
+const DEFAULT_PROJECT = 'appforge-20549';
 const DEFAULT_BASE = 'https://danielgarciagonzalezarmenia-ai.github.io/apilatam';
 
 export default {

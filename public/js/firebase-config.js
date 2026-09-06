@@ -1,11 +1,11 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyDG3eozkzXFZn6MSAdNYV1tYDd45XpZHdA",
-  authDomain: "apilatam-13fb4.firebaseapp.com",
-  projectId: "apilatam-13fb4",
-  storageBucket: "apilatam-13fb4.firebasestorage.app",
-  messagingSenderId: "237589847097",
-  appId: "1:237589847097:web:8324f49c45c12547a941e8",
-  measurementId: "G-ZJP7WSBCMF"
+  apiKey: "AIzaSyA4lFjAcn7ebAZF9SkVfpm1RPYnThN8roA",
+  authDomain: "appforge-20549.firebaseapp.com",
+  projectId: "appforge-20549",
+  storageBucket: "appforge-20549.firebasestorage.app",
+  messagingSenderId: "352238980841",
+  appId: "1:352238980841:web:8e2da6296fbc4634fdaa78",
+  measurementId: "G-S51JY933PZ"
 };
 
 export { firebaseConfig };

@@ -141,16 +141,17 @@
       btn.disabled = true;
       btn.textContent = 'Creando...';
 
-      let logoUrl = $('f-logo').value.trim();
+let logoUrl = $('f-logo').value.trim();
       const file = $('f-logo-file').files && $('f-logo-file').files[0];
       if (file && file.size < 3 * 1024 * 1024) {
         try {
           const storage = getStorage(app);
           const stoRef = ref(storage, 'logos/' + currentUser.uid + '/' + Date.now() + '-' + uid() + file.name.replace(/[^a-z0-9.]/gi, ''));
-          await uploadBytes(stoRef, file);
-          logoUrl = await getDownloadURL(stoRef);
+          const stale = new Promise((_, rej) => setTimeout(() => rej(new Error('Storage no responde (verifica que este habilitado)')), 15000));
+          logoUrl = await Promise.race([uploadBytes(stoRef, file).then(() => getDownloadURL(stoRef)), stale]);
         } catch (e) {
-          showToast('El logo quedo en la preview pero no se subio: ' + e.message, 'error');
+          showToast('No se pudo subir el logo: ' + e.message + '. Se usara la URL si la pusiste.', 'error');
+          logoUrl = $('f-logo').value.trim();
         }
       }
 

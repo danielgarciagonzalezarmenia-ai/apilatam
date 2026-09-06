@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="css/custom.css?v=7">
   <link rel="stylesheet" href="css/builder.css?v=2">
   <link rel="stylesheet" href="css/stream.css?v=1">
-  <link rel="stylesheet" href="css/help.css?v=2">
+  <link rel="stylesheet" href="css/help.css?v=3">
 </head>
 <body>
 
@@ -36,6 +36,7 @@
 
     <div id="content" class="hidden">
       <div class="dash-tabs">
+        <div class="indicator" id="dash-indicator"></div>
         <button class="dash-tab active" data-tab="apps">Mis apps</button>
         <button class="dash-tab" data-tab="help">Como usar</button>
       </div>
@@ -96,6 +97,7 @@
       });
       $('loading').style.display = 'none';
       $('content').classList.remove('hidden');
+      requestAnimationFrame(() => moveIndicator(document.querySelector('.dash-tab.active')));
     });
 
     function renderPlan(u, count = 0) {
@@ -184,16 +186,26 @@
         </div>`).join('');
     }
 
+    function moveIndicator(btn) {
+      const ind = document.getElementById('dash-indicator');
+      if (!btn) return;
+      ind.style.width = btn.offsetWidth + 'px';
+      ind.style.transform = 'translateX(' + (btn.offsetLeft - 4) + 'px)';
+    }
+    window.addEventListener('resize', () => moveIndicator(document.querySelector('.dash-tab.active')));
+
     document.querySelectorAll('.dash-tab').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.dash-tab').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        moveIndicator(btn);
         const tab = btn.dataset.tab;
         $('apps-panel').classList.toggle('hidden', tab !== 'apps');
         $('help-panel').classList.toggle('hidden', tab !== 'help');
         if (tab === 'help') renderHelp();
       });
     });
+    moveIndicator(document.querySelector('.dash-tab.active'));
 
     </script>
 </body>

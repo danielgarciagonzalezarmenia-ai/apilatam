@@ -221,6 +221,8 @@ async function buildEndpoint(request, env) {
   if (!app || app.ownerId !== uid) return json({ error: 'no autorizado' }, 403);
   if (!env.GH_REPO || !env.GH_PAT) return json({ error: 'pipeline no configurado' }, 503);
   const base = env.BASE_URL || DEFAULT_BASE;
+  const logoUrl = app.logoUrl || '';
+  const isData = typeof logoUrl === 'string' && logoUrl.startsWith('data:');
   await fsSet(env, `apps/${appId}/build/latest`, { status: 'queued', ts: String(Date.now()) });
   const r = await fetch(`https://api.github.com/repos/${env.GH_REPO}/dispatches`, {
     method: 'POST',
@@ -230,7 +232,8 @@ async function buildEndpoint(request, env) {
       client_payload: {
         appId,
         name: app.name || appId,
-        iconUrl: app.logoUrl || '',
+        iconUrl: isData ? '' : logoUrl,
+        iconBase64: isData ? logoUrl.split(',')[1] || '' : '',
         webUrl: `${base}/view.html?id=${appId}`
       }
     })

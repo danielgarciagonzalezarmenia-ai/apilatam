@@ -809,3 +809,8 @@ body.editor { height: 100dvh; overflow: hidden; }
   white-space: nowrap;
   max-width: 100%;
 }
+.build-status { margin-top:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.build-hint { font-size:12px; color:var(--text-muted); }
+.build-pending { font-size:12px; color:var(--warning); }
+.build-failed { font-size:12px; color:#ff5252; }
+.build-ok { font-size:12px; color:var(--text-muted); }

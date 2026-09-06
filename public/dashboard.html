@@ -75,10 +75,11 @@
   </main>
 
   <script type="module">
-    import { onAuthChange, db, ensureUserDoc } from './js/auth.js?v=2';
+import { onAuthChange, db, ensureUserDoc } from './js/auth.js?v=2';
     import { setupProfile } from './js/profile.js?v=1';
-    import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc, getDocs, limit } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { escapeHtml, showToast, FREE_LIMIT } from './js/util.js?v=1';
+    import { apkApi } from './js/apk.js?v=1';
 
     const $ = id => document.getElementById(id);
     let currentUser = null;
@@ -142,14 +143,20 @@
               </div>
             </div>
             <p class="app-card-desc">${escapeHtml(a.description || 'Sin descripcion.')}</p>
-            <div class="app-card-actions">
+<div class="app-card-actions">
               <a class="btn btn-primary btn-sm" href="editor.html?id=${a.id}">Editar</a>
               <a class="btn btn-secondary btn-sm" href="view.html?id=${a.id}" target="_blank">Ver</a>
+              ${u && u.plan === 'pro' ? `
+                <button class="btn btn-secondary btn-sm" data-notif="${a.id}" data-name="${escapeHtml(a.name || 'Sin nombre')}">Notificaciones</button>
+                <button class="btn btn-secondary btn-sm" data-apk="${a.id}" data-name="${escapeHtml(a.name || 'Sin nombre')}">APK</button>
+              ` : ''}
               <button class="btn btn-danger btn-sm" data-del="${a.id}">Eliminar</button>
             </div>
+            ${u && u.plan === 'pro' ? `<div class="build-status" data-build="${a.id}"></div>` : ''}
           </div>`;
       }).join('');
 
+      setupBuildWatchers(apps);
       grid.querySelectorAll('[data-del]').forEach(btn => {
         btn.addEventListener('click', async () => {
           if (!confirm('Â¿Eliminar esta app? Esta accion no se puede deshacer.')) return;
@@ -157,6 +164,126 @@
           showToast('App eliminada', 'success');
         });
       });
+
+      grid.querySelectorAll('[data-apk]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const appId = btn.dataset.apk;
+          const statusEl = document.querySelector(`[data-build="${appId}"]`);
+          if (!currentUser) return;
+          const token = await currentUser.getIdToken();
+          btn.disabled = true;
+          try {
+            const r = await apkApi('/api/build', { token, body: { appId } });
+            showToast('Generando APK. Recibiras el link aqui.', 'info');
+            updateBuildStatus(appId, { status: 'queued', ts: 0 });
+          } catch (e) {
+            showToast(e.message, 'error');
+            btn.disabled = false;
+          }
+        });
+      });
+
+      grid.querySelectorAll('[data-notif]').forEach(btn => {
+        btn.addEventListener('click', () => openNotifyModal(btn.dataset.notif, btn.dataset.name));
+      });
+    }
+
+    const watchedBuilds = new Set();
+
+    function setupBuildWatchers(apps) {
+      apps.forEach(a => {
+        if (watchedBuilds.has(a.id)) return;
+        watchedBuilds.add(a.id);
+        onSnapshot(query(collection(db, 'apps', a.id, 'build')), (snap) => {
+          let latest = null;
+          snap.docs.forEach(d => {
+            const x = d.data();
+            if (!latest || (x.ts || 0) > (latest.ts || 0)) latest = { ...x, id: d.id };
+          });
+          updateBuildStatus(a.id, latest);
+        });
+      });
+    }
+
+    function updateBuildStatus(appId, b) {
+      const el = document.querySelector(`[data-build="${appId}"]`);
+      if (!el) return;
+      if (!b) {
+        el.innerHTML = '<span class="build-hint">APK disponible: genera y comparte tu app instalable.</span>';
+        return;
+      }
+      if (b.status === 'queued' || b.status === 'building') {
+        el.innerHTML = '<span class="build-pending">Generando APK… suele tardar 2-4 minutos. Los cambios se ven sin reempaquetar.</span>';
+      } else if (b.status === 'failed') {
+        el.innerHTML = '<span class="build-failed">No se pudo generar el APK. Intenta de nuevo.</span>';
+      } else if (b.status === 'ready' && b.apkUrl) {
+        el.innerHTML = `<a class="btn btn-primary btn-sm" href="${escapeHtml(b.apkUrl)}" target="_blank">Descargar APK</a> <span class="build-ok">Actualizaciones al abrir, sin reempaquetar.</span>`;
+      }
+    }
+
+    function openNotifyModal(appId, name) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay active';
+      overlay.innerHTML = `
+        <div class="modal" style="max-width:460px;">
+          <h2>Notificaciones - ${escapeHtml(name)}</h2>
+          <p class="p-email" style="font-size:13px;color:var(--text-muted);">Llega a todos los celulares con este APK instalado, aunque la app este cerrada.</p>
+          <div id="nt-devices" style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Contando dispositivos…</div>
+          <div class="form-group"><label>Titulo</label><input class="input" id="nt-title" maxlength="60" placeholder="Nueva promocion"></div>
+          <div class="form-group"><label>Mensaje</label><textarea class="input" id="nt-body" maxlength="240" rows="3" placeholder="Escribe el mensaje de la notificacion"></textarea></div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" id="nt-cancel">Cancelar</button>
+            <button class="btn btn-primary" id="nt-send">Enviar</button>
+          </div>
+          <div style="margin-top:16px;"><div class="p-email" style="font-size:13px;color:var(--text-muted);margin-bottom:6px;">Historial</div><div id="nt-history" style="font-size:13px;"></div></div>
+        </div>`;
+      document.body.appendChild(overlay);
+      const list = () => overlay.querySelector('#nt-history');
+      const devices = overlay.querySelector('#nt-devices');
+      overlay.addEventListener('click', (ev) => { if (ev.target === overlay) overlay.remove(); });
+      overlay.querySelector('#nt-cancel').addEventListener('click', () => overlay.remove());
+      overlay.querySelector('#nt-send').addEventListener('click', async () => {
+        const title = overlay.querySelector('#nt-title').value.trim();
+        const body = overlay.querySelector('#nt-body').value.trim();
+        if (!title) { showToast('Escribe un titulo', 'error'); return; }
+        if (!currentUser) return;
+        const token = await currentUser.getIdToken();
+        const btn = overlay.querySelector('#nt-send');
+        btn.disabled = true;
+        try {
+          const r = await apkApi('/api/notify', { token, body: { appId, title, body } });
+          showToast(r.sent ? `Enviada a ${r.sent} dispositivos` : 'Sin dispositivos registrados', r.sent ? 'success' : 'info');
+          overlay.querySelector('#nt-title').value = '';
+          overlay.querySelector('#nt-body').value = '';
+          refreshHistory();
+        } catch (e) {
+          showToast(e.message, 'error');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      async function refreshHistory() {
+        const snap = await getDocs(query(collection(db, 'apps', appId, 'notifications'), orderBy('ts', 'desc'), limit(20)));
+        list().innerHTML = snap.docs.length ? snap.docs.map(d => {
+          const x = d.data();
+          const t = new Date(Number(x.ts || 0));
+          return `<div style="padding:6px 0;border-bottom:1px solid var(--border);">
+            <div style="font-weight:600;">${escapeHtml(x.title || '')}</div>
+            <div style="color:var(--text-muted);">${escapeHtml((x.body || '').slice(0, 60))} · ${t.toLocaleDateString()} ${t.toLocaleTimeString()} · ${Number(x.sent) || 0} envios</div>
+          </div>`;
+        }).join('') : '<div style="color:var(--text-muted);">Aun no has enviado notificaciones.</div>';
+      }
+
+      (async () => {
+        try {
+          const snap = await getDocs(query(collection(db, 'apps', appId, 'devices'), limit(1)));
+          devices.textContent = snap.docs.length ? 'Dispositivos con el APK instalado: 1+' : 'Aun no hay dispositivos instalados con el APK.';
+        } catch (e) {
+          devices.textContent = '';
+        }
+        refreshHistory();
+      })();
     }
 
     const HELP = [
@@ -175,7 +302,10 @@
       { tag: 'D', title: 'Divisor y Espacio', steps: ['Divisor: linea separadora.', 'Espacio: margen vertical para airear el diseno.'] },
       { tag: 'F', title: 'Pie de pagina', steps: ['Texto final, ideal para contacto o copyright.'] },
       { tag: 'I', title: 'Iconos', steps: ['Abre el selector y busca por nombre o categoria.', 'Guardar confirma; "Sin icono" lo quita.', 'Tamano y color se ajustan en cada bloque.'] },
-      { tag: 'A', title: 'Perfil', steps: ['Haz clic en tu avatar arriba a la derecha.', 'Cambia tu nombre y tu foto de perfil.'] }
+{ tag: 'A', title: 'Perfil', steps: ['Haz clic en tu avatar arriba a la derecha.', 'Cambia tu nombre y tu foto de perfil.'] },
+      { tag: 'N', title: 'Offline', steps: ['Tu app carga al instante y sus archivos se guardan para verse sin internet los proximos usos.', 'Al volver a entrar, los cambios de tu diseno ya aparecen sin reempaquetar.', 'Las notificaciones llegan al celular aunque la app este cerrada (APK Pro).'] },
+      { tag: 'R', title: 'Notificaciones (Pro)', steps: ['En "Mis apps", abre Notificaciones en tu app.', 'Escribe titulo y mensaje y pulsa Enviar.', 'Llega a todos los celulares que instalaron el APK de esa app.'] },
+      { tag: 'K', title: 'APK (Pro)', steps: ['Pulsa APK en tu app para generar el .apk instalable.', 'Tarda 2-4 minutos; el link de descarga aparece en la tarjeta.', 'Los cambios de la app se ven solos al reabrir el APK, sin volver a generar.' ] }
     ];
 
     function renderHelp() {

@@ -16,7 +16,7 @@
       const params = new URLSearchParams(location.search);
       const appId = params.get('id');
       try {
-        const { initAppPage } = await import('./js/appview.js?v=3');
+        const { initAppPage } = await import('./js/appview.js?v=4');
         initAppPage(appId);
       } catch (e) {
         console.error(e);

@@ -7,3 +7,4 @@ firebase-debug.*.log
 .DS_Store
 Thumbs.db
 functions/node_modules/
+apk-template/

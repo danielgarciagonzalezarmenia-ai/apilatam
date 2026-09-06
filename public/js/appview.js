@@ -7,6 +7,9 @@ let defaultTheme = null;
 let initHls = null;
 let loadFont = null;
 let initBlocks = null;
+let fsDoc = null;
+let getDocFn = null;
+let dbRef = null;
 const state = { pages: [], theme: null, data: null };
 
 async function initAppPage(id) {
@@ -24,6 +27,9 @@ async function initAppPage(id) {
     ]);
     const { doc, getDoc } = firestore;
     const { db } = authMod;
+    fsDoc = doc;
+    getDocFn = getDoc;
+    dbRef = db;
     const { escapeHtml } = utilMod;
     ({ renderBlocks, defaultTheme, initHls, loadFont, initBlocks } = blkMod);
     const { loadIconFont } = await import('./icons.js?v=1');
@@ -54,10 +60,34 @@ async function initAppPage(id) {
     renderCurrentPage(true);
     await setupSw();
     setupInstallBar(data);
+    startLiveCheck(id);
   } catch (e) {
     console.error(e);
     document.getElementById('v-root').innerHTML = '<div class="v-error">No se pudo cargar la app.<br><a href="index.html">Ir a AppForge</a></div>';
   }
+}
+
+function startLiveCheck(id) {
+  let lastSeen = 0;
+  const t0 = state.data.updatedAt;
+  if (t0 && typeof t0.toMillis === 'function') lastSeen = t0.toMillis();
+  const check = async () => {
+    if (document.hidden || !getDocFn) return;
+    try {
+      const snap = await getDocFn(fsDoc(dbRef, 'apps', id));
+      if (!snap.exists()) return;
+      const t = snap.data().updatedAt;
+      const ts = t && typeof t.toMillis === 'function' ? t.toMillis() : 0;
+      if (ts > lastSeen) {
+        lastSeen = ts;
+        location.reload();
+      }
+    } catch (e) {
+    }
+  };
+  document.addEventListener('visibilitychange', check);
+  window.addEventListener('focus', check);
+  setInterval(check, 60000);
 }
 
 function migrateLinks(blocks) {

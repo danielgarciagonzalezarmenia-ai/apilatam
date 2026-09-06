@@ -488,9 +488,9 @@
       const hex = /^#[0-9a-f]{6}$/i.test(v || '') ? v : '';
       return `<div class="color-row">${hex ? `<input type="color" data-k="${k}" value="${escapeHtml(hex)}" style="width:44px;height:34px;">` : `<span class="range-val" style="width:44px;text-align:center;">Tema</span>`}<input class="input" data-k="${k}" value="${escapeHtml(v || '')}" placeholder="#rrggbb" style="flex:1;"></div>`;
     }
-    function rangeField(k, v, min, max) {
+    function rangeField(k, v, min, max, vu = 'px') {
       const cur = Number(v) || 0;
-      return `<div class="range-row"><input type="range" data-r="${k}" min="${min}" max="${max}" step="1" value="${cur}"><span class="range-val" data-rv="${k}">${cur ? cur + 'px' : 'Auto'}</span></div>`;
+      return `<div class="range-row"><input type="range" data-r="${k}" min="${min}" max="${max}" step="1" value="${cur}"><span class="range-val" data-rv="${k}" data-vu="${vu}">${cur ? cur + vu : 'Auto'}</span></div>`;
     }
 
     function chk(k, checked) {
@@ -541,17 +541,17 @@
       bindInspector(el, block);
     }
 
-    function inspectorFor(b) {
+    function baseInspector(b) {
       switch (b.type) {
-        case 'header': return field('Titulo', input('text', b.text)) + field('Subtitulo', input('subtitle', b.subtitle)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="inspector-field"><label><input type="checkbox" data-k="showLogo" ${b.showLogo ? 'checked' : ''}> Mostrar logo</label></div>` + iconPickField('logoIcon', b.logoIcon, 'Icono del logo') + (b.logoIcon ? `<div class="field-row">${field('Tamano icono', rangeField('logoIconSize', b.logoIconSize, 20, 72))}${field('Color icono', colorField('logoIconColor', b.logoIconColor || ''))}</div>` : '') + field('Logo (URL)', input('logo', b.logo));
-        case 'heading': return field('Texto', input('text', b.text)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
-        case 'text': return field('Texto', textarea('text', b.text, 5)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right']));
-        case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' })) + pageLinkFields(b, 'Al hacer clic en la imagen');
+        case 'header': return field('Titulo', input('text', b.text)) + field('Subtitulo', input('subtitle', b.subtitle)) + `<div class="field-row">${field('Tamano titulo', input('titleSize', b.titleSize, { ph: 'Auto' }))}${field('Color titulo', colorField('titleColor', b.titleColor || ''))}</div>` + `<div class="field-row">${field('Tamano subtitulo', input('subSize', b.subSize, { ph: 'Auto' }))}${field('Color subtitulo', colorField('subColor', b.subColor || ''))}</div>` + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="inspector-field"><label><input type="checkbox" data-k="showLogo" ${b.showLogo ? 'checked' : ''}> Mostrar logo</label></div>` + iconPickField('logoIcon', b.logoIcon, 'Icono del logo') + (b.logoIcon ? `<div class="field-row">${field('Tamano icono', rangeField('logoIconSize', b.logoIconSize, 20, 72))}${field('Color icono', colorField('logoIconColor', b.logoIconColor || ''))}</div>` : '') + field('Logo (URL)', input('logo', b.logo));
+        case 'heading': return field('Texto', input('text', b.text)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right'])) + field('Color', colorField('color', b.color || ''));
+        case 'text': return field('Texto', textarea('text', b.text, 5)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right'])) + field('Color', colorField('color', b.color || ''));
+        case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' })) + field('Esquinas', rangeField('radius', b.radius, 0, 40)) + pageLinkFields(b, 'Al hacer clic en la imagen');
         case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + iconPickField('icon', b.icon, 'Icono (antes del texto)') + (b.icon ? `<div class="field-row">${field('Tamano icono', rangeField('iconSize', b.iconSize, 12, 48))}${field('Color icono', colorField('iconColor', b.iconColor || ''))}</div>` : '') + `<div class="field-row">${field('Ancho', rangeField('width', b.width, 60, 375))}${field('Altura', rangeField('height', b.height, 36, 220))}</div>` + field('Color del boton', colorField('bg', b.bg || theme.accent)) + field('Color del texto', colorField('textColor', b.textColor || (b.variant === 'solid' ? '#000000' : theme.accent))) + pageLinkFields(b, 'Al hacer clic en el boton');
         case 'video':
-        case 'youtube': return field('URL del video', input('url', b.url, { ph: b.type === 'youtube' ? 'https://youtube.com/watch?v=...' : 'https://...mp4' }));
+        case 'youtube': return field('URL del video', input('url', b.url, { ph: b.type === 'youtube' ? 'https://youtube.com/watch?v=...' : 'https://...mp4' })) + field('Esquinas', rangeField('radius', b.radius, 0, 40));
         case 'html': return field('Codigo HTML', textarea('html', b.html, 8));
-        case 'list': return `
+        case 'list': return `<div class="field-row">${field('Color titulo', colorField('titleColor', b.titleColor || ''))}${field('Color descripcion', colorField('descColor', b.descColor || ''))}</div>` + `<div class="field-row">${field('Fondo recuadro', colorField('itemBg', b.itemBg || ''))}${field('Esquinas', rangeField('itemRadius', b.itemRadius, 4, 30))}</div>` + field('Separacion', rangeField('gap', b.gap, 4, 32)) + `
           <div class="inspector-field"><label>Elementos</label></div>
           ${(b.items || []).map((it, i) => `
             <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
@@ -573,7 +573,7 @@
               <input class="input" data-item-url="${i}" value="${escapeHtml(it.linkUrl || '')}" placeholder="URL externa (opcional)">
             </div>`).join('')}
           <button class="btn btn-secondary btn-sm" id="list-add" style="width:100%;margin-top:12px;">+ Agregar elemento</button>`;
-        case 'grid': return field('Cuadros por fila', sel('cols', b.cols, [2, 3, 4])) + `<div class="field-row">${field('Separacion', rangeField('gap', b.gap, 4, 32))}${field('Alto minimo (px)', rangeField('minH', b.minH, 0, 220))}</div>` + `
+        case 'grid': return field('Cuadros por fila', sel('cols', b.cols, [2, 3, 4])) + `<div class="field-row">${field('Separacion', rangeField('gap', b.gap, 4, 32))}${field('Alto minimo (px)', rangeField('minH', b.minH, 0, 220))}</div>` + `<div class="field-row">${field('Color titulo', colorField('titleColor', b.titleColor || ''))}${field('Color descripcion', colorField('descColor', b.descColor || ''))}</div>` + `<div class="field-row">${field('Fondo recuadro', colorField('cellBg', b.cellBg || ''))}${field('Esquinas', rangeField('cellRadius', b.cellRadius, 4, 30))}</div>` + `
           <div class="inspector-field"><label>Cuadros</label></div>
           ${(b.cells || []).map((it, i) => `
             <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
@@ -596,7 +596,7 @@
               <input class="input" data-cell-url="${i}" value="${escapeHtml(it.linkUrl || '')}" placeholder="URL externa (opcional)">
             </div>`).join('')}
           <button class="btn btn-secondary btn-sm" id="grid-add" style="width:100%;margin-top:12px;">+ Agregar cuadro</button>`;
-        case 'social': return field('Alineacion', sel('align', b.align, ['center','left','right'])) + `
+        case 'social': return field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="field-row">${field('Tamano iconos', rangeField('iconSize', b.iconSize, 20, 64))}${field('Separacion', rangeField('gap', b.gap, 4, 28))}</div>` + field('Color iconos', colorField('iconColor', b.iconColor || '')) + `
           <div class="inspector-field"><label>Redes (elige la red y su enlace)</label></div>
           ${(b.links || []).map((it, i) => `
             <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
@@ -605,8 +605,8 @@
             </div>
             <input class="input" data-soc-url="${i}" value="${escapeHtml(it.url || '')}" placeholder="https://instagram.com/tuusuario" style="margin-bottom:10px;">`).join('')}
           <button class="btn btn-secondary btn-sm" id="soc-add" style="width:100%;margin-top:12px;">+ Agregar red</button>`;
-        case 'whatsapp': return field('Numero (con codigo de pais)', input('number', b.number, { ph: '573001112233' })) + field('Texto del boton', input('text', b.text)) + field('Mensaje preescrito', textarea('message', b.message, 3)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Color de fondo (opcional)', colorField('bg', b.bg || ''));
-        case 'table': return field('Columnas', sel('cols', b.cols, [2, 3, 4, 5])) + `<div class="inspector-field"><label>${chk('showHeader', b.showHeader !== false)} Mostrar fila de encabezados</label></div>` + `
+        case 'whatsapp': return field('Numero (con codigo de pais)', input('number', b.number, { ph: '573001112233' })) + field('Texto del boton', input('text', b.text)) + field('Mensaje preescrito', textarea('message', b.message, 3)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Color de fondo (opcional)', colorField('bg', b.bg || '')) + `<div class="field-row">${field('Color texto', colorField('textColor', b.textColor || ''))}${field('Esquinas', rangeField('radius', b.radius, 4, 30))}</div>`;
+        case 'table': return field('Columnas', sel('cols', b.cols, [2, 3, 4, 5])) + `<div class="inspector-field"><label>${chk('showHeader', b.showHeader !== false)} Mostrar fila de encabezados</label></div>` + `<div class="field-row">${field('Color texto', colorField('textColor', b.textColor || ''))}${field('Color encabezado', colorField('headColor', b.headColor || ''))}</div>` + `<div class="field-row">${field('Fondo encabezado', colorField('headBg', b.headBg || ''))}${field('Tamano letra', input('textSize', b.textSize, { ph: 'Auto' }))}</div>` + `
           <div class="inspector-field"><label>Encabezados</label></div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${Array.from({ length: Number(b.cols) || 2 }, (_, i) => `<input class="input" data-tb-head="${i}" value="${escapeHtml((b.headers || [])[i] || '')}" placeholder="Col ${i + 1}" style="flex:1;min-width:70px;">`).join('')}</div>
           <div class="inspector-field"><label>Filas</label></div>
@@ -622,14 +622,14 @@
             <button class="btn btn-secondary btn-sm" id="tb-addrow" style="flex:1;">+ Agregar fila</button>
             <button class="btn btn-danger btn-sm" id="tb-delall">Vaciar</button>
           </div>`;
-        case 'faq': return `
+        case 'faq': return `<div class="field-row">${field('Color pregunta', colorField('qColor', b.qColor || ''))}${field('Color respuesta', colorField('aColor', b.aColor || ''))}</div>` + `<div class="field-row">${field('Fondo', colorField('bg', b.bg || ''))}${field('Esquinas', rangeField('radius', b.radius, 4, 30))}</div>` + field('Tamano pregunta (px)', input('qSize', b.qSize, { type: 'number' })) + `
           <div class="inspector-field"><label>Preguntas y respuestas</label></div>
           ${(b.items || []).map((it, i) => `
             <input class="input" data-faq-q="${i}" value="${escapeHtml(it.q || '')}" placeholder="Pregunta" style="margin-bottom:6px;">
             <textarea class="input" data-faq-a="${i}" rows="2" placeholder="Respuesta" style="margin-bottom:6px;">${escapeHtml(it.a || '')}</textarea>
             <button class="btn btn-danger btn-sm" data-faq-del="${i}" style="margin-bottom:12px;">Eliminar pregunta</button>`).join('')}
           <button class="btn btn-secondary btn-sm" id="faq-add" style="width:100%;margin-top:12px;">+ Agregar pregunta</button>`;
-        case 'carousel': return `<div class="inspector-field"><label>${chk('auto', !!b.auto)} Auto deslizar</label></div>` + `
+        case 'carousel': return `<div class="inspector-field"><label>${chk('auto', !!b.auto)} Auto deslizar</label></div>` + `<div class="field-row">${field('Color estrellas', colorField('starColor', b.starColor || ''))}${field('Color texto', colorField('textColor', b.textColor || ''))}</div>` + `<div class="field-row">${field('Color autor', colorField('nameColor', b.nameColor || ''))}${field('Fondo', colorField('bg', b.bg || ''))}</div>` + `<div class="field-row">${field('Esquinas', rangeField('radius', b.radius, 4, 30))}${field('Tamano testimonio', input('textSize', b.textSize, { ph: 'Auto' }))}</div>` + `
           <div class="inspector-field"><label>Testimonios</label></div>
           ${(b.items || []).map((it, i) => `
             <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
@@ -640,7 +640,7 @@
             <input class="input" data-car-role="${i}" value="${escapeHtml(it.role || '')}" placeholder="Rol (opcional)" style="margin-bottom:6px;">
             <textarea class="input" data-car-text="${i}" rows="3" placeholder="Testimonio" style="margin-bottom:10px;">${escapeHtml(it.text || '')}</textarea>`).join('')}
           <button class="btn btn-secondary btn-sm" id="car-add" style="width:100%;margin-top:12px;">+ Agregar testimonio</button>`;
-        case 'counters': return `
+        case 'counters': return `<div class="field-row">${field('Color cifra', colorField('numColor', b.numColor || ''))}${field('Tamano cifra', rangeField('numSize', b.numSize, 18, 72))}</div>` + field('Color etiqueta', colorField('labelColor', b.labelColor || '')) + `<div class="field-row">${field('Fondo recuadro', colorField('cellBg', b.cellBg || ''))}${field('Esquinas', rangeField('cellRadius', b.cellRadius, 4, 30))}</div>` + field('Separacion', rangeField('gap', b.gap, 4, 28)) + `
           <div class="inspector-field"><label>Estadisticas</label></div>
           ${(b.stats || []).map((it, i) => `
             <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
@@ -652,9 +652,9 @@
             ${it.icon ? `<div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;"><input class="input" data-st-isize="${i}" value="${it.iconSize || ''}" placeholder="Tam (px)" style="flex:0 0 72px;"><input class="input" data-st-icolor="${i}" value="${escapeHtml(it.iconColor || '')}" placeholder="Color (hex)" style="flex:1;"></div>`
               : `<div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;"><button class="btn btn-secondary btn-sm" data-st-ipick="${i}" style="padding:7px 9px;display:inline-flex;align-items:center;gap:6px;">Elegir icono</button></div>`}`).join('')}
           <button class="btn btn-secondary btn-sm" id="st-add" style="width:100%;margin-top:12px;">+ Agregar estadistica</button>`;
-        case 'countdown': return field('Fecha y hora de fin', `<input type="datetime-local" class="input" data-k="target" value="${escapeHtml(b.target || '')}">`) + field('Titulo o eslogan (opcional)', input('label', b.label)) + field('Mensaje al finalizar', input('endText', b.endText));
-        case 'map': return field('URL del mapa (embed)', input('embed', b.embed || b.url, { ph: 'https://www.google.com/maps/embed?pb=...' })) + field('Direccion', input('address', b.address)) + `<div class="inspector-field"><label>${chk('showBtn', !!b.showBtn)} Mostrar boton "Como llegar"</label></div>`;
-        case 'gallery': return field('Columnas', sel('cols', b.cols, [2, 3])) + `
+        case 'countdown': return field('Fecha y hora de fin', `<input type="datetime-local" class="input" data-k="target" value="${escapeHtml(b.target || '')}">`) + field('Titulo o eslogan (opcional)', input('label', b.label)) + field('Mensaje al finalizar', input('endText', b.endText)) + `<div class="field-row">${field('Color numeros', colorField('boxColor', b.boxColor || ''))}${field('Fondo cajas', colorField('boxBg', b.boxBg || ''))}</div>` + `<div class="field-row">${field('Tamano numeros', rangeField('numSize', b.numSize, 18, 72))}${field('Ancho de las cajas', rangeField('boxWidth', b.boxWidth, 45, 100, '%'))}</div>` + field('Esquinas', rangeField('boxRadius', b.boxRadius, 4, 30));
+        case 'map': return field('URL del mapa (embed)', input('embed', b.embed || b.url, { ph: 'https://www.google.com/maps/embed?pb=...' })) + field('Direccion', input('address', b.address)) + `<div class="inspector-field"><label>${chk('showBtn', !!b.showBtn)} Mostrar boton "Como llegar"</label></div>` + `<div class="field-row">${field('Altura', rangeField('height', b.height, 140, 560))}${field('Esquinas', rangeField('radius', b.radius, 4, 30))}</div>`;
+        case 'gallery': return field('Columnas', sel('cols', b.cols, [2, 3])) + `<div class="field-row">${field('Separacion', rangeField('gap', b.gap, 4, 28))}${field('Esquinas', rangeField('radius', b.radius, 4, 30))}</div>` + `
           <div class="inspector-field"><label>Imagenes</label></div>
           ${(b.images || []).map((it, i) => `
             <input class="input" data-gal-img="${i}" value="${escapeHtml(it.url || '')}" placeholder="URL de imagen" style="margin-bottom:6px;">
@@ -663,7 +663,7 @@
               <button class="btn btn-danger btn-sm" data-gal-del="${i}" title="Quitar" style="padding:6px 8px;">${ICONS_X}</button>
             </div>`).join('')}
           <button class="btn btn-secondary btn-sm" id="gal-add" style="width:100%;margin-top:12px;">+ Agregar imagen</button>`;
-        case 'form': return field('Correo que recibe los mensajes', input('email', b.email, { ph: 'tucorreo@dominio.com' })) + field('Texto del boton', input('btnText', b.btnText)) + `
+        case 'form': return field('Correo que recibe los mensajes', input('email', b.email, { ph: 'tucorreo@dominio.com' })) + field('Texto del boton', input('btnText', b.btnText)) + `<div class="field-row">${field('Color boton', colorField('btnBg', b.btnBg || ''))}${field('Color texto boton', colorField('btnTextColor', b.btnTextColor || ''))}</div>` + `<div class="field-row">${field('Color texto campos', colorField('fieldColor', b.fieldColor || ''))}${field('Esquinas', rangeField('radius', b.radius, 4, 30))}</div>` + `
           <div class="field-row">
             ${field('Mostrar nombre', chk('showName', b.showName !== false))}
             ${field('Mostrar correo', chk('showEmail', b.showEmail !== false))}
@@ -672,11 +672,15 @@
             ${field('Mostrar telefono', chk('showPhone', !!b.showPhone))}
             ${field('Mostrar mensaje', chk('showMessage', b.showMessage !== false))}
           </div>`;
-        case 'divider': return '<p class="empty-inspector">Bloque divisor. No tiene opciones.</p>';
+        case 'divider': return field('Color', colorField('color', b.color || '')) + field('Grosor (px)', rangeField('thickness', b.thickness, 1, 8));
         case 'spacer': return field('Altura (px)', input('height', b.height, { type: 'number' }));
-        case 'footer': return field('Texto', input('text', b.text));
+        case 'footer': return field('Texto', input('text', b.text)) + `<div class="field-row">${field('Color', colorField('textColor', b.textColor || ''))}${field('Tamano', input('textSize', b.textSize, { type: 'number' }))}</div>`;
         default: return '<p class="empty-inspector">Sin opciones.</p>';
       }
+    }
+
+    function inspectorFor(b) {
+      return baseInspector(b) + field('Escala del bloque', rangeField('scale', b.scale, 50, 160, '%'));
     }
 
     function bindInspector(el, block) {
@@ -721,7 +725,7 @@
           const lbl = el.querySelector(`[data-rv="${k}"]`);
           r.addEventListener('input', () => {
             block[k] = Number(r.value) || '';
-            if (lbl) lbl.textContent = block[k] ? block[k] + 'px' : 'Auto';
+            if (lbl) lbl.textContent = block[k] ? block[k] + (lbl.dataset.vu || 'px') : 'Auto';
             renderPreview();
             markDirty();
           });

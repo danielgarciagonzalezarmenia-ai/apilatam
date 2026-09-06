@@ -157,32 +157,36 @@ export function renderBlock(block, theme) {
     --t-radius:${T.radius}px;
     --t-font:${T.fontReady || T.font}, system-ui, sans-serif;
   `;
+  let html = '';
   switch (block.type) {
-    case 'header': return blockHeader(block, css);
-    case 'heading': return blockHeading(block, css);
-    case 'text': return blockText(block, css);
-    case 'image': return blockImage(block, css);
-    case 'button': return blockButton(block, css);
+    case 'header': html = blockHeader(block, css); break;
+    case 'heading': html = blockHeading(block, css); break;
+    case 'text': html = blockText(block, css); break;
+    case 'image': html = blockImage(block, css); break;
+    case 'button': html = blockButton(block, css); break;
     case 'video':
-    case 'youtube': return blockVideo(block, css);
-    case 'html': return blockHtml(block, css);
-    case 'list': return blockList(block, css);
-    case 'grid': return blockGrid(block, css);
-    case 'social': return blockSocial(block, css);
-    case 'whatsapp': return blockWhatsapp(block, css);
-    case 'table': return blockTable(block, css);
-    case 'faq': return blockFaq(block, css);
-    case 'carousel': return blockCarousel(block, css);
-    case 'counters': return blockCounters(block, css);
-    case 'countdown': return blockCountdown(block, css);
-    case 'map': return blockMap(block, css);
-    case 'gallery': return blockGallery(block, css);
-    case 'form': return blockForm(block, css);
-    case 'divider': return blockDivider(block, css);
-    case 'spacer': return blockSpacer(block, css);
-    case 'footer': return blockFooter(block, css);
-    default: return '';
+    case 'youtube': html = blockVideo(block, css); break;
+    case 'html': html = blockHtml(block, css); break;
+    case 'list': html = blockList(block, css); break;
+    case 'grid': html = blockGrid(block, css); break;
+    case 'social': html = blockSocial(block, css); break;
+    case 'whatsapp': html = blockWhatsapp(block, css); break;
+    case 'table': html = blockTable(block, css); break;
+    case 'faq': html = blockFaq(block, css); break;
+    case 'carousel': html = blockCarousel(block, css); break;
+    case 'counters': html = blockCounters(block, css); break;
+    case 'countdown': html = blockCountdown(block, css); break;
+    case 'map': html = blockMap(block, css); break;
+    case 'gallery': html = blockGallery(block, css); break;
+    case 'form': html = blockForm(block, css); break;
+    case 'divider': html = blockDivider(block, css); break;
+    case 'spacer': html = blockSpacer(block, css); break;
+    case 'footer': html = blockFooter(block, css); break;
+    default: html = '';
   }
+  const sc = Number(block.scale);
+  if (sc && sc !== 100 && html) html = `<div data-af-scale style="transform:scale(${sc / 100});transform-origin:top center;">${html}</div>`;
+  return html;
 }
 
 export function renderBlocks(blocks, theme) {
@@ -198,20 +202,22 @@ function blockHeader(b, css) {
       logo = `<img class="ab-logo" src="${escapeHtml(b.logo)}" alt="" onerror="this.style.display='none'">`;
     }
   }
-  return `<div class="ab-header" style="${css};text-align:${b.align || 'center'};"><div class="ab-header-inner">${logo}<div class="ab-title">${escapeHtml(b.text || '')}</div>${b.subtitle ? `<div class="ab-subtitle">${escapeHtml(b.subtitle)}</div>` : ''}</div></div>`;
+  const tst = [(b.titleColor ? 'color:' + b.titleColor + ';' : ''), (b.titleSize ? 'font-size:' + b.titleSize + 'px;' : '')].join('');
+  const sst = [(b.subColor ? 'color:' + b.subColor + ';' : ''), (b.subSize ? 'font-size:' + b.subSize + 'px;' : '')].join('');
+  return `<div class="ab-header" style="${css};text-align:${b.align || 'center'};"><div class="ab-header-inner">${logo}<div class="ab-title"${tst ? ' style="' + tst + '"' : ''}>${escapeHtml(b.text || '')}</div>${b.subtitle ? `<div class="ab-subtitle"${sst ? ' style="' + sst + '"' : ''}>${escapeHtml(b.subtitle)}</div>` : ''}</div></div>`;
 }
 
 function blockHeading(b, css) {
-  return `<div class="ab-heading" style="${css};text-align:${b.align || 'left'};color:var(--t-text);font-size:${b.size || 26}px;font-weight:700;line-height:1.25;">${escapeHtml(b.text || '')}</div>`;
+  return `<div class="ab-heading" style="${css};text-align:${b.align || 'left'};color:${b.color || 'var(--t-text)'};font-size:${b.size || 26}px;font-weight:700;line-height:1.25;">${escapeHtml(b.text || '')}</div>`;
 }
 
 function blockText(b, css) {
-  return `<div class="ab-text" style="${css};text-align:${b.align || 'left'};color:var(--t-text);font-size:${b.size || 15}px;opacity:${b.opacity ?? 0.85};line-height:1.6;white-space:pre-wrap;">${escapeHtml(b.text || '')}</div>`;
+  return `<div class="ab-text" style="${css};text-align:${b.align || 'left'};color:${b.color || 'var(--t-text)'};font-size:${b.size || 15}px;opacity:${b.opacity ?? 0.85};line-height:1.6;white-space:pre-wrap;">${escapeHtml(b.text || '')}</div>`;
 }
 
 function blockImage(b, css) {
   const lk = b.linkTarget || b.linkUrl ? linkMarkup(b) : null;
-  return `<div class="ab-image" style="${css};text-align:${b.align || 'center'};">${lk ? lk.open.replace('<a', '<a style="cursor:pointer;"') : ''}<img src="${escapeHtml(b.url || '')}" alt="" style="border-radius:var(--t-radius);${b.width ? 'width:' + b.width + '%;' : 'width:100%;'}max-width:100%;object-fit:cover;border:1px solid rgba(255,255,255,0.08);" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%2318181b%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%2352525b%22 font-family=%22Arial%22 font-size=%2216%22 text-anchor=%22middle%22%3EImagen%3C/text%3E%3C/svg%3E';">${lk ? lk.close : ''}</div>`;
+  return `<div class="ab-image" style="${css};text-align:${b.align || 'center'};">${lk ? lk.open.replace('<a', '<a style="cursor:pointer;"') : ''}<img src="${escapeHtml(b.url || '')}" alt="" style="border-radius:${b.radius ? b.radius + 'px' : 'var(--t-radius)'};${b.width ? 'width:' + b.width + '%;' : 'width:100%;'}max-width:100%;object-fit:cover;border:1px solid rgba(255,255,255,0.08);" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%2318181b%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%2352525b%22 font-family=%22Arial%22 font-size=%2216%22 text-anchor=%22middle%22%3EImagen%3C/text%3E%3C/svg%3E';">${lk ? lk.close : ''}</div>`;
 }
 
 function linkMarkup(b) {
@@ -245,17 +251,18 @@ function blockButton(b, css) {
 }
 
 function blockVideo(b, css) {
+  const r = b.radius ? 'border-radius:' + b.radius + 'px;' : '';
   if (b.type === 'youtube' && b.url) {
     const id = youtubeId(b.url);
     if (id) {
-      return `<div class="ab-video" style="${css};"><div class="ab-video-box" style="position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--t-radius);overflow:hidden;background:#000;"><iframe src="https://www.youtube.com/embed/${id}" style="position:absolute;inset:0;width:100%;height:100%;border:0;" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe></div></div>`;
+      return `<div class="ab-video" style="${css};"><div class="ab-video-box" style="position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--t-radius);${r}overflow:hidden;background:#000;"><iframe src="https://www.youtube.com/embed/${id}" style="position:absolute;inset:0;width:100%;height:100%;border:0;" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe></div></div>`;
     }
   }
   const url = b.url || '';
   if (/\.m3u8(\?|$)/i.test(url)) {
-    return `<div class="ab-video" style="${css};"><video class="ab-hls" data-hls="${escapeHtml(url)}" controls playsinline preload="metadata" style="width:100%;border-radius:var(--t-radius);background:#000;aspect-ratio:16/9;"></video></div>`;
+    return `<div class="ab-video" style="${css};"><video class="ab-hls" data-hls="${escapeHtml(url)}" controls playsinline preload="metadata" style="width:100%;border-radius:var(--t-radius);${r}background:#000;aspect-ratio:16/9;"></video></div>`;
   }
-  return `<div class="ab-video" style="${css};"><video controls playsinline preload="metadata" style="width:100%;border-radius:var(--t-radius);background:#000;aspect-ratio:16/9;" src="${escapeHtml(url)}"></video></div>`;
+  return `<div class="ab-video" style="${css};"><video controls playsinline preload="metadata" style="width:100%;border-radius:var(--t-radius);${r}background:#000;aspect-ratio:16/9;" src="${escapeHtml(url)}"></video></div>`;
 }
 
 function blockHtml(b, css) {
@@ -264,17 +271,20 @@ function blockHtml(b, css) {
 
 function blockList(b, css) {
   const items = (b.items || []).filter(x => x && x.text);
+  const itSt = (b.itemBg ? 'background:' + b.itemBg + ';' : '') + (b.itemRadius ? 'border-radius:' + b.itemRadius + 'px;' : '');
+  const tSt = b.titleColor ? ' color:' + b.titleColor + ';' : '';
+  const dSt = b.descColor ? ' color:' + b.descColor + ';' : '';
   const list = items.map(x => {
     const iconHtml = x.icon ? `<span class="ab-list-icon">${iconSpan(x.icon, { size: x.iconSize || 16, color: x.iconColor ? x.iconColor : 'var(--t-accent)' })}</span>` : '';
     const content = `${iconHtml}
-      <div><div class="ab-list-title">${escapeHtml(x.text)}</div>${x.desc ? `<div class="ab-list-desc">${escapeHtml(x.desc)}</div>` : ''}</div>`;
+      <div><div class="ab-list-title"${tSt ? ' style="' + tSt + '"' : ''}>${escapeHtml(x.text)}</div>${x.desc ? `<div class="ab-list-desc"${dSt ? ' style="' + dSt + '"' : ''}>${escapeHtml(x.desc)}</div>` : ''}</div>`;
     const lk = x.linkTarget || x.linkUrl ? linkMarkup(x) : null;
     if (lk) {
-      return `<a class="ab-list-item" ${lk.open.includes('data-af-page') ? `data-af-page="${escapeHtml(x.linkTarget)}"` : `href="${escapeHtml(x.linkUrl)}" target="_blank" rel="noopener"`} style="text-decoration:none;">${content}</a>`;
+      return `<a class="ab-list-item" ${lk.open.includes('data-af-page') ? `data-af-page="${escapeHtml(x.linkTarget)}"` : `href="${escapeHtml(x.linkUrl)}" target="_blank" rel="noopener"`} style="text-decoration:none;${itSt}">${content}</a>`;
     }
-    return `<div class="ab-list-item">${content}</div>`;
+    return `<div class="ab-list-item"${itSt ? ' style="' + itSt + '"' : ''}>${content}</div>`;
   }).join('');
-  return `<div class="ab-list" style="${css};">${list}</div>`;
+  return `<div class="ab-list" style="${css};gap:${b.gap || 12}px;">${list}</div>`;
 }
 
 function blockGrid(b, css) {
@@ -283,11 +293,14 @@ function blockGrid(b, css) {
   if (!cells.length) return '';
   const gap = b.gap || 12;
   const minH = b.minH || 0;
+  const cellsSt = (b.cellBg ? 'background:' + b.cellBg + ';' : '') + (b.cellRadius ? 'border-radius:' + b.cellRadius + 'px;' : '');
+  const tSt = b.titleColor ? ' color:' + b.titleColor + ';' : '';
+  const dSt = b.descColor ? ' color:' + b.descColor + ';' : '';
   const inner = cells.map(c => {
     const img = c.img ? `<img class="ab-grid-img" src="${escapeHtml(c.img)}" alt="" onerror="this.style.display='none'">` : '';
     const icon = c.icon ? `<span class="ab-grid-icon">${iconSpan(c.icon, { size: c.iconSize || 22, color: c.iconColor ? c.iconColor : 'var(--t-accent)' })}</span>` : '';
-    const content = `${img}${icon}${c.text ? `<div class="ab-grid-title">${escapeHtml(c.text)}</div>` : ''}${c.desc ? `<div class="ab-grid-desc">${escapeHtml(c.desc)}</div>` : ''}`;
-    const cellStyle = `text-decoration:none;${minH ? 'min-height:' + minH + 'px;' : ''}`;
+    const content = `${img}${icon}${c.text ? `<div class="ab-grid-title"${tSt ? ' style="' + tSt + '"' : ''}>${escapeHtml(c.text)}</div>` : ''}${c.desc ? `<div class="ab-grid-desc"${dSt ? ' style="' + dSt + '"' : ''}>${escapeHtml(c.desc)}</div>` : ''}`;
+    const cellStyle = `text-decoration:none;${minH ? 'min-height:' + minH + 'px;' : ''}${cellsSt}`;
     const lk = c.linkTarget || c.linkUrl ? linkMarkup(c) : null;
     if (lk) {
       const attrs = lk.open.includes('data-af-page') ? `data-af-page="${escapeHtml(c.linkTarget)}"` : `href="${escapeHtml(c.linkUrl)}" target="_blank" rel="noopener"`;
@@ -299,7 +312,7 @@ function blockGrid(b, css) {
 }
 
 function blockDivider(b, css) {
-  return `<div class="ab-divider" style="${css};"><div style="height:1px;background:var(--t-accent);opacity:0.25;"></div></div>`;
+  return `<div class="ab-divider" style="${css};"><div style="height:${b.thickness || 1}px;background:${b.color || 'var(--t-accent)'};opacity:${b.opacity ?? 0.25};"></div></div>`;
 }
 
 function blockSpacer(b, css) {
@@ -307,7 +320,8 @@ function blockSpacer(b, css) {
 }
 
 function blockFooter(b, css) {
-  return `<div class="ab-footer" style="${css};text-align:center;color:var(--t-text);opacity:0.55;font-size:13px;">${escapeHtml(b.text || '')}</div>`;
+  const fSt = (b.textColor ? 'color:' + b.textColor + ';' : 'color:var(--t-text);') + (b.textSize ? 'font-size:' + b.textSize + 'px;' : 'font-size:13px;');
+  return `<div class="ab-footer" style="${css};text-align:center;opacity:0.55;${fSt}">${escapeHtml(b.text || '')}</div>`;
 }
 
 function youtubeId(url) {
@@ -347,18 +361,24 @@ const SOCIAL_SVGS = {
 function blockSocial(b, css) {
   const links = (b.links || []).filter(l => l && l.url);
   if (!links.length) return '';
+  const s = Number(b.iconSize) || 44;
+  const svgW = Math.max(12, Math.round(s * 0.45));
+  const c = b.iconColor ? 'color:' + b.iconColor + ';' : '';
+  const gap = Number(b.gap) ? 'gap:' + b.gap + 'px;' : '';
   const inner = links.map(l => {
-    const svg = SOCIAL_SVGS[l.net] || SOCIAL_SVGS.email;
-    return `<a class="ab-social" href="${escapeHtml(l.url)}" target="_blank" rel="noopener" title="${escapeHtml(SOCIAL_NETS[l.net] || '')}">${svg}</a>`;
+    const svg = (SOCIAL_SVGS[l.net] || SOCIAL_SVGS.email).replace(/<svg /, '<svg style="width:' + svgW + 'px;height:' + svgW + 'px" ');
+    return `<a class="ab-social" href="${escapeHtml(l.url)}" target="_blank" rel="noopener" title="${escapeHtml(SOCIAL_NETS[l.net] || '')}" style="width:${s}px;height:${s}px;${c}">${svg}</a>`;
   }).join('');
-  return `<div class="ab-socials" style="${css};text-align:${b.align || 'center'};">${inner}</div>`;
+  return `<div class="ab-socials" style="${css};text-align:${b.align || 'center'};${gap}">${inner}</div>`;
 }
 
 function blockWhatsapp(b, css) {
   const num = (b.number || '').replace(/\D/g, '');
   const msg = encodeURIComponent(b.message || 'Hola, quiero mas informacion');
   const renderUrl = num ? 'https://wa.me/' + num + (msg ? '?text=' + msg : '') : '#';
-  const style = b.bg ? 'background:' + b.bg + ';color:var(--t-text);box-shadow:none;' : '';
+  let style = b.bg ? 'background:' + b.bg + ';box-shadow:none;' : '';
+  if (b.textColor) style += 'color:' + b.textColor + ';';
+  if (b.radius) style += 'border-radius:' + b.radius + 'px;';
   return `<div class="ab-wa-wrap" style="${css};text-align:${b.align || 'center'};"><a class="ab-wa" href="${renderUrl}" target="_blank" rel="noopener" style="${style}">${SOCIAL_SVGS.whatsapp}<span>${escapeHtml(b.text || 'Escribenos por WhatsApp')}</span></a></div>`;
 }
 
@@ -371,34 +391,44 @@ function blockTable(b, css) {
     if (Array.isArray(row)) return escapeHtml(row[i] || '');
     return escapeHtml(row['c' + i] || '');
   };
-  const th = (i) => `<th>${escapeHtml(headers[i] || '')}</th>`;
-  const td = (row, i) => `<td>${cell(row, i)}</td>`;
+  const thSt = (b.headBg ? 'background:' + b.headBg + ';' : '') + (b.headColor ? 'color:' + b.headColor + ';' : '');
+  const tdSt = b.textColor ? 'color:' + b.textColor + ';' : '';
+  const tblSt = b.textSize ? 'font-size:' + b.textSize + 'px;' : '';
+  const th = (i) => `<th${thSt ? ' style="' + thSt + '"' : ''}>${escapeHtml(headers[i] || '')}</th>`;
+  const td = (row, i) => `<td${tdSt ? ' style="' + tdSt + '"' : ''}>${cell(row, i)}</td>`;
   let html = '';
   if (b.showHeader !== false) {
     html += '<thead><tr>' + Array.from({ length: cols }, (_, i) => th(i)).join('') + '</tr></thead>';
   }
   html += '<tbody>' + rows.map(r => '<tr>' + Array.from({ length: cols }, (_, i) => td(r, i)).join('') + '</tr>').join('') + '</tbody>';
-  return `<div class="ab-table-wrap" style="${css};"><table class="ab-table">${html}</table></div>`;
+  return `<div class="ab-table-wrap" style="${css};"><table class="ab-table"${tblSt ? ' style="' + tblSt + '"' : ''}>${html}</table></div>`;
 }
 
 function blockFaq(b, css) {
   const items = (b.items || []).filter(x => x && (x.q || x.a));
   if (!items.length) return '';
+  const itSt = (b.bg ? 'background:' + b.bg + ';' : '') + (b.radius ? 'border-radius:' + b.radius + 'px;' : '');
+  const qSt = (b.qColor ? 'color:' + b.qColor + ';' : '') + (b.qSize ? 'font-size:' + b.qSize + 'px;' : '');
+  const aSt = b.aColor ? ' color:' + b.aColor + ';' : '';
   return `<div class="ab-faq" style="${css};">` + items.map((it, i) => `
-    <div class="ab-faq-item${b.openFirst && i === 0 ? ' open' : ''}">
-      <button class="ab-faq-q" type="button"><span>${escapeHtml(it.q || 'Pregunta')}</span><span class="ab-faq-chev">+</span></button>
-      <div class="ab-faq-a">${escapeHtml(it.a || '')}</div>
+    <div class="ab-faq-item${b.openFirst && i === 0 ? ' open' : ''}"${itSt ? ' style="' + itSt + '"' : ''}>
+      <button class="ab-faq-q" type="button"${qSt ? ' style="' + qSt + '"' : ''}><span>${escapeHtml(it.q || 'Pregunta')}</span><span class="ab-faq-chev">+</span></button>
+      <div class="ab-faq-a"${aSt}>${escapeHtml(it.a || '')}</div>
     </div>`).join('') + '</div>';
 }
 
 function blockCarousel(b, css) {
   const items = (b.items || []).filter(x => x && x.text);
   if (!items.length) return '';
+  const itSt = (b.bg ? 'background:' + b.bg + ';' : '') + (b.radius ? 'border-radius:' + b.radius + 'px;' : '');
+  const starSt = b.starColor ? ' style="color:' + b.starColor + ';"' : '';
+  const txtSt = (b.textColor ? 'color:' + b.textColor + ';' : '') + (b.textSize ? 'font-size:' + b.textSize + 'px;' : '');
+  const nameSt = b.nameColor ? ' style="color:' + b.nameColor + ';"' : '';
   const slides = items.map(it => `
-    <div class="ab-car-slide">
-      <div class="ab-car-stars">${'<span>★</span>'.repeat(Math.min(5, Math.max(0, Number(it.stars) || 5)))}</div>
-      <div class="ab-car-text">${escapeHtml(it.text)}</div>
-      <div class="ab-car-author">
+    <div class="ab-car-slide"${itSt ? ' style="' + itSt + '"' : ''}>
+      <div class="ab-car-stars"${starSt}>${'<span>★</span>'.repeat(Math.min(5, Math.max(0, Number(it.stars) || 5)))}</div>
+      <div class="ab-car-text"${txtSt ? ' style="' + txtSt + '"' : ''}>${escapeHtml(it.text)}</div>
+      <div class="ab-car-author"${nameSt}>
         ${it.img ? `<img src="${escapeHtml(it.img)}" alt="" onerror="this.style.display='none'">` : `<span class="ab-car-av">${escapeHtml((it.name || '\u00B7').slice(0, 1))}</span>`}
         <span>${escapeHtml(it.name || '')}${it.role ? `<em>${escapeHtml(it.role)}</em>` : ''}</span>
       </div>
@@ -413,22 +443,29 @@ function blockCounters(b, css) {
   const stats = (b.stats || []).filter(x => x && (x.value || x.label));
   if (!stats.length) return '';
   const cols = Math.min(4, Math.max(1, stats.length));
+  const numSt = (b.numColor ? 'color:' + b.numColor + ';' : '') + (b.numSize ? 'font-size:' + b.numSize + 'px;' : '');
+  const labelSt = b.labelColor ? 'color:' + b.labelColor + ';' : '';
+  const statSt = (b.cellBg ? 'background:' + b.cellBg + ';' : '') + (b.cellRadius ? 'border-radius:' + b.cellRadius + 'px;' : '');
   const inner = stats.map(s => `
-    <div class="ab-stat">
+    <div class="ab-stat"${statSt ? ' style="' + statSt + '"' : ''}>
       ${s.icon ? `<span class="ab-stat-icon">${iconSpan(s.icon, { size: s.iconSize || 20, color: s.iconColor ? s.iconColor : 'var(--t-accent)' })}</span>` : ''}
-      <div class="ab-stat-num" data-count="${escapeHtml(s.value)}"${s.suffix ? ` data-suffix="${escapeHtml(s.suffix)}"` : ''}>0</div>
-      ${s.label ? `<div class="ab-stat-label">${escapeHtml(s.label)}</div>` : ''}
+      <div class="ab-stat-num" data-count="${escapeHtml(s.value)}"${s.suffix ? ` data-suffix="${escapeHtml(s.suffix)}"` : ''}${numSt ? ' style="' + numSt + '"' : ''}>0</div>
+      ${s.label ? `<div class="ab-stat-label"${labelSt ? ' style="' + labelSt + '"' : ''}>${escapeHtml(s.label)}</div>` : ''}
     </div>`).join('');
-  return `<div class="ab-counters" style="${css};grid-template-columns:repeat(${cols},1fr);">${inner}</div>`;
+  return `<div class="ab-counters" style="${css};grid-template-columns:repeat(${cols},1fr);${Number(b.gap) ? 'gap:' + b.gap + 'px;' : ''}">${inner}</div>`;
 }
 
 function blockCountdown(b, css) {
+  const boxSt = (b.boxBg ? 'background:' + b.boxBg + ';' : '') + (b.boxRadius ? 'border-radius:' + b.boxRadius + 'px;' : '');
+  const numSt = (b.boxColor ? 'color:' + b.boxColor + ';' : '') + (b.numSize ? 'font-size:' + b.numSize + 'px;' : '');
+  const span = (k) => `<span data-${k}${numSt ? ' style="' + numSt + '"' : ''}>0</span>`;
+  const wSt = Number(b.boxWidth) ? 'width:' + b.boxWidth + '%;margin:0 auto;' : '';
   return `<div class="ab-cd" data-target="${escapeHtml(b.target || '')}" style="${css};">
-    <div class="ab-cd-boxes">
-      <div class="ab-cd-box"><span data-d>0</span><label>dias</label></div>
-      <div class="ab-cd-box"><span data-h>0</span><label>horas</label></div>
-      <div class="ab-cd-box"><span data-m>0</span><label>min</label></div>
-      <div class="ab-cd-box"><span data-s>0</span><label>seg</label></div>
+    <div class="ab-cd-boxes"${wSt ? ' style="' + wSt + '"' : ''}>
+      <div class="ab-cd-box"${boxSt ? ' style="' + boxSt + '"' : ''}>${span('d')}<label>dias</label></div>
+      <div class="ab-cd-box"${boxSt ? ' style="' + boxSt + '"' : ''}>${span('h')}<label>horas</label></div>
+      <div class="ab-cd-box"${boxSt ? ' style="' + boxSt + '"' : ''}>${span('m')}<label>min</label></div>
+      <div class="ab-cd-box"${boxSt ? ' style="' + boxSt + '"' : ''}>${span('s')}<label>seg</label></div>
     </div>
     ${b.label ? `<div class="ab-cd-label">${escapeHtml(b.label)}</div>` : ''}
     <div class="ab-cd-end">${escapeHtml(b.endText || 'El evento ha finalizado')}</div>
@@ -437,8 +474,9 @@ function blockCountdown(b, css) {
 
 function blockMap(b, css) {
   const src = b.embed || b.url || '';
+  const frSt = (b.height ? 'height:' + b.height + 'px;' : '') + (b.radius ? 'border-radius:' + b.radius + 'px;' : '');
   return `<div class="ab-map" style="${css};">
-    ${src ? `<div class="ab-map-frame"><iframe src="${escapeHtml(src)}" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade" title="Mapa"></iframe></div>`
+    ${src ? `<div class="ab-map-frame"${frSt ? ' style="' + frSt + '"' : ''}><iframe src="${escapeHtml(src)}" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade" title="Mapa"></iframe></div>`
           : `<div class="ab-map-ph">Pega el enlace del mapa en el editor</div>`}
     ${b.address ? `<div class="ab-map-addr">${escapeHtml(b.address)}</div>` : ''}
     ${b.showBtn && b.address ? `<a class="ab-map-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.address)}" target="_blank" rel="noopener">Como llegar</a>` : ''}
@@ -449,24 +487,28 @@ function blockGallery(b, css) {
   const imgs = (b.images || []).filter(x => x && x.url);
   if (!imgs.length) return '';
   const cols = [2, 3].includes(Number(b.cols)) ? Number(b.cols) : 2;
+  const gapSt = Number(b.gap) ? 'gap:' + b.gap + 'px;' : '';
+  const rSt = b.radius ? ' style="border-radius:' + b.radius + 'px;"' : '';
   const inner = imgs.map(g => `
-    <figure class="ab-gal-img" data-src="${escapeHtml(g.url)}" data-cap="${escapeHtml(g.cap || '')}" role="button" tabindex="0" aria-label="Ampliar imagen">
+    <figure class="ab-gal-img" data-src="${escapeHtml(g.url)}" data-cap="${escapeHtml(g.cap || '')}" role="button" tabindex="0" aria-label="Ampliar imagen"${rSt}>
       <img src="${escapeHtml(g.url)}" alt="" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%2318181b%22/%3E%3C/svg%3E';">
       ${g.cap ? `<figcaption>${escapeHtml(g.cap)}</figcaption>` : ''}
     </figure>`).join('');
-  return `<div class="ab-gallery" style="${css};grid-template-columns:repeat(${cols},1fr);">${inner}</div>`;
+  return `<div class="ab-gallery" style="${css};grid-template-columns:repeat(${cols},1fr);${gapSt}">${inner}</div>`;
 }
 
 function blockForm(b, css) {
   const dest = b.email || '';
+  const inSt = (b.radius ? 'border-radius:' + b.radius + 'px;' : '') + (b.fieldColor ? 'color:' + b.fieldColor + ';' : '');
+  const bnSt = (b.btnBg ? 'background:' + b.btnBg + ';' : '') + (b.btnTextColor ? 'color:' + b.btnTextColor + ';' : '') + (b.radius ? 'border-radius:' + b.radius + 'px;' : '');
   const inputs = [];
-  if (b.showName !== false) inputs.push(`<label>Nombre<input class="ab-form-in" data-f="Nombre" type="text" placeholder="Tu nombre"></label>`);
-  if (b.showEmail !== false) inputs.push(`<label>Correo<input class="ab-form-in" data-f="Correo" type="email" placeholder="tucorreo@ejemplo.com"></label>`);
-  if (b.showPhone) inputs.push(`<label>Telefono<input class="ab-form-in" data-f="Telefono" type="tel" placeholder="+57 300 000 0000"></label>`);
-  if (b.showMessage !== false) inputs.push(`<label>Mensaje<textarea class="ab-form-in" data-f="Mensaje" rows="4" placeholder="Escribe tu mensaje"></textarea></label>`);
+  if (b.showName !== false) inputs.push(`<label>Nombre<input class="ab-form-in" data-f="Nombre" type="text" placeholder="Tu nombre"${inSt ? ' style="' + inSt + '"' : ''}></label>`);
+  if (b.showEmail !== false) inputs.push(`<label>Correo<input class="ab-form-in" data-f="Correo" type="email" placeholder="tucorreo@ejemplo.com"${inSt ? ' style="' + inSt + '"' : ''}></label>`);
+  if (b.showPhone) inputs.push(`<label>Telefono<input class="ab-form-in" data-f="Telefono" type="tel" placeholder="+57 300 000 0000"${inSt ? ' style="' + inSt + '"' : ''}></label>`);
+  if (b.showMessage !== false) inputs.push(`<label>Mensaje<textarea class="ab-form-in" data-f="Mensaje" rows="4" placeholder="Escribe tu mensaje"${inSt ? ' style="' + inSt + '"' : ''}></textarea></label>`);
   return `<form class="ab-form" data-email="${escapeHtml(dest)}" style="${css};">
     ${inputs.join('')}
-    <button class="ab-form-btn" type="submit">${escapeHtml(b.btnText || 'Enviar mensaje')}</button>
+    <button class="ab-form-btn" type="submit"${bnSt ? ' style="' + bnSt + '"' : ''}>${escapeHtml(b.btnText || 'Enviar mensaje')}</button>
     <div class="ab-form-ok">Mensaje listo. Revisa tu app de correo.</div>
   </form>`;
 }

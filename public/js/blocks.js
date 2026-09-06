@@ -264,8 +264,9 @@ function blockGrid(b, css) {
   const gap = b.gap || 12;
   const minH = b.minH || 0;
   const inner = cells.map(c => {
+    const img = c.img ? `<img class="ab-grid-img" src="${escapeHtml(c.img)}" alt="" onerror="this.style.display='none'">` : '';
     const icon = c.icon ? `<span class="ab-grid-icon">${iconSpan(c.icon, { size: c.iconSize || 22, color: c.iconColor ? c.iconColor : 'var(--t-accent)' })}</span>` : '';
-    const content = `${icon}${c.text ? `<div class="ab-grid-title">${escapeHtml(c.text)}</div>` : ''}${c.desc ? `<div class="ab-grid-desc">${escapeHtml(c.desc)}</div>` : ''}`;
+    const content = `${img}${icon}${c.text ? `<div class="ab-grid-title">${escapeHtml(c.text)}</div>` : ''}${c.desc ? `<div class="ab-grid-desc">${escapeHtml(c.desc)}</div>` : ''}`;
     const cellStyle = `text-decoration:none;${minH ? 'min-height:' + minH + 'px;' : ''}`;
     const lk = c.linkTarget || c.linkUrl ? linkMarkup(c) : null;
     if (lk) {

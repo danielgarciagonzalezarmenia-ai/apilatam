@@ -156,7 +156,7 @@ body.editor { height: 100dvh; overflow: hidden; }
 
 .editor-layout {
   display: grid;
-  grid-template-columns: 320px minmax(360px, 1fr) 320px;
+  grid-template-columns: 300px minmax(300px, 380px) minmax(0, 1fr);
   max-width: 1500px;
   margin: 0 auto;
   height: calc(100dvh - 62px - 47px);
@@ -223,7 +223,7 @@ body.editor { height: 100dvh; overflow: hidden; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 28px 24px;
+  padding: 18px 12px;
   background:
     radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.04), transparent 60%),
     var(--bg);
@@ -303,6 +303,13 @@ body.editor { height: 100dvh; overflow: hidden; }
 .ab-grid-title { font-size: 14px; font-weight: 650; }
 .ab-grid-desc { font-size: 12px; opacity: 0.65; }
 .ab-grid-icon { display: inline-flex; }
+.ab-grid-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: calc(var(--t-radius, 16px) * 0.6);
+  background: rgba(255,255,255,0.04);
+}
 
 /* Published app (full screen) */
 .ab-app-body {

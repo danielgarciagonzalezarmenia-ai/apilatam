@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css?v=8">
-  <link rel="stylesheet" href="css/builder.css?v=7">
+  <link rel="stylesheet" href="css/builder.css?v=8">
   <link rel="stylesheet" href="css/stream.css?v=1">
 </head>
 <body class="editor">
@@ -86,7 +86,7 @@
     import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { db, onAuthChange } from './js/auth.js?v=3';
     import { showToast, escapeHtml, uid, copyText } from './js/util.js?v=1';
-    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks, FONTS, loadFont, initHls } from './js/blocks.js?v=7';
+    import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks, FONTS, loadFont, initHls } from './js/blocks.js?v=8';
     import { setupProfile } from './js/profile.js?v=1';
     import { iconSpan, ALL_ICONS, ICON_CATEGORIES, loadIconFont } from './js/icons.js?v=1';
 
@@ -529,6 +529,7 @@
               <button class="btn btn-danger btn-sm" data-cell-del="${i}" style="padding:7px 9px;">${ICONS_X}</button>
             </div>
             <input class="input" data-cell-desc="${i}" value="${escapeHtml(it.desc || '')}" placeholder="Descripcion (opcional)" style="margin-bottom:8px;">
+            <input class="input" data-cell-img="${i}" value="${escapeHtml(it.img || '')}" placeholder="Imagen (URL) - recomendado: 300x300 px" style="margin-bottom:8px;">
             ${it.icon ? `<div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
               <input class="input" data-cell-icon-size="${i}" value="${it.iconSize || ''}" placeholder="Tam. (px)" style="flex:0 0 72px;">
               <input class="input" data-cell-icon-color="${i}" value="${escapeHtml(it.iconColor || '')}" placeholder="Color icono (hex)" style="flex:1;">
@@ -677,6 +678,12 @@
         el.querySelectorAll('[data-cell-desc]').forEach(inp => {
           inp.addEventListener('input', () => {
             block.cells[+inp.dataset.cellDesc].desc = inp.value;
+            renderPreview(); markDirty();
+          });
+        });
+        el.querySelectorAll('[data-cell-img]').forEach(inp => {
+          inp.addEventListener('input', () => {
+            block.cells[+inp.dataset.cellImg].img = inp.value;
             renderPreview(); markDirty();
           });
         });

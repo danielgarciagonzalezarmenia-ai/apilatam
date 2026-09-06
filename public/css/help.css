@@ -1,24 +1,35 @@
 /* Panel: pestanas y guia "Como usar" */
 .dash-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 28px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 12px;
+  display: inline-flex;
+  width: 100%;
+  max-width: 380px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 32px;
 }
 .dash-tab {
-  padding: 9px 20px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
+  flex: 1;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  background: transparent;
   color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 13.5px;
+  border: none;
+  border-radius: 10px;
   cursor: pointer;
   transition: var(--transition);
+  letter-spacing: 0.01em;
 }
 .dash-tab:hover { color: var(--text-primary); }
-.dash-tab.active { border-color: var(--accent); color: var(--text-primary); box-shadow: 0 0 0 1px var(--accent); }
+.dash-tab.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
 .help-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -41,7 +52,7 @@
   height: 34px;
   border-radius: 10px;
   background: var(--accent);
-  color: var(--bg);
+  color: #000;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -128,8 +128,7 @@ import { onAuthChange, db, ensureUserDoc } from './js/auth.js?v=2';
           </div>`;
         return;
       }
-      const canCreate = u && u.plan === 'pro';
-      grid.innerHTML = apps.map(a => {
+grid.innerHTML = apps.map(a => {
         const logo = a.logoUrl || FALLBACK;
         return `
           <div class="app-card">
@@ -146,13 +145,11 @@ import { onAuthChange, db, ensureUserDoc } from './js/auth.js?v=2';
 <div class="app-card-actions">
               <a class="btn btn-primary btn-sm" href="editor.html?id=${a.id}">Editar</a>
               <a class="btn btn-secondary btn-sm" href="view.html?id=${a.id}" target="_blank">Ver</a>
-              ${u && u.plan === 'pro' ? `
                 <button class="btn btn-secondary btn-sm" data-notif="${a.id}" data-name="${escapeHtml(a.name || 'Sin nombre')}">Notificaciones</button>
                 <button class="btn btn-secondary btn-sm" data-apk="${a.id}" data-name="${escapeHtml(a.name || 'Sin nombre')}">APK</button>
-              ` : ''}
               <button class="btn btn-danger btn-sm" data-del="${a.id}">Eliminar</button>
             </div>
-            ${u && u.plan === 'pro' ? `<div class="build-status" data-build="${a.id}"></div>` : ''}
+            <div class="build-status" data-build="${a.id}"></div>
           </div>`;
       }).join('');
 
@@ -303,9 +300,9 @@ import { onAuthChange, db, ensureUserDoc } from './js/auth.js?v=2';
       { tag: 'F', title: 'Pie de pagina', steps: ['Texto final, ideal para contacto o copyright.'] },
       { tag: 'I', title: 'Iconos', steps: ['Abre el selector y busca por nombre o categoria.', 'Guardar confirma; "Sin icono" lo quita.', 'Tamano y color se ajustan en cada bloque.'] },
 { tag: 'A', title: 'Perfil', steps: ['Haz clic en tu avatar arriba a la derecha.', 'Cambia tu nombre y tu foto de perfil.'] },
-      { tag: 'N', title: 'Offline', steps: ['Tu app carga al instante y sus archivos se guardan para verse sin internet los proximos usos.', 'Al volver a entrar, los cambios de tu diseno ya aparecen sin reempaquetar.', 'Las notificaciones llegan al celular aunque la app este cerrada (APK Pro).'] },
-      { tag: 'R', title: 'Notificaciones (Pro)', steps: ['En "Mis apps", abre Notificaciones en tu app.', 'Escribe titulo y mensaje y pulsa Enviar.', 'Llega a todos los celulares que instalaron el APK de esa app.'] },
-      { tag: 'K', title: 'APK (Pro)', steps: ['Pulsa APK en tu app para generar el .apk instalable.', 'Tarda 2-4 minutos; el link de descarga aparece en la tarjeta.', 'Los cambios de la app se ven solos al reabrir el APK, sin volver a generar.' ] }
+      { tag: 'N', title: 'Offline', steps: ['Tu app carga al instante y sus archivos se guardan para verse sin internet los proximos usos.', 'Al volver a entrar, los cambios de tu diseno ya aparecen sin reempaquetar.', 'Las notificaciones llegan al celular aunque la app este cerrada (APK).'] },
+      { tag: 'R', title: 'Notificaciones', steps: ['En "Mis apps", abre Notificaciones en tu app.', 'Escribe titulo y mensaje y pulsa Enviar.', 'Llega a todos los celulares que instalaron el APK de esa app.'] },
+      { tag: 'K', title: 'APK', steps: ['Pulsa APK en tu app para generar el .apk instalable.', 'Tarda 2-4 minutos; el link de descarga aparece en la tarjeta.', 'Los cambios de la app se ven solos al reabrir el APK, sin volver a generar.' ] }
     ];
 
     function renderHelp() {

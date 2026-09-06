@@ -23,6 +23,7 @@
         <div class="name" id="mini-name">Sin nombre</div>
       </div>
       <button class="btn btn-secondary btn-sm" id="btn-preview">Ver app</button>
+      <button class="btn btn-secondary btn-sm" id="btn-ai">IA</button>
       <button class="btn btn-secondary btn-sm" id="btn-save">Guardar</button>
       <button class="btn btn-primary btn-sm" id="btn-download">Descargar App</button>
       <a href="dashboard.html" class="btn btn-secondary btn-sm">Panel</a>
@@ -78,6 +79,25 @@
           <button class="btn btn-secondary" id="btn-copy-url">Copiar URL</button>
           <button class="btn btn-secondary" id="dl-close">Cerrar</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ai-overlay" class="modal-overlay" style="display:none">
+    <div class="modal" style="max-width:560px;">
+      <h2>IA - Crea tu app con texto <span class="pro-chip">PRO</span></h2>
+      <p class="p-email" style="font-size:13px;color:var(--text-muted);margin-top:4px;">Describe lo que quieres: "restaurante italiano", "app para mi gym", "agrega una seccion de FAQ"...</p>
+      <div class="form-group" style="margin-top:16px;">
+        <textarea class="input" id="ai-prompt" rows="3" maxlength="1000" placeholder="Ej: crea una app para una cafetera con menu, contacto y whatsapp"></textarea>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);">
+        <input type="checkbox" id="ai-replace" checked> Reemplazar el contenido de la pagina actual
+      </label>
+      <div id="ai-output" style="display:none;margin-top:16px;background:var(--bg-2,#17171b);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;font-size:14px;"></div>
+      <div class="dl-actions" style="margin-top:18px;">
+        <button class="btn btn-primary" id="ai-generate">Generar</button>
+        <button class="btn btn-secondary" id="ai-apply" style="display:none;">Aceptar y aplicar</button>
+        <button class="btn btn-secondary" id="ai-cancel">Cerrar</button>
       </div>
     </div>
   </div>
@@ -1281,6 +1301,98 @@
     $('btn-preview').addEventListener('click', async () => {
       await save();
       window.open(appUrl(), '_blank');
+    });
+
+    /* ---------- IA (Pro) ---------- */
+    const AI_WORKER_URL = 'https://apilatam.mundofutbolcol.workers.dev';
+    let aiRecipe = null;
+
+    function openAi() {
+      $('ai-prompt').value = '';
+      $('ai-output').style.display = 'none';
+      $('ai-apply').style.display = 'none';
+      $('ai-overlay').style.display = 'flex';
+      $('ai-overlay').classList.add('active');
+      $('ai-prompt').focus();
+    }
+
+    function closeAi() {
+      $('ai-overlay').classList.remove('active');
+      $('ai-overlay').style.display = 'none';
+    }
+
+    $('btn-ai').addEventListener('click', openAi);
+    $('ai-cancel').addEventListener('click', closeAi);
+    $('ai-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeAi(); });
+
+    $('ai-generate').addEventListener('click', async () => {
+      const prompt = $('ai-prompt').value.trim();
+      if (!prompt) return showToast('Escribe que quieres crear', 'error');
+      const btn = $('ai-generate');
+      btn.disabled = true;
+      btn.textContent = 'Generando...';
+      aiRecipe = null;
+      $('ai-apply').style.display = 'none';
+      const out = $('ai-output');
+      out.style.display = 'block';
+      out.textContent = 'Pensando...';
+      try {
+        const token = await currentUser.getIdToken();
+        const r = await fetch(AI_WORKER_URL + '/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ prompt })
+        });
+        if (r.status === 403) {
+          out.innerHTML = 'La IA es exclusiva de <strong>Plan Pro</strong>. <a href="plans.html" style="color:var(--accent,#6c5ce7);text-decoration:underline;">Activalo aqui</a>.';
+          return;
+        }
+        if (r.status === 503) {
+          out.textContent = 'La IA todavia no esta configurada. Intenta mas tarde.';
+          return;
+        }
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) { out.textContent = 'Error: ' + (d.error || r.status); return; }
+        aiRecipe = d.recipe || null;
+        if (aiRecipe && aiRecipe.message) {
+          out.textContent = aiRecipe.message;
+          const nblk = (aiRecipe.actions && aiRecipe.actions.blocks || []).length;
+          if (nblk) btn.textContent = 'Generar';
+          $('ai-apply').style.display = nblk ? 'inline-block' : 'none';
+        } else {
+          out.textContent = d.text || 'Respuesta vacia. Prueba con otra descripcion.';
+        }
+      } catch (e) {
+        out.textContent = 'Error de conexion: ' + e.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generar';
+      }
+    });
+
+    $('ai-apply').addEventListener('click', async () => {
+      if (!aiRecipe || !aiRecipe.actions) return;
+      const a = aiRecipe.actions;
+      if (a.name) {
+        appData.name = String(a.name).slice(0, 60);
+        $('mini-name').textContent = appData.name;
+      }
+      if (a.theme) theme = { ...theme, ...a.theme };
+      const want = (a.blocks || []).filter(b => b && BLOCK_TYPES.some(t => t.type === b.type));
+      if (want.length) {
+        const blocks = curBlocks();
+        if ($('ai-replace').checked) blocks.splice(0, blocks.length);
+        want.forEach(b => blocks.push({ ...b }));
+      }
+      setupFont();
+      renderChips();
+      renderList();
+      renderInspector();
+      renderPreview();
+      updateMiniApp();
+      markDirty();
+      showToast('IA aplicada. Revisa y guarda.', 'success');
+      closeAi();
     });
 
     window.addEventListener('beforeunload', (e) => {

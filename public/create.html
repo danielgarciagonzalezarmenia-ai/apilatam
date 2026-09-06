@@ -84,8 +84,7 @@
   </main>
 
   <script type="module">
-    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
-    import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { db, onAuthChange, auth, logout, app, ensureUserDoc } from './js/auth.js?v=2';
     import { showToast, uid, FREE_LIMIT } from './js/util.js?v=1';
     import { defaultTheme, defaultBlocks } from './js/blocks.js?v=9';
@@ -115,10 +114,37 @@
       $('#color-hex').textContent = $('f-accent').value;
     });
 
-    function previewLogo(src) {
+function previewLogo(src) {
       const box = $('logo-preview');
       if (!src) { box.innerHTML = 'Pega una URL<br>o sube imagen'; return; }
       box.innerHTML = '<img src="' + src + '" alt="" onerror="this.parentNode.innerHTML=\'Imagen invalida\'">';
+    }
+
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('no se pudo leer la imagen'));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('imagen invalida'));
+          img.onload = () => {
+            const MAX = 320;
+            let w = img.width, h = img.height;
+            if (w > MAX || h > MAX) { const s = Math.min(MAX / w, MAX / h); w = Math.round(w * s); h = Math.round(h * s); }
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            const ctx = c.getContext('2d');
+            const isPng = /png/i.test(file.type || '');
+            if (!isPng) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); }
+            ctx.drawImage(img, 0, 0, w, h);
+            const out = c.toDataURL(isPng ? 'image/png' : 'image/jpeg', 0.9);
+            if (out.length > 800000) reject(new Error('la imagen es muy pesada aun comprimida'));
+            else resolve(out);
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     $('btn-create').addEventListener('click', async () => {
@@ -145,12 +171,9 @@ let logoUrl = $('f-logo').value.trim();
       const file = $('f-logo-file').files && $('f-logo-file').files[0];
       if (file && file.size < 3 * 1024 * 1024) {
         try {
-          const storage = getStorage(app);
-          const stoRef = ref(storage, 'logos/' + currentUser.uid + '/' + Date.now() + '-' + uid() + file.name.replace(/[^a-z0-9.]/gi, ''));
-          const stale = new Promise((_, rej) => setTimeout(() => rej(new Error('Storage no responde (verifica que este habilitado)')), 15000));
-          logoUrl = await Promise.race([uploadBytes(stoRef, file).then(() => getDownloadURL(stoRef)), stale]);
+          logoUrl = await compressImage(file);
         } catch (e) {
-          showToast('No se pudo subir el logo: ' + e.message + '. Se usara la URL si la pusiste.', 'error');
+          showToast('No se pudo procesar el logo: ' + e.message + '. Se usara la URL si la pusiste.', 'error');
           logoUrl = $('f-logo').value.trim();
         }
       }

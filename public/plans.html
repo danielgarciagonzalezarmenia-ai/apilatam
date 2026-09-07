@@ -77,10 +77,10 @@
 
     <div class="pro-note" style="text-align:center;max-width:560px;margin:40px auto 0;padding:20px;border:1px dashed var(--border);border-radius:var(--radius-xl);">
       <p style="font-size:14px;color:var(--text-muted);">
-        El pago se habilitara proximamente. Si ya pagaste o quieres activar Pro
-        ahora, contactanos con tu correo y lo activamos manualmente.
+        Pago seguro con tarjeta a traves de Stripe. Suscripcion recurrente de
+        $10 USD al mes. Puedes cancelar cuando quieras desde tu panel de Stripe.
       </p>
-      <p style="font-size:13px;color:var(--warning);margin-top:8px;">Enviame un mensaje con tu correo registrado.</p>
+      <p style="font-size:13px;color:var(--text-tertiary);margin-top:8px;">Las apps ilimitadas y la IA se activan al instante tras el pago.</p>
     </div>
   </section>
 
@@ -99,15 +99,18 @@
     import { onAuthChange, db, getUser, logout } from './js/auth.js?v=2';
     import { updateDoc, doc } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { showToast } from './js/util.js?v=1';
+    import { apkApi } from './js/apk.js?v=1';
 
     const $ = id => document.getElementById(id);
     let plan = 'free';
+    let currentUser = null;
 
     onAuthChange(async (user) => {
       if (!user) {
         $('pro-cta').textContent = 'Iniciar sesion para activar Pro';
         return;
       }
+      currentUser = user;
       $('profile-avatar').src = user.photoURL || '';
       $('profile-name').textContent = user.displayName || '';
       $('profile-email').textContent = user.email || '';
@@ -127,10 +130,31 @@
     }
 
     $('pro-cta').addEventListener('click', async () => {
-      const u = await new Promise(res => onAuthChange(res));
-      if (!u) { window.location.href = 'login.html'; return; }
-      showToast('El pago se habilitara pronto. Escribeme tu correo para activarlo.', 'info');
+      if (!currentUser) { window.location.href = 'login.html'; return; }
+      const btn = $('pro-cta');
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Redirigiendo a Stripe...';
+      try {
+        const token = await currentUser.getIdToken();
+        const r = await apkApi('/api/stripe/checkout', {
+          token,
+          body: { email: currentUser.email, url: 'plans.html' }
+        });
+        if (r.url) window.location.href = r.url;
+        else { showToast(r.error || 'No se pudo iniciar el pago', 'error'); btn.disabled = false; btn.textContent = old; }
+      } catch (e) {
+        showToast(e.message || 'No se pudo iniciar el pago', 'error');
+        btn.disabled = false;
+        btn.textContent = old;
+      }
     });
+
+    // Refrescar plan al volver de Stripe (success_url incluye ?pro=success)
+    if (new URLSearchParams(location.search).get('pro') === 'success') {
+      showToast('Pago confirmado. Actualizando tu plan...', 'success');
+      setTimeout(() => location.href = 'plans.html', 1500);
+    }
 
     document.getElementById('profile-btn').addEventListener('click', (e) => {
       e.stopPropagation();

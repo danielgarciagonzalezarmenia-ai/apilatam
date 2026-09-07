@@ -1,7 +1,7 @@
 // AppForge API - Cloudflare Worker
-// Endpoints: /api/health, /api/token, /api/notify, /api/build, /api/build-status, /api/ai
-// Secrets: FIREBASE_SA (cuenta de servicio JSON), GEMINI_API_KEY, GH_PAT, BUILD_TOKEN
-// Vars: API_KEY (opcional, fallback a la key publica), BASE_URL, GH_REPO, PROJECT_ID
+// Endpoints: /api/health, /api/token, /api/notify, /api/build, /api/build-status, /api/ai, /api/stripe/checkout, /api/stripe/webhook
+// Secrets: FIREBASE_SA (cuenta de servicio JSON), GEMINI_API_KEY, GH_PAT, BUILD_TOKEN, STRIPE_KEY, STRIPE_WEBHOOK_SECRET
+// Vars: API_KEY (opcional, fallback a la key publica), BASE_URL, GH_REPO, PROJECT_ID, STRIPE_PRICE
 
 const DEFAULT_API_KEY = 'AIzaSyA4lFjAcn7ebAZF9SkVfpm1RPYnThN8roA';
 const DEFAULT_PROJECT = 'appforge-20549';
@@ -21,6 +21,8 @@ export default {
         if (url.pathname === '/api/build') return await buildEndpoint(request, env);
         if (url.pathname === '/api/build-status') return await buildStatusEndpoint(request, env);
         if (url.pathname === '/api/ai') return await aiEndpoint(request, env);
+        if (url.pathname === '/api/stripe/checkout') return await stripeCheckoutEndpoint(request, env);
+        if (url.pathname === '/api/stripe/webhook') return await stripeWebhookEndpoint(request, env);
       }
       return json({ error: 'not found' }, 404);
     } catch (e) {
@@ -288,4 +290,131 @@ async function aiEndpoint(request, env) {
     if (m) recipe = JSON.parse(m[0]);
   } catch {}
   return json({ text, recipe });
+}
+
+/* ====================================================
+   Stripe – suscripcion Pro recurrente ($10/mes)
+   Flujo: cliente -> /api/stripe/checkout -> Checkout Session
+          -> Stripe cobra y redirige -> webhook activa plan
+   ==================================================== */
+
+// Llama a la API REST de Stripe (sin SDK) con auth Basic usando la secret key
+async function stripe(env, path, params) {
+  const key = env.STRIPE_KEY;
+  const r = await fetch('https://api.stripe.com' + path, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Basic ' + btoa(key + ':'),
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams(params).toString()
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const msg = d.error && d.error.message ? d.error.message : ('stripe ' + r.status);
+    throw new Error(msg);
+  }
+  return d;
+}
+
+async function stripeCheckoutEndpoint(request, env) {
+  const key = env.STRIPE_KEY;
+  if (!key) return json({ error: 'Pagos no configurados aun' }, 503);
+  const auth = headers(request).authorization || '';
+  const idToken = auth.replace('Bearer ', '');
+  const uid = await verifyUser(env, idToken);
+  if (!uid) return json({ error: 'sesion invalida' }, 401);
+  // Rechazar si ya es Pro
+  const me = await fsGet(env, `users/${uid}`);
+  if (me && me.plan === 'pro') return json({ error: 'Ya tienes el plan Pro activo' }, 400);
+
+  const b = await body(request);
+  const priceId = (b.priceId || '').trim() || env.STRIPE_PRICE || '';
+  if (!priceId) return json({ error: 'Falta el Price ID de Stripe' }, 400);
+
+  const base = env.BASE_URL || DEFAULT_BASE;
+  const url = (b.url || '').replace(/[^\w\-./?#&=]/g, '').slice(0, 200) || 'plans.html';
+  const session = await stripe(env, '/v1/checkout/sessions', {
+    mode: 'subscription',
+    line_items: [{ price: priceId, quantity: '1' }],
+    client_reference_id: uid,
+    customer_email: (b.email || '').slice(0, 120) || undefined,
+    success_url: `${base}/${url}?pro=success`,
+    cancel_url: `${base}/${url}?pro=cancel`
+  });
+  if (!session.url) return json({ error: 'No se pudo iniciar el pago' }, 502);
+  return json({ url: session.url });
+}
+
+async function stripeWebhookEndpoint(request, env) {
+  const secret = env.STRIPE_WEBHOOK_SECRET;
+  const key = env.STRIPE_KEY;
+  if (!secret || !key) return json({ error: 'Pagos no configurados' }, 503);
+  const raw = await request.text();
+  const sig = headers(request)['stripe-signature'] || '';
+  const event = await verifyStripeSig(secret, raw, sig);
+  if (!event) return json({ error: 'firma invalida' }, 400);
+
+  if (event.type === 'checkout.session.completed') {
+    const s = event.data.object || {};
+    const uid = s.client_reference_id;
+    if (uid && (s.payment_status === 'paid' || s.mode === 'subscription')) {
+      await setPlan(env, uid, 'pro', {
+        stripeCustomerId: s.customer || '',
+        stripeSubId: s.subscription || ''
+      });
+    }
+  }
+  if (event.type === 'customer.subscription.deleted') {
+    const sub = event.data.object || {};
+    await downgradeByCustomer(env, sub.customer);
+  }
+  return json({ received: true });
+}
+
+// Valida la firma del webhook: HMAC-SHA256 de "<timestamp>.<payload>" con el secret
+async function verifyStripeSig(secret, raw, sig) {
+  try {
+    const parts = (sig || '').split(',');
+    const tsPart = parts.find(p => p.startsWith('t='));
+    const sigPart = parts.find(p => p.startsWith('v1='));
+    if (!tsPart || !sigPart) return null;
+    const ts = tsPart.slice(2);
+    const expected = sigPart.slice(3);
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const buf = await crypto.subtle.sign('HMAC', key, enc.encode(`${ts}.${raw}`));
+    const actual = Array.from(new Uint8Array(buf)).map(x => x.toString(16).padStart(2, '0')).join('');
+    if (actual.toLowerCase() !== expected.toLowerCase()) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+// Activa/baja el plan de un usuario conservando el resto de campos
+async function setPlan(env, uid, plan, extra = {}) {
+  const existing = (await fsGet(env, `users/${uid}`)) || {};
+  await fsSet(env, `users/${uid}`, {
+    ...existing,
+    plan,
+    ...extra,
+    planChangedAt: String(Date.now())
+  });
+  // Indice auxiliar para resolver bajas: customers/<stripeCustomerId> -> { uid }
+  if (extra.stripeCustomerId) {
+    await fsSet(env, `customers/${extra.stripeCustomerId}`, { uid });
+  }
+}
+
+// Baja de Pro a free por customer de Stripe (cuando se cancela la suscripcion)
+async function downgradeByCustomer(env, customerId) {
+  if (!customerId) return;
+  const idx = await fsGet(env, `customers/${customerId}`);
+  if (idx && idx.uid) {
+    const existing = (await fsGet(env, `users/${idx.uid}`)) || {};
+    await fsSet(env, `users/${idx.uid}`, { ...existing, plan: 'free', planChangedAt: String(Date.now()) });
+  }
+}
+
+function toHex(u8) {
+  return Array.from(u8).map(b => b.toString(16).padStart(2, '0')).join('');
 }

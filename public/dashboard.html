@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css?v=7">
-  <link rel="stylesheet" href="css/builder.css?v=11">
+  <link rel="stylesheet" href="css/builder.css?v=12">
   <link rel="stylesheet" href="css/stream.css?v=1">
   <link rel="stylesheet" href="css/help.css?v=3">
 </head>
@@ -157,7 +157,7 @@ grid.innerHTML = apps.map(a => {
       setupBuildWatchers(apps);
       grid.querySelectorAll('[data-del]').forEach(btn => {
         btn.addEventListener('click', async () => {
-          if (!confirm('Â¿Eliminar esta app? Esta accion no se puede deshacer.')) return;
+          if (!confirm('¿Eliminar esta app? Esta accion no se puede deshacer.')) return;
           await deleteDoc(doc(db, 'apps', btn.dataset.del));
           showToast('App eliminada', 'success');
         });
@@ -207,15 +207,26 @@ grid.innerHTML = apps.map(a => {
       const el = document.querySelector(`[data-build="${appId}"]`);
       if (!el) return;
       if (!b) {
-        el.innerHTML = '<span class="build-hint">APK disponible: genera y comparte tu app instalable.</span>';
+        el.innerHTML = '<span class="build-hint">Toca "APK" para generar tu app instalable.</span>';
         return;
       }
       if (b.status === 'queued' || b.status === 'building') {
-        el.innerHTML = '<span class="build-pending">Generando APK… suele tardar 2-4 minutos. Los cambios se ven sin reempaquetar.</span>';
+        el.innerHTML = `
+          <div class="bld-prog">
+            <div class="bld-prog-bar"><div class="bld-prog-fill"></div></div>
+            <div class="bld-prog-text"><span class="bld-spin"></span> Generando APK… suele tardar 2-4 minutos. Te avisamos en verde aqui cuando este listo.</div>
+          </div>`;
       } else if (b.status === 'failed') {
-        el.innerHTML = '<span class="build-failed">No se pudo generar el APK. Intenta de nuevo.</span>';
+        el.innerHTML = `
+          <div class="bld-state err">
+            <span class="bld-dot"></span><span>No se pudo generar el APK. Toca "APK" para reintentarlo.</span>
+          </div>`;
       } else if (b.status === 'ready' && b.apkUrl) {
-        el.innerHTML = `<a class="btn btn-primary btn-sm" href="${escapeHtml(b.apkUrl)}" target="_blank">Descargar APK</a> <span class="build-ok">Actualizaciones al abrir, sin reempaquetar.</span>`;
+        el.innerHTML = `
+          <div class="bld-state ok">
+            <span class="bld-dot"></span><strong>APK generado</strong>${b.version ? ' · v' + escapeHtml(b.version) : ''}
+            <a class="btn btn-primary btn-sm" href="${escapeHtml(b.apkUrl)}" target="_blank" rel="noopener">Descargar APK</a>
+          </div>`;
       }
     }
 

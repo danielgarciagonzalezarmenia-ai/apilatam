@@ -93,18 +93,19 @@ async function fsSet(env, path, fields) {
   });
   if (!r.ok) throw new Error('fsSet ' + r.status + ': ' + (await r.text()).slice(0, 200));
 }
-async function fsList(env, path, orderBy) {
+async function fsList(env, path) {
   const tok = await getAccessToken(env);
-  const q = { structuredQuery: { from: [{ collectionId: path.split('/').pop() }] } };
-  if (orderBy) q.structuredQuery.orderBy = [{ field: { fieldPath: orderBy }, direction: 'DESCENDING' }];
-  const r = await fetch(`${fsBase(env)}/${path}`, {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' },
-    body: JSON.stringify(q)
-  });
-  if (!r.ok) throw new Error('fsList ' + r.status + ': ' + (await r.text()).slice(0, 200));
-  const d = await r.json();
-  return (d.document || []).filter(x => x.document).map(x => fromFields(x.document.fields));
+  const all = [];
+  let pageToken = '';
+  do {
+    const url = `${fsBase(env)}/${path}` + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '?pageSize=300');
+    const r = await fetch(url, { headers: { Authorization: 'Bearer ' + tok } });
+    if (!r.ok) throw new Error('fsList ' + r.status + ': ' + (await r.text()).slice(0, 200));
+    const d = await r.json();
+    all.push(...(d.documents || []));
+    pageToken = d.nextPageToken || '';
+  } while (pageToken);
+  return all.map(x => fromFields(x.fields));
 }
 
 function toFields(o) {

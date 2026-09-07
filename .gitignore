@@ -10,3 +10,9 @@ functions/node_modules/
 apk-template/
 worker/.wrangler/
 
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example

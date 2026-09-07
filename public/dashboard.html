@@ -10,13 +10,14 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffffff'/%3E%3Ctext x='32' y='44' font-size='34' font-weight='bold' text-anchor='middle' fill='%23000' font-family='Arial'%3EA%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=9">
   <link rel="stylesheet" href="css/builder.css?v=12">
   <link rel="stylesheet" href="css/stream.css?v=1">
   <link rel="stylesheet" href="css/help.css?v=3">
 </head>
 <body>
+  <div class="glow-follow"></div>
 
   <nav class="navbar">
     <div class="navbar-inner">
@@ -36,7 +37,7 @@
     <div id="loading" class="loading-spinner" style="display:none;"></div>
 
     <div id="content" class="hidden">
-      <div class="dash-tabs">
+      <div class="dash-tabs reveal">
         <div class="indicator" id="dash-indicator"></div>
         <button class="dash-tab active" data-tab="apps">Mis apps</button>
         <button class="dash-tab" data-tab="help">Como usar</button>
@@ -51,7 +52,7 @@
           <span id="plan-badge" class="plan-badge free">Plan Gratis</span>
         </div>
 
-        <div id="plan-banner" class="plan-banner">
+        <div id="plan-banner" class="plan-banner reveal">
           <div>
             <h3>Limitaciones del plan Gratis</h3>
             <p id="plan-text">Tienes 0 de 2 apps creadas.</p>
@@ -424,5 +425,6 @@ grid.innerHTML = apps.map(a => {
     moveIndicator(document.querySelector('.dash-tab.active'));
 
     </script>
+  <script src="js/animations.js?v=1"></script>
 </body>
 </html>

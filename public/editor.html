@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -10,8 +10,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffffff'/%3E%3Ctext x='32' y='44' font-size='34' font-weight='bold' text-anchor='middle' fill='%23000' font-family='Arial'%3EA%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=9">
   <link rel="stylesheet" href="css/builder.css?v=12">
   <link rel="stylesheet" href="css/stream.css?v=1">
 </head>
@@ -76,7 +76,7 @@
       <h2>Descargar app</h2>
       <div class="dl-state" id="dl-generating" style="display:none;">
         <div class="loading-spinner" style="margin:0;"></div>
-        <p><strong>Generando tu APK…</strong><br>Puede tardar entre 2 y 4 minutos. Te avisamos aqui cuando este listo.</p>
+        <p><strong>Generando tu APKâ€¦</strong><br>Puede tardar entre 2 y 4 minutos. Te avisamos aqui cuando este listo.</p>
       </div>
       <div class="dl-ready-grid" id="dl-ready" style="display:none;">
         <div class="dl-brand" id="dl-brand">
@@ -567,8 +567,8 @@
     function baseInspector(b) {
       switch (b.type) {
         case 'header': return field('Titulo', input('text', b.text)) + field('Subtitulo', input('subtitle', b.subtitle)) + `<div class="field-row">${field('Tamano titulo', input('titleSize', b.titleSize, { ph: 'Auto' }))}${field('Color titulo', colorField('titleColor', b.titleColor || ''))}</div>` + `<div class="field-row">${field('Tamano subtitulo', input('subSize', b.subSize, { ph: 'Auto' }))}${field('Color subtitulo', colorField('subColor', b.subColor || ''))}</div>` + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="inspector-field"><label><input type="checkbox" data-k="showLogo" ${b.showLogo ? 'checked' : ''}> Mostrar logo</label></div>` + iconPickField('logoIcon', b.logoIcon, 'Icono del logo') + (b.logoIcon ? `<div class="field-row">${field('Tamano icono', rangeField('logoIconSize', b.logoIconSize, 20, 72))}${field('Color icono', colorField('logoIconColor', b.logoIconColor || ''))}</div>` : '') + field('Logo (URL)', input('logo', b.logo));
-        case 'heading': return field('Texto', input('text', b.text)) + field('TamaÃ±o', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right'])) + field('Color', colorField('color', b.color || ''));
-        case 'text': return field('Texto', textarea('text', b.text, 5)) + field('TamaÃ±o', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right'])) + field('Color', colorField('color', b.color || ''));
+        case 'heading': return field('Texto', input('text', b.text)) + field('TamaÃƒÂ±o', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right'])) + field('Color', colorField('color', b.color || ''));
+        case 'text': return field('Texto', textarea('text', b.text, 5)) + field('TamaÃƒÂ±o', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right'])) + field('Color', colorField('color', b.color || ''));
         case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' })) + field('Esquinas', rangeField('radius', b.radius, 0, 40)) + pageLinkFields(b, 'Al hacer clic en la imagen');
         case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + iconPickField('icon', b.icon, 'Icono (antes del texto)') + (b.icon ? `<div class="field-row">${field('Tamano icono', rangeField('iconSize', b.iconSize, 12, 48))}${field('Color icono', colorField('iconColor', b.iconColor || ''))}</div>` : '') + `<div class="field-row">${field('Ancho', rangeField('width', b.width, 60, 375))}${field('Altura', rangeField('height', b.height, 36, 220))}</div>` + field('Color del boton', colorField('bg', b.bg || theme.accent)) + field('Color del texto', colorField('textColor', b.textColor || (b.variant === 'solid' ? '#000000' : theme.accent))) + pageLinkFields(b, 'Al hacer clic en el boton');
         case 'video':

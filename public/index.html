@@ -46,7 +46,7 @@
     <h1>Crea tu app<br>en minutos</h1>
     <p>Elige tu logo, colores y tipografia. Agrega secciones, videos o bloques HTML. Descarga tu app y compartela con un QR. Sin programar.</p>
     <div class="hero-buttons">
-      <a href="create.html" class="btn btn-primary btn-lg">Crear mi app gratis</a>
+      <a href="create.html" id="hero-cta" class="btn btn-primary btn-lg">Crear mi app gratis</a>
       <a href="#planes" class="btn btn-secondary btn-lg">Ver planes</a>
     </div>
   </header>
@@ -133,10 +133,11 @@
     import { onAuthChange, auth, logout } from './js/auth.js?v=2';
     import { escapeHtml } from './js/util.js?v=1';
 
-    onAuthChange((user) => {
+onAuthChange((user) => {
       const wrap = document.getElementById('profile-wrap');
       const drop = document.getElementById('profile-drop');
       const loginBtn = document.getElementById('login-btn');
+      const heroCta = document.getElementById('hero-cta');
       if (user) {
         document.getElementById('profile-avatar').src = user.photoURL || '';
         document.getElementById('profile-name').textContent = user.displayName || '';
@@ -144,9 +145,11 @@
         loginBtn.classList.add('hidden');
         wrap.classList.remove('hidden');
         drop.classList.add('hidden');
+        if (heroCta) { heroCta.href = 'dashboard.html'; heroCta.textContent = 'Ver mis apps'; }
       } else {
         wrap.classList.add('hidden');
         loginBtn.classList.remove('hidden');
+        if (heroCta) { heroCta.href = 'create.html'; heroCta.textContent = 'Crear mi app gratis'; }
       }
     });
 

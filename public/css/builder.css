@@ -734,6 +734,7 @@ body.editor { height: 100dvh; overflow: hidden; }
 /* Published app (view.html) */
 .v-stage { display: flex; flex-direction: column; align-items: center; min-height: 100dvh; }
 .v-stage .ab-phone-root {
+  width: 100%;
   min-height: 100dvh;
 }
 .v-brand {

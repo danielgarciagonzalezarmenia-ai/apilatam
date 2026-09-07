@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css?v=8">
-  <link rel="stylesheet" href="css/builder.css?v=10">
+  <link rel="stylesheet" href="css/builder.css?v=11">
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
     import { getFirestore, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
@@ -54,7 +54,7 @@
         logo.textContent = name.slice(0, 1).toUpperCase();
       }
       $('dlp-name').textContent = name;
-      $('dlp-version').textContent = 'v' + (data.version || '1.0.0') + ' · APK para Android';
+      $('dlp-version').textContent = 'v' + (data.version || '1.0.0') + ' Â· APK para Android';
 
       onSnapshot(doc(db, 'apps', appId, 'build', 'latest'), (b) => {
         const build = b.exists() ? b.data() : null;
@@ -80,13 +80,13 @@
   <div class="dlp-page">
     <div class="dlp-card">
       <img class="dlp-logo" id="dlp-logo" alt="" style="display:none;">
-      <div class="dlp-name" id="dlp-name">Cargando…</div>
+      <div class="dlp-name" id="dlp-name">Cargandoâ€¦</div>
       <div class="dlp-sub" id="dlp-version">App instalable</div>
 
       <div class="dlp-stage" id="dlp-stage">
         <div class="dlp-stage" id="dlp-loading" style="display:none;">
           <div class="loading-spinner" style="margin:0;"></div>
-          <p><strong>Generando tu APK…</strong><br>Puede tardar entre 2 y 4 minutos. Cuando este listo aparecera el boton de descarga.</p>
+          <p><strong>Generando tu APKâ€¦</strong><br>Puede tardar entre 2 y 4 minutos. Cuando este listo aparecera el boton de descarga.</p>
         </div>
         <div class="dlp-stage" id="dlp-ready" style="display:none;">
           <a class="btn btn-primary dlp-btn" id="dlp-apk" target="_blank" rel="noopener" download>Descargar APK</a>

@@ -1,4 +1,4 @@
-const VERSION = 'v1.7.4';
+﻿const VERSION = 'v1.7.5';
 const CACHE = 'appforge-' + VERSION;
 const CORE = [
   './',

@@ -1,6 +1,7 @@
 name = "apilatam"
 main = "worker.js"
 compatibility_date = "2024-12-01"
+account_id = "5275f7b288d52cbc690a81e0a0c06311"
 
 [vars]
 API_KEY = "AIzaSyA4lFjAcn7ebAZF9SkVfpm1RPYnThN8roA"

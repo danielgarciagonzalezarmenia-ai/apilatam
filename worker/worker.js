@@ -247,6 +247,7 @@ async function buildStatusEndpoint(request, env) {
   await fsSet(env, `apps/${appId}/build/latest`, {
     status: b.status === 'ready' ? 'ready' : 'failed',
     apkUrl: (b.apkUrl || '').slice(0, 400),
+    version: (b.version || '').slice(0, 40),
     ts: String(Date.now())
   });
   return json({ ok: true });

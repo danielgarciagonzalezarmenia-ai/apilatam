@@ -58,6 +58,9 @@
 
       onSnapshot(doc(db, 'apps', appId, 'build', 'latest'), (b) => {
         const build = b.exists() ? b.data() : null;
+        const ver = build && build.version ? 'v' + build.version : ('v' + (data.version || '1.0.0'));
+        const fec = build && build.ts ? ' · generado ' + new Date(Number(build.ts)).toLocaleString('es-CO') : '';
+        $('dlp-version').textContent = ver + fec + ' · APK para Android';
         if (build && build.status === 'ready' && build.apkUrl) {
           $('dlp-apk').href = build.apkUrl;
           $('dlp-apk').classList.remove('disabled');

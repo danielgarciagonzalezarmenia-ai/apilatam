@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css?v=8">
-  <link rel="stylesheet" href="css/builder.css?v=9">
+  <link rel="stylesheet" href="css/builder.css?v=10">
   <link rel="stylesheet" href="css/stream.css?v=1">
 </head>
 <body class="editor">
@@ -46,8 +46,14 @@
     </aside>
 
     <section class="preview-wrap">
+      <div class="preview-devices" id="preview-devices">
+        <button data-w="390" data-h="680" class="active">Celular</button>
+        <button data-w="768" data-h="860">Tablet</button>
+        <button data-w="1024" data-h="820">Horizontal</button>
+        <button data-w="1280" data-h="800">Escritorio</button>
+      </div>
       <div class="phone-box">
-        <div class="phone-frame">
+        <div class="phone-frame" id="phone-frame">
           <div class="phone-notch"></div>
           <div class="phone-statusbar">
             <span id="sb-time">9:41</span>
@@ -65,20 +71,34 @@
   </div>
 
   <div id="dl-overlay" class="modal-overlay" style="display:none">
-    <div class="modal" style="max-width:440px;">
+    <div class="modal" style="max-width:460px;">
       <h2>Descargar app</h2>
-      <div class="dl-grid">
+      <div class="dl-state" id="dl-generating" style="display:none;">
+        <div class="loading-spinner" style="margin:0;"></div>
+        <p><strong>Generando tu APKâ€¦</strong><br>Puede tardar entre 2 y 4 minutos. Te avisamos aqui cuando este listo.</p>
+      </div>
+      <div class="dl-ready-grid" id="dl-ready" style="display:none;">
+        <div class="dl-brand" id="dl-brand">
+          <div id="dl-logo" class="fallback">A</div>
+          <div class="name" id="dl-name"></div>
+        </div>
+        <a class="btn btn-primary dl-apk-btn" id="dl-apk" target="_blank" rel="noopener">
+          <span class="loading-spinner" style="width:18px;height:18px;display:none;"></span>Descargar APK
+        </a>
         <div class="qr-box"><div id="qr-loading" class="loading-spinner" style="margin:0;"></div><img id="qr-img" alt="Codigo QR" class="hidden"></div>
-        <p style="font-size:14px;color:var(--text-secondary);">
-          <strong style="color:var(--text-primary);">Instala en tu telefono</strong><br>
-          Escanea el codigo o abre el enlace. Desde ahi podras instalarla como una app en tu celular.
+        <p style="font-size:13px;color:var(--text-secondary);margin:0;">
+          Comparte el QR o el enlace para descargar el APK en otros celulares.
         </p>
         <div class="dl-url" id="dl-url"></div>
         <div class="dl-actions">
-          <a class="btn btn-primary" id="btn-open-app" target="_blank">Abrir app</a>
-          <button class="btn btn-secondary" id="btn-copy-url">Copiar URL</button>
+          <button class="btn btn-secondary" id="btn-copy-url">Copiar link</button>
+          <button class="btn btn-secondary" id="btn-open-app">Ver la app</button>
           <button class="btn btn-secondary" id="dl-close">Cerrar</button>
         </div>
+      </div>
+      <div class="dl-state" id="dl-failed" style="display:none;">
+        <p><strong>No se pudo generar el APK.</strong><br>Intenta de nuevo en un momento.</p>
+        <button class="btn btn-primary" id="dl-retry">Reintentar</button>
       </div>
     </div>
   </div>
@@ -103,12 +123,13 @@
   </div>
 
   <script type="module">
-    import { doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { doc, getDoc, updateDoc, serverTimestamp, collection, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { db, onAuthChange } from './js/auth.js?v=3';
     import { showToast, escapeHtml, uid, copyText } from './js/util.js?v=1';
     import { BLOCK_TYPES, defaultTheme, renderBlocks, defaultBlocks, FONTS, loadFont, initHls, initBlocks, SOCIAL_NETS } from './js/blocks.js?v=9';
     import { setupProfile } from './js/profile.js?v=1';
     import { iconSpan, ALL_ICONS, ICON_CATEGORIES, loadIconFont } from './js/icons.js?v=1';
+    import { apkApi } from './js/apk.js?v=2';
 
     const $ = id => document.getElementById(id);
     const params = new URLSearchParams(location.search);
@@ -544,8 +565,8 @@
     function baseInspector(b) {
       switch (b.type) {
         case 'header': return field('Titulo', input('text', b.text)) + field('Subtitulo', input('subtitle', b.subtitle)) + `<div class="field-row">${field('Tamano titulo', input('titleSize', b.titleSize, { ph: 'Auto' }))}${field('Color titulo', colorField('titleColor', b.titleColor || ''))}</div>` + `<div class="field-row">${field('Tamano subtitulo', input('subSize', b.subSize, { ph: 'Auto' }))}${field('Color subtitulo', colorField('subColor', b.subColor || ''))}</div>` + field('Alineacion', sel('align', b.align, ['center','left','right'])) + `<div class="inspector-field"><label><input type="checkbox" data-k="showLogo" ${b.showLogo ? 'checked' : ''}> Mostrar logo</label></div>` + iconPickField('logoIcon', b.logoIcon, 'Icono del logo') + (b.logoIcon ? `<div class="field-row">${field('Tamano icono', rangeField('logoIconSize', b.logoIconSize, 20, 72))}${field('Color icono', colorField('logoIconColor', b.logoIconColor || ''))}</div>` : '') + field('Logo (URL)', input('logo', b.logo));
-        case 'heading': return field('Texto', input('text', b.text)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right'])) + field('Color', colorField('color', b.color || ''));
-        case 'text': return field('Texto', textarea('text', b.text, 5)) + field('Tamaño', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right'])) + field('Color', colorField('color', b.color || ''));
+        case 'heading': return field('Texto', input('text', b.text)) + field('TamaÃ±o', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right'])) + field('Color', colorField('color', b.color || ''));
+        case 'text': return field('Texto', textarea('text', b.text, 5)) + field('TamaÃ±o', input('size', b.size, { type: 'number' })) + field('Alineacion', sel('align', b.align, ['left','center','right'])) + field('Color', colorField('color', b.color || ''));
         case 'image': return field('URL de imagen', input('url', b.url)) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + field('Ancho %', input('width', b.width, { type: 'number' })) + field('Esquinas', rangeField('radius', b.radius, 0, 40)) + pageLinkFields(b, 'Al hacer clic en la imagen');
         case 'button': return field('Texto', input('text', b.text)) + field('Estilo', sel('variant', b.variant, ['solid','outline','ghost'])) + field('Alineacion', sel('align', b.align, ['center','left','right'])) + iconPickField('icon', b.icon, 'Icono (antes del texto)') + (b.icon ? `<div class="field-row">${field('Tamano icono', rangeField('iconSize', b.iconSize, 12, 48))}${field('Color icono', colorField('iconColor', b.iconColor || ''))}</div>` : '') + `<div class="field-row">${field('Ancho', rangeField('width', b.width, 60, 375))}${field('Altura', rangeField('height', b.height, 36, 220))}</div>` + field('Color del boton', colorField('bg', b.bg || theme.accent)) + field('Color del texto', colorField('textColor', b.textColor || (b.variant === 'solid' ? '#000000' : theme.accent))) + pageLinkFields(b, 'Al hacer clic en el boton');
         case 'video':
@@ -1220,14 +1241,30 @@
       fitPhone();
     }
 
+    let previewDev = { w: 390, h: 680 };
+
     function fitPhone() {
       if (window.matchMedia('(max-width: 1100px)').matches) return;
       const wrap = document.querySelector('.preview-wrap');
       const box = document.querySelector('.phone-box');
       if (!wrap || !box) return;
-      const scale = Math.min(1, (wrap.clientWidth - 48) / 375, (wrap.clientHeight - 48) / 715);
-      box.style.transform = 'scale(' + Math.max(0.1, scale) + ')';
+      const scale = Math.min(1, (wrap.clientWidth - 40) / previewDev.w, (wrap.clientHeight - 84) / (previewDev.h + 44));
+      box.style.transform = 'scale(' + Math.max(0.12, scale) + ')';
     }
+
+    $('preview-devices').addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      previewDev.w = Number(btn.dataset.w);
+      previewDev.h = Number(btn.dataset.h);
+      const frame = $('phone-frame');
+      frame.style.setProperty('--pw', previewDev.w + 'px');
+      frame.style.setProperty('--ph', previewDev.h + 'px');
+      frame.classList.toggle('wide', previewDev.w >= 768);
+      $('preview-devices').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      fitPhone();
+    });
+
     window.addEventListener('resize', fitPhone);
 
     /* ---------- Save ---------- */
@@ -1271,36 +1308,108 @@
 
     /* ---------- Download / install modal ---------- */
     const appUrl = () => location.origin + location.pathname.replace(/editor\.html$/, '') + 'view.html?id=' + appId;
+    const downloadUrl = () => location.origin + location.pathname.replace(/editor\.html$/, '') + 'download.html?id=' + appId;
+    let dlUnsub = null;
+    let dlDisposed = false;
 
-    $('btn-download').addEventListener('click', async () => {
-      await save();
-      const url = appUrl();
+    function setDlState(which) {
+      $('dl-generating').style.display = which === 'generating' ? 'flex' : 'none';
+      $('dl-ready').style.display = which === 'ready' ? 'flex' : 'none';
+      $('dl-failed').style.display = which === 'failed' ? 'flex' : 'none';
+    }
+
+    function showReady(apkUrl) {
+      setDlState('ready');
+      $('dl-apk').href = apkUrl;
+      const url = downloadUrl();
       $('dl-url').textContent = url;
-      $('btn-open-app').href = url;
+      $('btn-open-app').href = appUrl();
       const qr = $('qr-img');
       qr.classList.add('hidden');
       $('qr-loading').classList.remove('hidden');
       qr.onload = () => { $('qr-loading').classList.add('hidden'); qr.classList.remove('hidden'); };
       qr.onerror = () => { $('qr-loading').classList.add('hidden'); $('qr-img').classList.remove('hidden'); };
       qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=8&data=' + encodeURIComponent(url);
+    }
+
+    function setupDlBrand() {
+      const name = (appData && appData.name) || 'Sin nombre';
+      $('dl-name').textContent = name;
+      const el = $('dl-logo');
+      if (appData && appData.logoUrl) {
+        el.outerHTML = `<img class="fallback" id="dl-logo" src="${escapeHtml(appData.logoUrl)}" alt="">`;
+      } else {
+        el.textContent = (name || 'A').slice(0, 1).toUpperCase();
+      }
+    }
+
+    function watchBuild(onUpdate) {
+      if (dlUnsub) dlUnsub();
+      dlUnsub = onSnapshot(collection(db, 'apps', appId, 'build'), (snap) => {
+        if (dlDisposed) return;
+        let latest = null;
+        snap.docs.forEach(d => {
+          const x = d.data();
+          if (!latest || (x.ts || 0) > (latest.ts || 0)) latest = { ...x, id: d.id };
+        });
+        onUpdate(latest);
+      });
+    }
+
+    async function lastBuild() {
+      try {
+        const snap = await getDoc(doc(db, 'apps', appId, 'build', 'latest'));
+        if (snap.exists()) return snap.data();
+      } catch (e) { }
+      return null;
+    }
+
+    async function openDownload() {
+      await save();
+      setupDlBrand();
       $('dl-overlay').style.display = 'flex';
       $('dl-overlay').classList.add('active');
       document.body.style.overflow = 'hidden';
-    });
+      dlDisposed = false;
 
-    $('dl-close').addEventListener('click', () => {
+      const prev = await lastBuild();
+      if (prev && prev.status === 'ready' && prev.apkUrl) {
+        showReady(prev.apkUrl);
+        return;
+      }
+
+      setDlState('generating');
+      try {
+        const token = await currentUser.getIdToken();
+        await apkApi('/api/build', { token, body: { appId } });
+      } catch (e) {
+        console.warn('build trigger', e);
+      }
+      watchBuild((b) => {
+        if (!b) return;
+        if (b.status === 'ready' && b.apkUrl) showReady(b.apkUrl);
+        else if (b.status === 'failed') setDlState('failed');
+      });
+    }
+
+    function closeDl() {
+      dlDisposed = true;
+      if (dlUnsub) { dlUnsub(); dlUnsub = null; }
       $('dl-overlay').classList.remove('active');
       $('dl-overlay').style.display = 'none';
       document.body.style.overflow = '';
+    }
+
+    $('btn-download').addEventListener('click', openDownload);
+    $('dl-close').addEventListener('click', closeDl);
+    $('dl-retry').addEventListener('click', () => {
+      setDlState('generating');
+      openDownload();
     });
     $('dl-overlay').addEventListener('click', e => {
-      if (e.target === e.currentTarget) {
-        $('dl-overlay').classList.remove('active');
-        $('dl-overlay').style.display = 'none';
-        document.body.style.overflow = '';
-      }
+      if (e.target === e.currentTarget) closeDl();
     });
-    $('btn-copy-url').addEventListener('click', () => copyText(appUrl()));
+    $('btn-copy-url').addEventListener('click', () => copyText(downloadUrl()));
 
     $('btn-preview').addEventListener('click', async () => {
       await save();

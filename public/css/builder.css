@@ -162,8 +162,8 @@ body.editor { height: 100dvh; overflow: hidden; }
 
 .editor-layout {
   display: grid;
-  grid-template-columns: 300px minmax(300px, 380px) minmax(0, 1fr);
-  max-width: 1500px;
+  grid-template-columns: 330px minmax(0, 1fr) 350px;
+  max-width: 1680px;
   margin: 0 auto;
   height: calc(100dvh - 62px - 47px);
   min-height: 0;
@@ -227,16 +227,35 @@ body.editor { height: 100dvh; overflow: hidden; }
 .preview-wrap {
   overflow: auto;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 18px 12px;
+  gap: 14px;
+  padding: 18px 16px;
   background:
     radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.04), transparent 60%),
     var(--bg);
 }
+.preview-devices {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 4px;
+  position: sticky; top: 0; z-index: 5;
+}
+.preview-devices button {
+  flex: 1; white-space: nowrap; padding: 7px 12px;
+  font-size: 12px; font-weight: 600;
+  background: transparent; color: var(--text-secondary);
+  border: none; border-radius: 9px; cursor: pointer;
+  transition: var(--transition);
+}
+.preview-devices button:hover { color: var(--text-primary); }
+.preview-devices button.active { background: var(--bg-elevated, rgba(255,255,255,0.07)); color: var(--text-primary); }
 .phone-box { transform-origin: center center; }
 .phone-frame {
-  width: 375px;
+  width: var(--pw, 390px);
+  height: var(--ph, 680px);
   max-width: 100%;
   background: var(--phone-bg, var(--bg-card));
   border: 1px solid var(--border-strong);
@@ -244,7 +263,10 @@ body.editor { height: 100dvh; overflow: hidden; }
   box-shadow: 0 30px 80px rgba(0,0,0,0.6);
   overflow: hidden;
   position: relative;
+  transition: width 0.3s cubic-bezier(0.22,1,0.36,1);
 }
+.phone-frame.wide { border-radius: 18px; transition: width 0.3s cubic-bezier(0.22,1,0.36,1); }
+.phone-frame.wide .phone-notch { display: none; }
 .phone-notch {
   position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
   width: 120px; height: 26px;
@@ -260,7 +282,7 @@ body.editor { height: 100dvh; overflow: hidden; }
   position: relative; z-index: 10;
 }
 .phone-screen {
-  height: 680px;
+  height: var(--ph, 680px);
   overflow-y: auto;
   position: relative;
   z-index: 5;
@@ -534,6 +556,57 @@ body.editor { height: 100dvh; overflow: hidden; }
 .ab-app-body * { box-sizing: border-box; }
 .ab-app-body a { color: inherit; }
 
+/* ---------- Responsive: la interfaz se adapta a la pantalla ----------
+   Se usa la anchura real del layout (container queries): funciona igual
+   en la vista previa del editor, en view.html y dentro del APK. */
+.ab-phone-root { container-type: inline-size; }
+.ab-app-body { container-type: inline-size; }
+
+@container (min-width: 520px) {
+  .ab-header .ab-logo { width: 92px; height: 92px; border-radius: 26px; }
+  .ab-title { font-size: clamp(24px, 3.4cqw, 42px); }
+  .ab-subtitle { font-size: 15px; }
+  .ab-stat { padding: 22px 14px; }
+  .ab-stat-num { font-size: 34px; }
+  .ab-stat-label { font-size: 13px; }
+  .ab-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .ab-grid-title { font-size: 15px; }
+  .ab-grid-desc { font-size: 13px; }
+  .ab-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .ab-cd-box span { font-size: 34px; }
+  .ab-cd-box label { font-size: 12px; }
+  .ab-cd-box { padding: 18px 10px; }
+  .ab-table th, .ab-table td { padding: 13px 16px; }
+  .ab-car-slide { padding: 26px 24px; }
+  .ab-car-text { font-size: 15px; }
+}
+
+@container (min-width: 660px) {
+  .ab-list { display: grid; grid-template-columns: 1fr 1fr; }
+  .ab-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .ab-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .ab-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .ab-form label { margin: 0; }
+  .ab-form label:has(textarea),
+  .ab-form .ab-form-btn,
+  .ab-form .ab-form-ok { grid-column: 1 / -1; }
+  .ab-form label { font-size: 14px; }
+  .ab-heading { font-size: clamp(22px, 2.6cqw, 34px) !important; }
+  .ab-wa { font-size: 16px; padding: 15px 28px; }
+}
+
+@container (min-width: 900px) {
+  .ab-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ab-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .ab-gallery { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .ab-counters { gap: 16px; }
+}
+
+@media (min-width: 769px) {
+  .v-stage .ab-phone-root,
+  .ab-app-body { max-width: 1280px; margin: 0 auto; }
+}
+
 /* Inspector */
 .inspector-field { margin-bottom: 14px; }
 .inspector-field > label {
@@ -594,6 +667,56 @@ body.editor { height: 100dvh; overflow: hidden; }
   color: var(--text-secondary);
 }
 .dl-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.dl-state { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding: 10px 0 4px; }
+.dl-state p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; margin: 0; }
+.dl-state strong { color: var(--text-primary); }
+.dl-state .loading-spinner { width: 34px; height: 34px; }
+.dl-apk-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 15px 20px; font-size: 16px; font-weight: 700;
+  border-radius: 14px; text-decoration: none;
+}
+.dl-ready-grid { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.dl-brand { display: flex; align-items: center; gap: 10px; }
+.dl-brand img, .dl-brand .fallback {
+  width: 40px; height: 40px; border-radius: 12px; object-fit: cover;
+  background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: var(--text-secondary);
+}
+.dl-brand .name { font-size: 15px; font-weight: 700; }
+
+/* Download page (download.html) */
+.dlp-page {
+  min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background:
+    radial-gradient(ellipse at 50% 0%, rgba(108,92,231,0.18), transparent 60%),
+    #0b0b0e;
+}
+.dlp-card {
+  width: min(440px, 100%); text-align: center;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 24px; padding: 30px 26px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+}
+.dlp-logo {
+  width: 84px; height: 84px; border-radius: 24px; object-fit: cover; margin: 0 auto 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; font-weight: 800; color: var(--text-secondary);
+}
+.dlp-name { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+.dlp-sub { font-size: 13px; color: var(--text-muted); margin: 6px 0 22px; }
+.dlp-stage { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.dlp-stage p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; margin: 0; }
+.dlp-stage strong { color: var(--text-primary); }
+.dlp-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 16px 20px; font-size: 16px; font-weight: 700;
+  border-radius: 14px; text-decoration: none;
+}
+.dlp-tiny { font-size: 12px; color: var(--text-muted); margin-top: 16px; }
+.dlp-tiny a { color: var(--accent); font-weight: 600; }
 
 /* Published app header bar (AppForge) */
 .abbar {
@@ -739,9 +862,9 @@ body.editor { height: 100dvh; overflow: hidden; }
   .editor-layout { height: auto; grid-template-columns: 1fr; overflow: visible; }
   .editor-panel { position: static; max-height: none; overflow: visible; border-right: none; border-bottom: 1px solid var(--border); }
   .editor-panel:last-child { border-left: none; border-top: 1px solid var(--border); }
-  .preview-wrap { order: 2; }
+.preview-wrap { order: 2; }
   .phone-box { transform: none !important; }
-  .phone-screen { height: 560px; }
+  .phone-screen { height: var(--ph, 560px); }
 }
 @media (max-width: 600px) {
   .phone-frame { border-radius: 24px; }

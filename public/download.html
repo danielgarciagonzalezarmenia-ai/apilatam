@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0b0e">
+  <meta name="color-scheme" content="dark">
+  <title>Descargar app - AppForge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=8">
+  <link rel="stylesheet" href="css/builder.css?v=10">
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import { getFirestore, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { firebaseConfig } from './js/firebase-config.js?v=1';
+
+    const params = new URLSearchParams(location.search);
+    const appId = params.get('id');
+    const $ = id => document.getElementById(id);
+
+    if (!appId) {
+      $('dlp-stage').innerHTML = '<p>Falta el identificador de la app.</p><a class="btn btn-primary dlp-btn" href="index.html">Ir a AppForge</a>';
+    } else {
+      init(appId, $);
+    }
+
+    function init(appId, $) {
+
+    let app;
+    try { app = initializeApp(firebaseConfig); } catch (e) {}
+    const db = getFirestore(app);
+    document.title = 'Descargar app - AppForge';
+
+    function showState(state) {
+      $('dlp-loading').style.display = state === 'loading' ? 'flex' : 'none';
+      $('dlp-ready').style.display = state === 'ready' ? 'flex' : 'none';
+      $('dlp-failed').style.display = state === 'failed' ? 'flex' : 'none';
+    }
+
+    onSnapshot(doc(db, 'apps', appId), (snap) => {
+      if (!snap.exists()) {
+        $('dlp-stage').innerHTML = '<p>Esta app no existe o fue eliminada.</p><a class="btn btn-primary dlp-btn" href="index.html">Ir a AppForge</a>';
+        return;
+      }
+      const data = snap.data();
+      const name = data.name || 'App';
+      document.title = name + ' - Descargar';
+      const logo = $('dlp-logo');
+      if (data.logoUrl) {
+        logo.outerHTML = `<img class="dlp-logo" id="dlp-logo" src="${data.logoUrl}" alt="" onerror="this.style.display='none'">`;
+      } else {
+        logo.textContent = name.slice(0, 1).toUpperCase();
+      }
+      $('dlp-name').textContent = name;
+      $('dlp-version').textContent = 'v' + (data.version || '1.0.0') + ' · APK para Android';
+
+      onSnapshot(doc(db, 'apps', appId, 'build', 'latest'), (b) => {
+        const build = b.exists() ? b.data() : null;
+        if (build && build.status === 'ready' && build.apkUrl) {
+          $('dlp-apk').href = build.apkUrl;
+          $('dlp-apk').classList.remove('disabled');
+          $('dlp-apk-note').textContent = 'Pulsa el boton para descargar e instalar la app en tu celular.';
+          showState('ready');
+        } else if (build && build.status === 'failed') {
+          $('dlp-failed-msg').textContent = 'Ocurrio un problema al generar el APK. El creador puede reintentarlo desde el editor.';
+          showState('failed');
+        } else {
+          showState('loading');
+        }
+      });
+    }, (err) => {
+      $('dlp-stage').innerHTML = '<p>No se pudo cargar la app. Revisa tu conexion.</p>';
+    });
+    }
+  </script>
+</head>
+<body>
+  <div class="dlp-page">
+    <div class="dlp-card">
+      <img class="dlp-logo" id="dlp-logo" alt="" style="display:none;">
+      <div class="dlp-name" id="dlp-name">Cargando…</div>
+      <div class="dlp-sub" id="dlp-version">App instalable</div>
+
+      <div class="dlp-stage" id="dlp-stage">
+        <div class="dlp-stage" id="dlp-loading" style="display:none;">
+          <div class="loading-spinner" style="margin:0;"></div>
+          <p><strong>Generando tu APK…</strong><br>Puede tardar entre 2 y 4 minutos. Cuando este listo aparecera el boton de descarga.</p>
+        </div>
+        <div class="dlp-stage" id="dlp-ready" style="display:none;">
+          <a class="btn btn-primary dlp-btn" id="dlp-apk" target="_blank" rel="noopener" download>Descargar APK</a>
+          <p id="dlp-apk-note">Pulsa el boton para descargar e instalar la app en tu celular.</p>
+        </div>
+        <div class="dlp-stage" id="dlp-failed" style="display:none;">
+          <p id="dlp-failed-msg">No se pudo generar el APK.</p>
+          <a class="btn btn-secondary" href="index.html">Ir a AppForge</a>
+        </div>
+      </div>
+
+      <div class="dlp-tiny">Creada con <a href="index.html">AppForge</a></div>
+    </div>
+  </div>
+</body>
+</html>

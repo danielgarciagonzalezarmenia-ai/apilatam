@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/custom.css?v=7">
   <link rel="stylesheet" href="css/stream.css?v=1">
   <link rel="stylesheet" href="css/builder.css?v=11">
-  <script type="module">
+<script type="module">
     (async () => {
       const params = new URLSearchParams(location.search);
       const appId = params.get('id');
@@ -22,7 +22,32 @@
         console.error(e);
         document.getElementById('v-root').innerHTML = '<div class="v-error">Error al cargar la app.<br><a href="index.html">Ir a AppForge</a></div>';
       }
+      window.__fcmStatus = (s) => fcmBadge(s);
     })();
+
+    function fcmBadge(msg) {
+      let el = document.getElementById('fcm-badge');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'fcm-badge';
+        el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:88px;z-index:300;' +
+          'background:#0d0d10;border:1px solid #333;color:#eee;border-radius:10px;padding:8px 14px;' +
+          'font:12px/1.4 sans-serif;display:flex;gap:8px;align-items:center;box-shadow:0 8px 30px rgba(0,0,0,.5);';
+        document.body.appendChild(el);
+      }
+      const ok = /ok|registrado|perm-ok/i.test(msg);
+      const warn = /iniciando/i.test(msg);
+      const span = document.createElement('span');
+      span.textContent = 'FCM: ' + msg;
+      span.style.color = ok ? '#4ade80' : (warn ? '#fbbf24' : '#f87171');
+      const close = document.createElement('span');
+      close.textContent = '×';
+      close.style.cssText = 'cursor:pointer;opacity:.6;font-size:14px;margin-left:4px;';
+      close.onclick = () => el.remove();
+      el.innerHTML = '';
+      el.appendChild(span);
+      el.appendChild(close);
+    }
   </script>
 </head>
 <body>

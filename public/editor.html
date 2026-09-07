@@ -1358,14 +1358,6 @@
       });
     }
 
-    async function lastBuild() {
-      try {
-        const snap = await getDoc(doc(db, 'apps', appId, 'build', 'latest'));
-        if (snap.exists()) return snap.data();
-      } catch (e) { }
-      return null;
-    }
-
     async function openDownload() {
       await save();
       setupDlBrand();
@@ -1373,12 +1365,6 @@
       $('dl-overlay').classList.add('active');
       document.body.style.overflow = 'hidden';
       dlDisposed = false;
-
-      const prev = await lastBuild();
-      if (prev && prev.status === 'ready' && prev.apkUrl) {
-        showReady(prev.apkUrl, prev.version);
-        return;
-      }
 
       setDlState('generating');
       try {

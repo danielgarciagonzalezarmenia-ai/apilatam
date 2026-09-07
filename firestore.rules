@@ -39,8 +39,7 @@ service cloud.firestore {
     }
 
     match /apps/{appId}/build/{buildId} {
-      allow read: if request.auth != null
-        && request.auth.uid == get(/databases/$(database)/documents/apps/$(appId)).data.ownerId;
+      allow read: if true;
     }
 
     match /admin/{adminId} {

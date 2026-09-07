@@ -1,0 +1,5 @@
+/download.html
+  Cache-Control: no-cache
+
+/view.html
+  Cache-Control: no-cache

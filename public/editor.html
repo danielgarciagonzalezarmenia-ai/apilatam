@@ -85,6 +85,7 @@
         <a class="btn btn-primary dl-apk-btn" id="dl-apk" target="_blank" rel="noopener">
           <span class="loading-spinner" style="width:18px;height:18px;display:none;"></span>Descargar APK
         </a>
+        <p id="dl-ver" style="font-size:12px;color:var(--text-secondary);margin:6px 0 0;"></p>
         <div class="qr-box"><div id="qr-loading" class="loading-spinner" style="margin:0;"></div><img id="qr-img" alt="Codigo QR" class="hidden"></div>
         <p style="font-size:13px;color:var(--text-secondary);margin:0;">
           Comparte el QR o el enlace para descargar el APK en otros celulares.
@@ -1318,9 +1319,10 @@
       $('dl-failed').style.display = which === 'failed' ? 'flex' : 'none';
     }
 
-    function showReady(apkUrl) {
+    function showReady(apkUrl, version) {
       setDlState('ready');
       $('dl-apk').href = apkUrl;
+      $('dl-ver').textContent = version ? ('v' + version) : '';
       const url = downloadUrl();
       $('dl-url').textContent = url;
       $('btn-open-app').href = appUrl();
@@ -1374,7 +1376,7 @@
 
       const prev = await lastBuild();
       if (prev && prev.status === 'ready' && prev.apkUrl) {
-        showReady(prev.apkUrl);
+        showReady(prev.apkUrl, prev.version);
         return;
       }
 
@@ -1387,7 +1389,7 @@
       }
       watchBuild((b) => {
         if (!b) return;
-        if (b.status === 'ready' && b.apkUrl) showReady(b.apkUrl);
+        if (b.status === 'ready' && b.apkUrl) showReady(b.apkUrl, b.version);
         else if (b.status === 'failed') setDlState('failed');
       });
     }

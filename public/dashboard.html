@@ -72,12 +72,34 @@
         <div class="help-grid" id="help-grid"></div>
       </div>
     </div>
-  </main>
+</main>
+
+  <div class="modal-overlay" id="dl-overlay" style="display:none;">
+    <div class="modal" style="max-width:440px;">
+      <div class="dl-grid">
+        <div style="display:flex;align-items:center;gap:12px;width:100%;">
+          <div id="dlb-logo" style="width:52px;height:52px;border-radius:14px;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:var(--text-primary);flex:0 0 auto;">A</div>
+          <div style="text-align:left;min-width:0;">
+            <div id="dlb-name" style="font-weight:700;font-size:18px;letter-spacing:-0.01em;">App</div>
+            <div id="dlb-ver" style="font-size:13px;color:var(--text-muted);"></div>
+          </div>
+        </div>
+        <a class="btn btn-primary dl-apk-btn" id="dlb-apk" target="_blank" rel="noopener">Descargar APK</a>
+        <div class="qr-box"><div id="dlb-qr-load" class="loading-spinner" style="margin:0;"></div><img id="dlb-qr" alt="Codigo QR" class="hidden"></div>
+        <div class="dl-url" id="dlb-url"></div>
+        <div class="dl-actions">
+          <button class="btn btn-secondary" id="dlb-copy">Copiar link</button>
+          <a class="btn btn-secondary" id="dlb-open" target="_blank" rel="noopener">Ver la app</a>
+          <button class="btn btn-secondary" id="dlb-close">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
 import { onAuthChange, db, ensureUserDoc } from './js/auth.js?v=2';
     import { setupProfile } from './js/profile.js?v=1';
-    import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc, getDocs, limit } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+    import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc, getDocs, getDoc, limit } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
     import { escapeHtml, showToast, FREE_LIMIT } from './js/util.js?v=1';
     import { apkApi } from './js/apk.js?v=1';
 
@@ -184,6 +206,14 @@ grid.innerHTML = apps.map(a => {
       grid.querySelectorAll('[data-notif]').forEach(btn => {
         btn.addEventListener('click', () => openNotifyModal(btn.dataset.notif, btn.dataset.name));
       });
+
+      if (!window.__dlGridBound) {
+        window.__dlGridBound = true;
+        grid.addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-open-dl]');
+          if (btn) openBuildModal(btn.dataset.openDl);
+        });
+      }
     }
 
     const watchedBuilds = new Set();
@@ -225,9 +255,55 @@ grid.innerHTML = apps.map(a => {
         el.innerHTML = `
           <div class="bld-state ok">
             <span class="bld-dot"></span><strong>APK generado</strong>${b.version ? ' · v' + escapeHtml(b.version) : ''}
-            <a class="btn btn-primary btn-sm" href="${escapeHtml(b.apkUrl)}" target="_blank" rel="noopener">Descargar APK</a>
+            <button class="btn btn-primary btn-sm" data-open-dl="${appId}">Descargar / Compartir</button>
           </div>`;
       }
+    }
+
+    function openBuildModal(appId) {
+      const overlay = $('dl-overlay');
+      const close = () => { overlay.style.display = 'none'; overlay.classList.remove('active'); document.body.style.overflow = ''; };
+      overlay.addEventListener('click', (ev) => { if (ev.target === overlay) close(); });
+      $('dlb-close').onclick = close;
+      $('dlb-copy').onclick = async () => {
+        try {
+          await navigator.clipboard.writeText($('dlb-url').textContent);
+          showToast('Link copiado', 'success');
+        } catch (e) { showToast('No se pudo copiar', 'error'); }
+      };
+      (async () => {
+        const snap = await getDoc(doc(db, 'apps', appId, 'build', 'latest'));
+        const build = snap.exists() ? snap.data() : null;
+        const appSnap = await getDoc(doc(db, 'apps', appId));
+        const app = appSnap.exists() ? appSnap.data() : {};
+        if (!build || build.status !== 'ready' || !build.apkUrl) { close(); return; }
+        $('dlb-name').textContent = app.name || 'App';
+        const ver = build.version ? 'v' + build.version : ('v' + (app.version || '1.0.0'));
+        const fec = build.ts ? ' · generado ' + new Date(Number(build.ts)).toLocaleString('es-CO') : '';
+        $('dlb-ver').textContent = ver + fec;
+        const logo = $('dlb-logo');
+        if (app.logoUrl) {
+          logo.style.background = 'transparent';
+          logo.innerHTML = `<img src="${escapeHtml(app.logoUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:14px;" onerror="this.parentElement.style.background='var(--bg-elevated)';this.remove();">`;
+        } else {
+          logo.style.background = 'var(--bg-elevated)';
+          logo.textContent = (app.name || 'A').slice(0, 1).toUpperCase();
+        }
+        $('dlb-apk').href = build.apkUrl;
+        const dUrl = location.origin + location.pathname.replace(/dashboard\.html$/, '') + 'download.html?id=' + appId;
+        $('dlb-url').textContent = dUrl;
+        $('dlb-open').href = location.origin + location.pathname.replace(/dashboard\.html$/, '') + 'view.html?id=' + appId;
+        const qr = $('dlb-qr');
+        qr.classList.add('hidden');
+        $('dlb-qr-load').classList.remove('hidden');
+        qr.onload = () => { $('dlb-qr-load').classList.add('hidden'); qr.classList.remove('hidden'); };
+        qr.onerror = () => { $('dlb-qr-load').classList.add('hidden'); };
+        qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=8&data=' + encodeURIComponent(dUrl);
+        overlay.classList.add('active');
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      })();
+      return close;
     }
 
     function openNotifyModal(appId, name) {

@@ -14,8 +14,8 @@
   --success: #22c55e;
   --error: #ef4444;
   --warning: #f59e0b;
-  --font-body: 'Poppins', system-ui, -apple-system, sans-serif;
-  --font-display: 'Poppins', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -760,4 +760,151 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   background: radial-gradient(ellipse, rgba(255,255,255,0.06) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
+}
+
+/* ====================================================
+   Home (index.html) — dark premium, Resend-inspired
+   Botones compactos (altura baja), tipografia Inter,
+   fondo con profundidad: glows radiales + grid de puntos
+   ==================================================== */
+body.home {
+  background:
+    radial-gradient(ellipse 1000px 520px at 50% -120px, rgba(108,92,231,0.30), transparent 62%),
+    radial-gradient(ellipse 720px 420px at 88% 18%, rgba(139,116,255,0.12), transparent 60%),
+    radial-gradient(ellipse 640px 420px at 6% 48%, rgba(99,102,241,0.10), transparent 60%),
+    #070709;
+}
+
+body.home .navbar {
+  background: rgba(7,7,9,0.55);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+body.home .btn { border-radius: 10px; }
+body.home .btn-sm { height: 34px; padding: 0 16px; font-size: 13px; border-radius: 10px; }
+body.home .btn-lg { height: 42px; padding: 0 22px; font-size: 15px; border-radius: 10px; }
+
+body.home .btn-primary {
+  background: #ffffff;
+  color: #0a0a0a;
+  border: 1px solid rgba(255,255,255,0.9);
+  backdrop-filter: none;
+}
+body.home .btn-primary:hover {
+  background: #ffffff;
+  color: #0a0a0a;
+  box-shadow: 0 8px 30px rgba(255,255,255,0.28), 0 0 0 1px rgba(255,255,255,0.10);
+  transform: translateY(-1px);
+}
+body.home .btn-secondary {
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #d4d4d8;
+}
+body.home .btn-secondary:hover {
+  border-color: rgba(255,255,255,0.4);
+  color: #fafafa;
+  background: rgba(255,255,255,0.06);
+}
+
+.hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #a1a1aa;
+  margin-bottom: 28px;
+}
+.hero-chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8b7cf7;
+  box-shadow: 0 0 12px rgba(139,124,247,0.9);
+}
+
+body.home .hero {
+  padding: 130px 24px 110px;
+}
+body.home .hero::before {
+  width: 760px;
+  height: 520px;
+  background: radial-gradient(ellipse at center, rgba(167,139,250,0.16) 0%, rgba(108,92,231,0.10) 40%, transparent 68%);
+}
+body.home .hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1.4px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 64% 58% at 50% 34%, #000 18%, transparent 72%);
+  mask-image: radial-gradient(ellipse 64% 58% at 50% 34%, #000 18%, transparent 72%);
+  pointer-events: none;
+}
+body.home .hero h1 {
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  color: #fafafa;
+  font-size: clamp(3.2rem, 8.5vw, 6rem);
+}
+body.home .hero p {
+  color: #a1a1aa;
+  max-width: 620px;
+}
+
+body.home .section { padding: 90px 0; }
+body.home .divider-line {
+  margin: 8px 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+}
+body.home .section-title { letter-spacing: -0.04em; }
+body.home .section-subtitle { color: #71717a; }
+
+body.home .feature-card,
+body.home .plan-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+body.home .feature-card:hover,
+body.home .plan-card:hover {
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 24px 60px -24px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.03);
+  transform: translateY(-2px);
+}
+body.home .plan-card.popular {
+  border-color: rgba(167,139,250,0.45);
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(108,92,231,0.22), transparent 60%), linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+  box-shadow: 0 30px 80px -30px rgba(108,92,231,0.5);
+}
+body.home .plan-card.popular:hover {
+  border-color: rgba(167,139,250,0.6);
+  box-shadow: 0 30px 80px -30px rgba(108,92,231,0.6);
+}
+
+body.home .footer {
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.glow-follow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.5s;
+  background:
+    radial-gradient(900px 700px at var(--mx, 50%) var(--my, 50%), rgba(139,124,247,0.05), transparent 60%),
+    radial-gradient(500px 400px at var(--mx, 50%) var(--my, 50%), rgba(167,139,250,0.04), transparent 55%);
+}
+body.home:hover .glow-follow { opacity: 1; }
+
+@media (max-width: 768px) {
+  body.home .hero { padding: 90px 24px 70px; }
+  body.home .hero-chip { font-size: 11.5px; }
+  body.home .section { padding: 56px 0; }
 }

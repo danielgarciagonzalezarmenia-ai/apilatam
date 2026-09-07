@@ -10,13 +10,14 @@
   <meta name="description" content="AppForge: crea apps profesionales sin programar. Elige tu logo, colores, tipografia, agrega secciones, videos y descargala en segundos.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=7">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css?v=8">
   <link rel="stylesheet" href="css/builder.css?v=12">
   <link rel="stylesheet" href="css/stream.css?v=1">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffffff'/%3E%3Ctext x='32' y='44' font-size='34' font-weight='bold' text-anchor='middle' fill='%23000' font-family='Arial'%3EA%3C/text%3E%3C/svg%3E">
 </head>
-<body>
+<body class="home">
+  <div class="glow-follow"></div>
 
   <nav class="navbar">
     <div class="navbar-inner">
@@ -42,7 +43,8 @@
     </div>
   </nav>
 
-  <header class="hero">
+<header class="hero">
+    <div class="hero-chip"><span class="hero-chip-dot"></span>Tus apps en minutos, sin programar</div>
     <h1>Crea tu app<br>en minutos</h1>
     <p>Elige tu logo, colores y tipografia. Agrega secciones, videos o bloques HTML. Descarga tu app y compartela con un QR. Sin programar.</p>
     <div class="hero-buttons">
@@ -161,6 +163,12 @@ onAuthChange((user) => {
     document.getElementById('logout-btn').addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
       logout();
+    });
+  </script>
+  <script>
+    document.addEventListener('mousemove', (e) => {
+      document.body.style.setProperty('--mx', e.clientX + 'px');
+      document.body.style.setProperty('--my', e.clientY + 'px');
     });
   </script>
 </body>

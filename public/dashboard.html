@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=7">
+  <link rel="stylesheet" href="css/custom.css?v=8">
   <link rel="stylesheet" href="css/builder.css?v=12">
   <link rel="stylesheet" href="css/stream.css?v=1">
   <link rel="stylesheet" href="css/help.css?v=3">
@@ -180,7 +180,7 @@ grid.innerHTML = apps.map(a => {
       setupBuildWatchers(apps);
       grid.querySelectorAll('[data-del]').forEach(btn => {
         btn.addEventListener('click', async () => {
-          if (!confirm('¿Eliminar esta app? Esta accion no se puede deshacer.')) return;
+          if (!confirm('Â¿Eliminar esta app? Esta accion no se puede deshacer.')) return;
           await deleteDoc(doc(db, 'apps', btn.dataset.del));
           showToast('App eliminada', 'success');
         });
@@ -245,7 +245,7 @@ grid.innerHTML = apps.map(a => {
         el.innerHTML = `
           <div class="bld-prog">
             <div class="bld-prog-bar"><div class="bld-prog-fill"></div></div>
-            <div class="bld-prog-text"><span class="bld-spin"></span> Generando APK… suele tardar 2-4 minutos. Te avisamos en verde aqui cuando este listo.</div>
+            <div class="bld-prog-text"><span class="bld-spin"></span> Generando APKâ€¦ suele tardar 2-4 minutos. Te avisamos en verde aqui cuando este listo.</div>
           </div>`;
       } else if (b.status === 'failed') {
         el.innerHTML = `
@@ -255,7 +255,7 @@ grid.innerHTML = apps.map(a => {
       } else if (b.status === 'ready' && b.apkUrl) {
         el.innerHTML = `
           <div class="bld-state ok">
-            <span class="bld-dot"></span><strong>APK generado</strong>${b.version ? ' · v' + escapeHtml(b.version) : ''}
+            <span class="bld-dot"></span><strong>APK generado</strong>${b.version ? ' Â· v' + escapeHtml(b.version) : ''}
             <button class="btn btn-primary btn-sm" data-open-dl="${appId}">Descargar / Compartir</button>
           </div>`;
       }
@@ -280,7 +280,7 @@ grid.innerHTML = apps.map(a => {
         if (!build || build.status !== 'ready' || !build.apkUrl) { close(); return; }
         $('dlb-name').textContent = app.name || 'App';
         const ver = build.version ? 'v' + build.version : ('v' + (app.version || '1.0.0'));
-        const fec = build.ts ? ' · generado ' + new Date(Number(build.ts)).toLocaleString('es-CO') : '';
+        const fec = build.ts ? ' Â· generado ' + new Date(Number(build.ts)).toLocaleString('es-CO') : '';
         $('dlb-ver').textContent = ver + fec;
         const logo = $('dlb-logo');
         if (app.logoUrl) {
@@ -314,7 +314,7 @@ grid.innerHTML = apps.map(a => {
         <div class="modal" style="max-width:460px;">
           <h2>Notificaciones - ${escapeHtml(name)}</h2>
           <p class="p-email" style="font-size:13px;color:var(--text-muted);">Llega a todos los celulares con este APK instalado, aunque la app este cerrada.</p>
-          <div id="nt-devices" style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Contando dispositivos…</div>
+          <div id="nt-devices" style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Contando dispositivosâ€¦</div>
           <div class="form-group"><label>Titulo</label><input class="input" id="nt-title" maxlength="60" placeholder="Nueva promocion"></div>
           <div class="form-group"><label>Mensaje</label><textarea class="input" id="nt-body" maxlength="240" rows="3" placeholder="Escribe el mensaje de la notificacion"></textarea></div>
           <div class="form-actions">
@@ -356,7 +356,7 @@ grid.innerHTML = apps.map(a => {
           const t = new Date(Number(x.ts || 0));
           return `<div style="padding:6px 0;border-bottom:1px solid var(--border);">
             <div style="font-weight:600;">${escapeHtml(x.title || '')}</div>
-            <div style="color:var(--text-muted);">${escapeHtml((x.body || '').slice(0, 60))} · ${t.toLocaleDateString()} ${t.toLocaleTimeString()} · ${Number(x.sent) || 0} envios</div>
+            <div style="color:var(--text-muted);">${escapeHtml((x.body || '').slice(0, 60))} Â· ${t.toLocaleDateString()} ${t.toLocaleTimeString()} Â· ${Number(x.sent) || 0} envios</div>
           </div>`;
         }).join('') : '<div style="color:var(--text-muted);">Aun no has enviado notificaciones.</div>';
       }

@@ -8,16 +8,84 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>AppForge - Crea tu app en minutos</title>
   <meta name="description" content="AppForge: crea apps profesionales sin programar. Elige tu logo, colores, tipografia, agrega secciones, videos y descargala en segundos.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
   <link rel="stylesheet" href="css/custom.css?v=9">
   <link rel="stylesheet" href="css/builder.css?v=12">
   <link rel="stylesheet" href="css/stream.css?v=1">
+  <link rel="stylesheet" href="css/glass.css?v=1">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffffff'/%3E%3Ctext x='32' y='44' font-size='34' font-weight='bold' text-anchor='middle' fill='%23000' font-family='Arial'%3EA%3C/text%3E%3C/svg%3E">
 </head>
 <body class="home">
   <div class="glow-follow"></div>
+
+  <div class="glass-wrap" id="glassWrap">
+
+    <!-- BARRA DE ICONOS (colapsada) -->
+    <aside class="sidebar glass-sidebar">
+      <div class="window-btns">
+        <span class="gw-green"></span>
+        <span class="gw-red"></span>
+        <span class="gw-yellow"></span>
+      </div>
+      <div class="logo glass-logo">
+        <button id="toggle" aria-label="Menu">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </button>
+      </div>
+      <div class="line glass-line"></div>
+      <ul class="mini-menu">
+        <li class="active" data-target="inicio" title="Inicio"><i class="fa-solid fa-house"></i></li>
+        <li data-target="como-funciona" title="Como funciona"><i class="fa-solid fa-rocket"></i></li>
+        <li data-target="planes" title="Planes"><i class="fa-solid fa-dollar-sign"></i></li>
+      </ul>
+      <div class="line glass-line"></div>
+      <ul class="mini-menu">
+        <li data-target="info" title="Info"><i class="fa-solid fa-circle-info"></i></li>
+      </ul>
+      <div class="profile glass-profile">
+        <a href="login.html" id="mini-profile"><img id="miniAvatar" alt=""></a>
+      </div>
+    </aside>
+
+    <!-- PANEL DESPLEGABLE -->
+    <section class="panel glass-panel">
+      <div class="window-btns big">
+        <span class="gw-green"></span>
+        <span class="gw-red"></span>
+        <span class="gw-yellow"></span>
+      </div>
+      <h1>AppForge</h1>
+      <span class="menu-title">MENU</span>
+      <div class="divider glass-divider"></div>
+      <ul class="menu glass-menu">
+        <li class="current" data-goto="inicio"><div><i class="fa-solid fa-house"></i><span>Inicio</span></div><i class="fa-solid fa-angle-right"></i></li>
+        <li data-goto="como-funciona"><div><i class="fa-solid fa-rocket"></i><span>Como funciona</span></div></li>
+        <li data-goto="planes"><div><i class="fa-solid fa-dollar-sign"></i><span>Planes</span></div><span class="dot"></span></li>
+      </ul>
+      <div class="divider glass-divider"></div>
+      <ul class="menu glass-menu secondary">
+        <li id="li-login" data-goto="login"><div><i class="fa-solid fa-right-to-bracket"></i><span>Iniciar sesion</span></div></li>
+        <li id="li-apps" class="hidden" data-goto="dashboard"><div><i class="fa-solid fa-user"></i><span>Mis apps</span></div></li>
+        <li id="li-logout" class="hidden"><div><i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesion</span></div></li>
+      </ul>
+      <div class="divider glass-divider bottom"></div>
+      <a class="account glass-account" href="login.html" id="accountLink">
+        <img id="accountAvatar" src="" alt="">
+        <div>
+          <h3 id="accountName">Invitado</h3>
+          <small id="accountEmail">Conectate con tu cuenta</small>
+        </div>
+        <i class="fa-solid fa-angle-right"></i>
+      </a>
+    </section>
+
+  </div>
+
+  <main class="glass-site">
 
   <nav class="navbar">
     <div class="navbar-inner">
@@ -129,7 +197,9 @@
         <a href="login.html">Panel</a>
       </div>
     </div>
-  </footer>
+</footer>
+
+  </main>
 
   <script type="module">
     import { onAuthChange, auth, logout } from './js/auth.js?v=2';
@@ -140,27 +210,70 @@ onAuthChange((user) => {
       const drop = document.getElementById('profile-drop');
       const loginBtn = document.getElementById('login-btn');
       const heroCta = document.getElementById('hero-cta');
+      const setAccount = (name, email, avatar) => {
+        document.getElementById('accountName').textContent = name;
+        document.getElementById('accountEmail').textContent = email;
+        document.getElementById('accountAvatar').src = avatar || '';
+        document.getElementById('miniAvatar').src = avatar || '';
+      };
+      document.getElementById('li-login').classList.toggle('hidden', !!user);
+      document.getElementById('li-apps').classList.toggle('hidden', !user);
+      document.getElementById('li-logout').classList.toggle('hidden', !user);
+      document.getElementById('accountLink').href = user ? 'dashboard.html' : 'login.html';
       if (user) {
-        document.getElementById('profile-avatar').src = user.photoURL || '';
-        document.getElementById('profile-name').textContent = user.displayName || '';
-        document.getElementById('profile-email').textContent = user.email || '';
-        loginBtn.classList.add('hidden');
-        wrap.classList.remove('hidden');
-        drop.classList.add('hidden');
+        if (wrap) { document.getElementById('profile-avatar').src = user.photoURL || ''; document.getElementById('profile-name').textContent = user.displayName || ''; document.getElementById('profile-email').textContent = user.email || ''; }
+        if (loginBtn) loginBtn.classList.add('hidden');
+        if (wrap) { wrap.classList.remove('hidden'); drop.classList.add('hidden'); }
+        setAccount(user.displayName || 'Mi cuenta', user.email || '', user.photoURL || '');
         if (heroCta) { heroCta.href = 'dashboard.html'; heroCta.textContent = 'Ver mis apps'; }
       } else {
-        wrap.classList.add('hidden');
-        loginBtn.classList.remove('hidden');
+        if (wrap) wrap.classList.add('hidden');
+        if (loginBtn) loginBtn.classList.remove('hidden');
+        setAccount('Invitado', 'Conectate con tu cuenta', '');
         if (heroCta) { heroCta.href = 'create.html'; heroCta.textContent = 'Crear mi app gratis'; }
       }
     });
 
-    document.getElementById('profile-btn').addEventListener('click', (e) => {
+    const glassWrap = document.getElementById('glassWrap');
+    document.getElementById('toggle').addEventListener('click', () => glassWrap.classList.toggle('open'));
+
+    // Navegacion suave desde el panel y la barra de iconos
+    const scrollTo = (target) => {
+      glassWrap.classList.remove('open'); // cierra el menu al navegar
+      if (target === 'inicio' || target === 'info') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      const el = document.getElementById(target);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    const go = (goto) => {
+      if (goto === 'login') { window.location.href = 'login.html'; return; }
+      if (goto === 'dashboard') { window.location.href = 'dashboard.html'; return; }
+      if (goto === 'como-funciona' || goto === 'planes' || goto === 'inicio' || goto === 'info') { scrollTo(goto); return; }
+      const el = document.getElementById(goto);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    document.querySelectorAll('.glass-menu li[data-goto]').forEach((li) => {
+      li.addEventListener('click', () => {
+        document.querySelectorAll('.glass-menu li[data-goto]').forEach((x) => x.classList.remove('current'));
+        li.classList.add('current');
+        go(li.dataset.goto);
+      });
+    });
+    document.querySelectorAll('.mini-menu li[data-target]').forEach((li) => {
+      li.addEventListener('click', () => {
+        document.querySelectorAll('.mini-menu li').forEach((x) => x.classList.remove('active'));
+        li.classList.add('active');
+        scrollTo(li.dataset.target);
+      });
+    });
+    document.getElementById('li-logout').addEventListener('click', () => logout());
+
+    if (document.getElementById('profile-btn')) document.getElementById('profile-btn').addEventListener('click', (e) => {
       e.stopPropagation();
       document.getElementById('profile-drop').classList.toggle('hidden');
     });
-    document.addEventListener('click', () => document.getElementById('profile-drop').classList.add('hidden'));
-    document.getElementById('logout-btn').addEventListener('click', (e) => {
+    document.addEventListener('click', () => { const d = document.getElementById('profile-drop'); if (d) d.classList.add('hidden'); });
+    if (document.getElementById('logout-btn')) document.getElementById('logout-btn').addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
       logout();
     });

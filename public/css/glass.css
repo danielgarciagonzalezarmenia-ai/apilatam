@@ -1,0 +1,581 @@
+/* ============================================================================
+   AppForge - Glassmorphism landing (basado en Expandable-Glassmorphism-Sidebar)
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   ★★★ FONDO DE IMAGEN ★★★
+   Tu imagen de fondo se carga desde:   /images/fondo.png
+   Guardala ahi:                        public/images/fondo.png
+   Esa ruta coincide con los archivos que se suben a tu pagina web.
+   Para cambiar de imagen, solo reemplaza ese archivo (puedes usar .jpg o .webp
+   cambiando el nombre en background-image abajo).
+
+   El diseno de vidrio (sidebar + paneles) queda TRANSPARENTE sobre la imagen.
+   -------------------------------------------------------------------------- */
+:root {
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-blur: 45px;
+  --glass-tint: rgba(255, 255, 255, 0.08);
+}
+
+/* Fondo: imagen + oscurecido para que el texto se lea bien.
+   Si imagen no existe, queda un degradado oscuro de respaldo. */
+body.home {
+  min-height: 100vh;
+  overflow-x: clip;
+  background:
+    linear-gradient(rgba(8, 8, 10, 0.6), rgba(8, 8, 10, 0.6)),
+    url("../images/fondo.png") center/cover no-repeat fixed,
+    radial-gradient(ellipse 1000px 520px at 50% -120px, rgba(108, 92, 231, 0.15), transparent 62%),
+    #0b0b0e;
+}
+
+/* ============================================================
+   WRAPPER (barra vidrio fija a la izquierda)
+   ============================================================ */
+.glass-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-left: 20px;
+  z-index: 120;
+  pointer-events: none;
+}
+.glass-wrap .sidebar,
+.glass-wrap .panel {
+  pointer-events: auto;
+}
+
+/* ============================================================
+   GLASS (estilo comun sidebar + panel)
+   ============================================================ */
+.glass-sidebar,
+.glass-panel {
+  position: relative;
+  background: var(--glass-tint);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 2px solid var(--glass-border);
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* reflejo brillante diagonal */
+.glass-sidebar::before,
+.glass-panel::before {
+  content: "";
+  position: absolute;
+  width: 220px;
+  height: 120%;
+  left: -120px;
+  top: -20%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  transform: rotate(18deg);
+  pointer-events: none;
+}
+
+/* luz radial suave */
+.glass-sidebar::after,
+.glass-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.10), transparent 40%);
+  pointer-events: none;
+}
+
+/* ============================================================
+   SIDEBAR (columna de iconos, fija)
+   ============================================================ */
+.glass-sidebar {
+  width: 92px;
+  height: min(850px, 88vh);
+  min-height: 560px;
+  border-radius: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 0;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   PANEL desplegable (menu)
+   ============================================================ */
+.glass-panel {
+  width: 380px;
+  height: min(850px, 88vh);
+  min-height: 560px;
+  border-radius: 32px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-40px);
+  pointer-events: none;
+  transition: opacity 0.45s, transform 0.55s, visibility 0.45s;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.glass-wrap.open .glass-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.glass-wrap.open .glass-sidebar {
+  transform: translateX(-6px);
+}
+
+/* ============================================================
+   Botones de ventana (mac)
+   ============================================================ */
+.window-btns {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+.window-btns.big { margin-bottom: 14px; }
+.window-btns span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.gw-green { background: #2cf95f; }
+.gw-red { background: #ff6b7d; }
+.gw-yellow { background: #ffd93d; }
+
+/* ============================================================
+   Logo / toggle
+   ============================================================ */
+.glass-logo {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 20px;
+}
+.glass-logo button {
+  width: 58px;
+  height: 58px;
+  border: none;
+  outline: none;
+  border-radius: 18px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 26px;
+  transition: 0.35s;
+  position: relative;
+  overflow: hidden;
+}
+.glass-logo button:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.12);
+}
+.glass-logo button::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: translateX(-170%) rotate(25deg);
+  transition: 0.8s;
+}
+.glass-logo button:hover::before {
+  transform: translateX(180%) rotate(25deg);
+}
+
+/* ============================================================
+   Lineas divisoras
+   ============================================================ */
+.glass-line {
+  width: 48px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 14px 0;
+}
+
+/* ============================================================
+   MINI MENU (iconos de la barra)
+   ============================================================ */
+.mini-menu {
+  list-style: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.mini-menu li {
+  width: 58px;
+  height: 58px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 22px;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: 0.35s;
+  position: relative;
+}
+.mini-menu li:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  transform: translateY(-3px);
+}
+.mini-menu li.active {
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.18), 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+.mini-menu li.active::before {
+  content: "";
+  position: absolute;
+  left: -17px;
+  width: 5px;
+  height: 34px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+}
+
+/* ============================================================
+   PANEL: titulo y menu
+   ============================================================ */
+.glass-panel h1 {
+  color: #fff;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+.glass-panel .menu-title {
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 2px;
+  font-size: 15px;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 10px;
+  padding: 0 8px;
+}
+.glass-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin-bottom: 20px;
+  margin-top: 8px;
+}
+.glass-divider.bottom { margin-top: 20px; }
+
+.glass-menu {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.glass-menu li {
+  width: 100%;
+  height: 62px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 18px;
+  border-radius: 18px;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  transition: 0.35s;
+  position: relative;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 18px;
+  text-align: left;
+}
+.glass-menu li > div { display: flex; align-items: center; gap: 18px; }
+.glass-menu li i { font-size: 21px; width: 24px; text-align: center; }
+.glass-menu li span { font-size: 17px; font-weight: 500; }
+.glass-menu li:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  transform: translateX(6px);
+}
+.glass-menu li::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  transition: 0.35s;
+}
+.glass-menu li:hover::before { border-color: rgba(255, 255, 255, 0.12); }
+
+/* item activo del menu */
+.glass-menu li.current {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+  color: #fff;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.20);
+}
+
+/* punto blanco notificador de un item del menu */
+.glass-menu li .dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}
+
+.glass-menu li > .dot { margin-left: auto; }
+
+/* ============================================================
+   ACCOUNT (usuario abajo)
+   ============================================================ */
+.glass-account {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  border-radius: 22px;
+  transition: 0.35s;
+  margin-top: auto;
+  cursor: pointer;
+}
+.glass-account:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-4px);
+}
+.glass-account img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.glass-account h3 {
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+.glass-account small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  display: block;
+  margin-top: 2px;
+}
+.glass-account > i {
+  margin-left: auto;
+  color: #fff;
+  font-size: 18px;
+}
+
+/* perfil en la barra (abajo) */
+.glass-profile { margin-top: auto; padding-top: 18px; }
+.glass-profile img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  transition: 0.35s;
+  cursor: pointer;
+}
+.glass-profile img:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 18px rgba(108, 92, 231, 0.55);
+}
+
+/* ============================================================
+   Animacion escalonada al abrir
+   ============================================================ */
+.glass-panel h1,
+.glass-panel .menu-title,
+.glass-panel .glass-divider,
+.glass-panel .glass-menu li,
+.glass-panel .glass-account {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.glass-wrap.open h1 { transition-delay: 0.15s; }
+.glass-wrap.open .menu-title { transition-delay: 0.25s; }
+.glass-wrap.open .glass-divider { transition-delay: 0.35s; }
+.glass-wrap.open .glass-menu li:nth-child(1) { transition-delay: 0.42s; }
+.glass-wrap.open .glass-menu li:nth-child(2) { transition-delay: 0.48s; }
+.glass-wrap.open .glass-menu li:nth-child(3) { transition-delay: 0.54s; }
+.glass-wrap.open .glass-menu li:nth-child(4) { transition-delay: 0.60s; }
+.glass-wrap.open .secondary li:nth-child(1) { transition-delay: 0.68s; }
+.glass-wrap.open .secondary li:nth-child(2) { transition-delay: 0.74s; }
+.glass-wrap.open .secondary li:nth-child(3) { transition-delay: 0.80s; }
+.glass-wrap.open .glass-account { transition-delay: 0.9s; }
+.glass-wrap.open h1,
+.glass-wrap.open .menu-title,
+.glass-wrap.open .glass-divider,
+.glass-wrap.open .glass-menu li,
+.glass-wrap.open .glass-account {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================================
+   Contenido principal (se desplaza para no chocar con la barra)
+   ============================================================ */
+.glass-site {
+  position: relative;
+  margin-left: 150px;
+  transition: margin-left 0.5s ease;
+}
+
+/* ============================================================
+   Estetica glass sobre las secciones existentes
+   ============================================================ */
+.glass-tile {
+  background: var(--glass-tint);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* navbar oculto (la navegacion ahora es el sidebar) */
+body.home .navbar { display: none; }
+
+/* divider numerado de secciones */
+.glass-site .divider-line {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* titulos y textos legibles sobre vidrio */
+.glass-site .section-title,
+.glass-site .hero h1 { color: #fff; }
+.glass-site .section-subtitle,
+.glass-site .hero p { color: rgba(255, 255, 255, 0.82); }
+
+/* hero con leve vidrio */
+body.home .hero {
+  margin-top: 40px;
+  padding: 56px 40px;
+  border-radius: 32px;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+}
+body.home .hero::before {
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.06) 0%, transparent 70%);
+}
+
+/* tarjetas de caracteristicas y planes -> vidrio */
+body.home .feature-card {
+  background: var(--glass-tint);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+body.home .feature-card:hover {
+  border-color: rgba(255, 255, 255, 0.30);
+  box-shadow: 0 0 60px rgba(108, 92, 231, 0.12),
+    0 25px 60px rgba(0, 0, 0, 0.30);
+}
+body.home .feature-icon {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+body.home .feature-card h3 { color: #fff; }
+body.home .feature-card p { color: rgba(255, 255, 255, 0.78); }
+body.home .feature-icon.blue { color: #c5b3ff; }
+body.home .feature-icon.green { color: #6ee7a8; }
+body.home .feature-icon.orange { color: #ffd58a; }
+
+body.home .plan-card {
+  background: var(--glass-tint);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+body.home .plan-card.popular {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), var(--glass-tint));
+}
+body.home .plan-card:hover {
+  border-color: rgba(255, 255, 255, 0.30);
+  box-shadow: 0 0 60px rgba(108, 92, 231, 0.12),
+    0 25px 60px rgba(0, 0, 0, 0.30);
+}
+body.home .plan-card .plan-name { color: rgba(255, 255, 255, 0.6); }
+body.home .plan-card .plan-price { color: #fff; }
+body.home .plan-card .plan-period { color: rgba(255, 255, 255, 0.5); }
+body.home .plan-card .plan-features li { color: rgba(255, 255, 255, 0.82); }
+
+/* footer */
+body.home .footer {
+  border-top-color: rgba(255, 255, 255, 0.12);
+  margin-top: 60px;
+}
+body.home .footer-links a { color: rgba(255, 255, 255, 0.6); }
+body.home .footer-links a:hover { color: #fff; }
+
+/* botones sobre vidrio */
+body.home .glass-site .btn-primary {
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.30);
+  backdrop-filter: blur(25px);
+  color: #fff;
+}
+body.home .glass-site .btn-primary:hover {
+  background: #fff;
+  color: #000;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+body.home .glass-site .btn-secondary {
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+body.home .glass-site .btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 980px) {
+  .glass-wrap { gap: 8px; padding-left: 12px; }
+  .glass-panel { width: 340px; }
+  .glass-site { margin-left: 120px; }
+}
+
+@media (max-width: 760px) {
+  .glass-sidebar { width: 82px; }
+  .glass-wrap { padding-left: 8px; }
+  /* la barra queda como rail de iconos; contenido a pantalla completa */
+  .glass-site { margin-left: 96px; }
+  body.home .hero { padding: 36px 24px; }
+}
+
+@media (max-width: 560px) {
+  /* barra mas compacta */
+  .glass-sidebar { width: 74px; padding: 20px 0; }
+  .glass-wrap { padding-left: 6px; gap: 6px; }
+  .glass-site { margin-left: 86px; }
+  .mini-menu li, .glass-logo button { width: 50px; height: 50px; font-size: 20px; }
+  .glass-logo { width: 50px; height: 50px; }
+}

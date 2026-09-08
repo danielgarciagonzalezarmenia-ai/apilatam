@@ -10,12 +10,30 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=9">
+<link rel="stylesheet" href="css/custom.css?v=9">
   <link rel="stylesheet" href="css/builder.css?v=12">
   <link rel="stylesheet" href="css/stream.css?v=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="css/glass.css?v=2">
+  <script>
+    window.GLASS_MENU = [
+      { i: "fa-house", label: "Inicio", href: "index.html", rail: true },
+      { i: "fa-dollar-sign", label: "Planes", href: "plans.html", rail: true }
+    ];
+  </script>
+  <script src="js/glass.js?v=1" defer></script>
 </head>
 <body>
   <div class="glow-follow"></div>
+
+  <div class="gwin full" data-win="login" data-win-open>
+    <div class="gwin-head">
+      <div class="window-btns" style="margin-bottom:0;"><span class="gw-green"></span><span class="gw-red"></span><span class="gw-yellow"></span></div>
+      <span class="gwin-title">Iniciar sesion</span>
+      <button class="gwin-close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="gwin-body center">
 
   <div class="auth-container">
     <div class="auth-card reveal">
@@ -69,6 +87,9 @@
       <a href="create.html" class="btn btn-secondary" style="width:100%;">Ir a crear una app</a>
       <p id="error" class="hidden" style="margin-top:16px;color:var(--error);font-size:13px;"></p>
       <div id="loading" class="loading-spinner hidden"></div>
+</div>
+  </div>
+
     </div>
   </div>
 
@@ -170,7 +191,8 @@
       }[code] || 'Error: revisa tus datos';
     }
 
-    onAuthChange((user) => {
+onAuthChange((user) => {
+      if (window.Glass) window.Glass.setUser(user ? { name: user.displayName, email: user.email, avatar: user.photoURL } : null);
       if (user) go(localStorage.getItem('af-redirect'));
     });
   </script>

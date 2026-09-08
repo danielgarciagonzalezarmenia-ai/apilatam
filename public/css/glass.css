@@ -19,16 +19,39 @@
 }
 
 /* Fondo: imagen + oscurecido para que el texto se lea bien.
-   Si imagen no existe, queda un degradado oscuro de respaldo. */
+   Si imagen no existe, queda un degradado oscuro de respaldo.
+   (Sin background-attachment: fixed -> evita el scroll lento). */
 body.home {
   min-height: 100vh;
-  overflow-x: clip;
+  overflow: hidden;
   background:
     linear-gradient(rgba(8, 8, 10, 0.6), rgba(8, 8, 10, 0.6)),
-    url("../images/fondo.png") center/cover no-repeat fixed,
+    url("../images/fondo.png") center/cover no-repeat,
     radial-gradient(ellipse 1000px 520px at 50% -120px, rgba(108, 92, 231, 0.15), transparent 62%),
     #0b0b0e;
 }
+
+/* ============================================================
+   SCROLLBAR optimizada (dentro de las ventanas)
+   ============================================================ */
+.gwin,
+.glass-panel {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.gwin::-webkit-scrollbar,
+.glass-panel::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.gwin::-webkit-scrollbar-track { background: transparent; }
+.gwin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 99px;
+}
+.gwin::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
 
 /* ============================================================
    WRAPPER (barra vidrio fija a la izquierda)
@@ -578,4 +601,160 @@ body.home .glass-site .btn-secondary:hover {
   .glass-site { margin-left: 86px; }
   .mini-menu li, .glass-logo button { width: 50px; height: 50px; font-size: 20px; }
   .glass-logo { width: 50px; height: 50px; }
+}
+
+/* ============================================================
+   VENTANAS FLOTANTES (modo sin scroll por pagina)
+   ============================================================ */
+
+body.home.glass-windowed {
+  overflow: hidden;
+}
+
+.gwin {
+  position: fixed;
+  inset: 30px 30px 30px 160px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-tint);
+  backdrop-filter: blur(34px);
+  -webkit-backdrop-filter: blur(34px);
+  border: 2px solid var(--glass-border);
+  border-radius: 30px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(26px) scale(0.985);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.4s;
+}
+
+.gwin.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* ventana a pantalla casi completa (para el editor y apoyos) */
+.gwin.full {
+  inset: 24px 24px 24px 150px;
+}
+
+/* cabecera de ventana: fondo + botones de ventana + titulo */
+.gwin-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+.gwin-head .gwin-title {
+  color: #fff;
+  font-weight: 600;
+  font-size: 17px;
+  font-family: 'Poppins', system-ui, sans-serif;
+  letter-spacing: 0.2px;
+}
+.gwin-head .gwin-close {
+  margin-left: auto;
+  border: none;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 18px;
+  transition: 0.3s;
+}
+.gwin-head .gwin-close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* cuerpo de la ventana: aqui ocurre el scroll interno (optimizado) */
+.gwin-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 28px 32px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* reflejo + luz en ventanas flotantes */
+.gwin::before {
+  content: "";
+  position: absolute;
+  width: 260px;
+  height: 120%;
+  left: -140px;
+  top: -20%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  transform: rotate(18deg);
+  pointer-events: none;
+}
+.gwin::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08), transparent 40%);
+  pointer-events: none;
+}
+
+/* ocultar el encabezado/ventana cuando no corresponde */
+.gwin.hidden-manual { display: none !important; }
+
+/* cuerpo centrado (login/acciones pequenas) */
+.gwin-body.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* en modo ventana, los contenedores de authenticate/centrados se ajustan al alto */
+body.glass-windowed .auth-container { min-height: 100%; }
+
+/* en modo ventana la navegacion antigua y el pie desaparecen (cuadra el glass) */
+body.glass-windowed .navbar,
+body.glass-windowed .footer { display: none !important; }
+
+/* ============================================================
+   EDITOR: mantiene su layout, solo shell + fondo + offset
+   ============================================================ */
+body.editor {
+  background:
+    linear-gradient(rgba(8, 8, 10, 0.72), rgba(8, 8, 10, 0.72)),
+    url("../images/fondo.png") center/cover no-repeat,
+    #0b0b0e;
+  overflow: hidden;
+}
+body.editor .glass-wrap { z-index: 200; }
+body.editor.has-glass .editor-top-inner,
+body.editor.has-glass .pages-bar,
+body.editor.has-glass .editor-layout { margin-left: 140px; }
+@media (max-width: 760px) {
+  body.editor.has-glass .editor-top-inner,
+  body.editor.has-glass .pages-bar,
+  body.editor.has-glass .editor-layout { margin-left: 100px; }
+}
+
+@media (max-width: 980px) {
+  .gwin { inset: 20px 20px 20px 150px; }
+  .gwin.full { inset: 16px 16px 16px 145px; }
+}
+@media (max-width: 760px) {
+  .gwin,
+  .gwin.full { inset: 14px 12px 12px 96px; }
+  .gwin-body { padding: 20px 18px; }
+}
+@media (max-width: 560px) {
+  .gwin,
+  .gwin.full { inset: 10px 8px 8px 78px; }
 }

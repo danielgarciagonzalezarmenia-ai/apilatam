@@ -11,9 +11,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=9">
+<link rel="stylesheet" href="css/custom.css?v=9">
   <link rel="stylesheet" href="css/builder.css?v=12">
   <link rel="stylesheet" href="css/stream.css?v=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="css/glass.css?v=2">
+  <script>
+    window.GLASS_MENU = [
+      { i: "fa-house", label: "Inicio", href: "index.html", rail: true },
+      { i: "fa-square-plus", label: "Crear app", win: "create", rail: true },
+      { i: "fa-layer-group", label: "Mis apps", href: "dashboard.html", rail: true },
+      { i: "fa-dollar-sign", label: "Planes", href: "plans.html", rail: true }
+    ];
+  </script>
+  <script src="js/glass.js?v=1" defer></script>
 </head>
 <body>
   <div class="glow-follow"></div>
@@ -38,6 +50,13 @@
     </div>
   </nav>
 
+  <div class="gwin full" data-win="create" data-win-open>
+    <div class="gwin-head">
+      <div class="window-btns" style="margin-bottom:0;"><span class="gw-green"></span><span class="gw-red"></span><span class="gw-yellow"></span></div>
+      <span class="gwin-title">Crear app</span>
+      <button class="gwin-close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="gwin-body">
   <main class="container" style="padding-top:40px;padding-bottom:80px;">
     <div class="create-wrap">
       <div class="dashboard-header">
@@ -82,8 +101,11 @@
           <button id="btn-create" class="btn btn-primary">Crear app y abrir editor</button>
         </div>
       </div>
-    </div>
+</div>
   </main>
+
+    </div>
+  </div>
 
   <script type="module">
 import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
@@ -95,9 +117,10 @@ import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'http
     let currentUser = null;
     let userDoc = null;
 
-    onAuthChange(async (user) => {
+onAuthChange(async (user) => {
       if (!user) { window.location.href = 'login.html'; return; }
       currentUser = user;
+      if (window.Glass) window.Glass.setUser({ name: user.displayName, email: user.email, avatar: user.photoURL });
       $('profile-avatar').src = user.photoURL || '';
       $('profile-name').textContent = user.displayName || '';
       $('profile-email').textContent = user.email || '';

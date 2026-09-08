@@ -10,8 +10,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/custom.css?v=9">
+<link rel="stylesheet" href="css/custom.css?v=9">
   <link rel="stylesheet" href="css/builder.css?v=12">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="css/glass.css?v=2">
+  <script>
+    window.GLASS_MENU = [
+      { i: "fa-house", label: "Inicio", href: "index.html", rail: true },
+      { i: "fa-dollar-sign", label: "Planes", href: "plans.html", rail: true }
+    ];
+  </script>
+  <script src="js/glass.js?v=1" defer></script>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
     import { getFirestore, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
@@ -82,7 +92,15 @@
 </head>
 <body>
   <div class="glow-follow"></div>
-  <div class="dlp-page">
+
+  <div class="gwin full" data-win="download" data-win-open>
+    <div class="gwin-head">
+      <div class="window-btns" style="margin-bottom:0;"><span class="gw-green"></span><span class="gw-red"></span><span class="gw-yellow"></span></div>
+      <span class="gwin-title">Descargar app</span>
+      <button class="gwin-close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="gwin-body center">
+      <div class="dlp-page">
     <div class="dlp-card">
       <img class="dlp-logo" id="dlp-logo" alt="" style="display:none;">
       <div class="dlp-name" id="dlp-name">Cargandoâ€¦</div>
@@ -103,7 +121,9 @@
         </div>
       </div>
 
-      <div class="dlp-tiny">Creada con <a href="index.html">AppForge</a></div>
+<div class="dlp-tiny">Creada con <a href="index.html">AppForge</a></div>
+    </div>
+  </div>
     </div>
   </div>
   <script src="js/animations.js?v=1"></script>

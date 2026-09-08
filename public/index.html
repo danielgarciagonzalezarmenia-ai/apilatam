@@ -16,7 +16,15 @@
   <link rel="stylesheet" href="css/custom.css?v=9">
   <link rel="stylesheet" href="css/builder.css?v=12">
   <link rel="stylesheet" href="css/stream.css?v=1">
-  <link rel="stylesheet" href="css/glass.css?v=1">
+  <link rel="stylesheet" href="css/glass.css?v=2">
+  <script>
+    window.GLASS_MENU = [
+      { i: "fa-house", label: "Inicio", win: "inicio", rail: true },
+      { i: "fa-rocket", label: "Como funciona", win: "como", rail: true },
+      { i: "fa-dollar-sign", label: "Planes", win: "planes", rail: true }
+    ];
+  </script>
+  <script src="js/glass.js?v=1" defer>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffffff'/%3E%3Ctext x='32' y='44' font-size='34' font-weight='bold' text-anchor='middle' fill='%23000' font-family='Arial'%3EA%3C/text%3E%3C/svg%3E">
 </head>
 <body class="home">
@@ -109,20 +117,35 @@
         <span></span><span></span><span></span>
       </button>
     </div>
-  </nav>
+</nav>
 
+  <div class="gwin" data-win="inicio" data-win-open>
+    <div class="gwin-head">
+      <div class="window-btns" style="margin-bottom:0;"><span class="gw-green"></span><span class="gw-red"></span><span class="gw-yellow"></span></div>
+      <span class="gwin-title">Inicio</span>
+      <button class="gwin-close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="gwin-body">
 <header class="hero reveal">
     <div class="hero-chip"><span class="hero-chip-dot"></span>Tus apps en minutos, sin programar</div>
     <h1>Crea tu app<br>en minutos</h1>
     <p>Elige tu logo, colores y tipografia. Agrega secciones, videos o bloques HTML. Descarga tu app y compartela con un QR. Sin programar.</p>
     <div class="hero-buttons">
-      <a href="create.html" id="hero-cta" class="btn btn-primary btn-lg">Crear mi app gratis</a>
-      <a href="#planes" class="btn btn-secondary btn-lg">Ver planes</a>
+<a href="create.html" id="hero-cta" class="btn btn-primary btn-lg">Crear mi app gratis</a>
+      <a href="#" id="hero-plans" class="btn btn-secondary btn-lg">Ver planes</a>
     </div>
-  </header>
+</header>
 
-  <div class="divider-line"></div>
+    </div>
+  </div>
 
+  <div class="gwin" data-win="como">
+    <div class="gwin-head">
+      <div class="window-btns" style="margin-bottom:0;"><span class="gw-green"></span><span class="gw-red"></span><span class="gw-yellow"></span></div>
+      <span class="gwin-title">Como funciona</span>
+      <button class="gwin-close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="gwin-body">
   <section class="section" id="como-funciona">
     <h2 class="section-title reveal">Asi de facil</h2>
     <p class="section-subtitle reveal reveal-delay-1">Tres pasos y tu app esta lista para compartir.</p>
@@ -149,10 +172,17 @@
         <p>Instala la app en tu telefono, copia la URL o comparte el codigo QR para que cualquiera la descargue.</p>
       </div>
     </div>
-  </section>
+</section>
+    </div>
+  </div>
 
-  <div class="divider-line"></div>
-
+  <div class="gwin" data-win="planes">
+    <div class="gwin-head">
+      <div class="window-btns" style="margin-bottom:0;"><span class="gw-green"></span><span class="gw-red"></span><span class="gw-yellow"></span></div>
+      <span class="gwin-title">Planes</span>
+      <button class="gwin-close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="gwin-body">
   <section class="section" id="planes">
     <h2 class="section-title reveal">Planes</h2>
     <p class="section-subtitle reveal reveal-delay-1">Empieza gratis. Mejora cuando lo necesites.</p>
@@ -199,6 +229,9 @@
     </div>
 </footer>
 
+    </div>
+  </div>
+
   </main>
 
   <script type="module">
@@ -236,20 +269,23 @@ onAuthChange((user) => {
 
     const glassWrap = document.getElementById('glassWrap');
     document.getElementById('toggle').addEventListener('click', () => glassWrap.classList.toggle('open'));
+    const hp = document.getElementById('hero-plans');
+    if (hp) hp.addEventListener('click', (e) => { e.preventDefault(); openWin('planes'); });
 
-    // Navegacion suave desde el panel y la barra de iconos
-    const scrollTo = (target) => {
-      glassWrap.classList.remove('open'); // cierra el menu al navegar
-      if (target === 'inicio' || target === 'info') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-      const el = document.getElementById(target);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Navegacion: abre/cierra ventanas flotantes (modo sin scroll)
+    const WIN_MAP = { inicio: 'inicio', 'como-funciona': 'como', planes: 'planes', info: 'inicio' };
+    const openWin = (target) => {
+      glassWrap.classList.remove('open'); // cierra el menu
+      const id = WIN_MAP[target] || target;
+      if (window.Glass) window.Glass.open(id);
+      else if (id) { document.querySelectorAll('.gwin').forEach(w => w.classList.toggle('open', w.getAttribute('data-win') === id)); }
     };
     const go = (goto) => {
       if (goto === 'login') { window.location.href = 'login.html'; return; }
       if (goto === 'dashboard') { window.location.href = 'dashboard.html'; return; }
-      if (goto === 'como-funciona' || goto === 'planes' || goto === 'inicio' || goto === 'info') { scrollTo(goto); return; }
-      const el = document.getElementById(goto);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (goto && (goto === 'inicio' || goto === 'como-funciona' || goto === 'planes' || goto === 'info')) { openWin(goto); return; }
+      const elv = document.getElementById(goto);
+      if (elv) window.Glass && window.Glass.open(goto);
     };
 
     document.querySelectorAll('.glass-menu li[data-goto]').forEach((li) => {
@@ -263,7 +299,7 @@ onAuthChange((user) => {
       li.addEventListener('click', () => {
         document.querySelectorAll('.mini-menu li').forEach((x) => x.classList.remove('active'));
         li.classList.add('active');
-        scrollTo(li.dataset.target);
+        openWin(li.dataset.target);
       });
     });
     document.getElementById('li-logout').addEventListener('click', () => logout());

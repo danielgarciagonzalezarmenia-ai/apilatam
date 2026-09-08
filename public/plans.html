@@ -10,13 +10,32 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffffff'/%3E%3Ctext x='32' y='44' font-size='34' font-weight='bold' text-anchor='middle' fill='%23000' font-family='Arial'%3EA%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/custom.css?v=9">
   <link rel="stylesheet" href="css/builder.css?v=12">
   <link rel="stylesheet" href="css/stream.css?v=1">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="css/glass.css?v=2">
+  <script>
+    window.GLASS_MENU = [
+      { i: "fa-house", label: "Inicio", href: "index.html", rail: true },
+      { i: "fa-dollar-sign", label: "Planes", win: "planes", rail: true },
+      { i: "fa-user", label: "Mis apps", href: "dashboard.html", rail: true }
+    ];
+  </script>
+  <script src="js/glass.js?v=1" defer></script>
 </head>
 <body>
   <div class="glow-follow"></div>
+
+  <div class="gwin full" data-win="planes" data-win-open>
+    <div class="gwin-head">
+      <div class="window-btns" style="margin-bottom:0;"><span class="gw-green"></span><span class="gw-red"></span><span class="gw-yellow"></span></div>
+      <span class="gwin-title">Planes</span>
+      <button class="gwin-close" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="gwin-body">
 
   <nav class="navbar">
     <div class="navbar-inner">
@@ -84,6 +103,9 @@
     </div>
   </section>
 
+    </div>
+  </div>
+
   <footer class="footer">
     <div class="footer-inner">
       <span style="font-size:14px;color:var(--text-muted);">2026 AppForge. Todos los derechos reservados.</span>
@@ -106,6 +128,7 @@
     let currentUser = null;
 
     onAuthChange(async (user) => {
+      if (window.Glass) window.Glass.setUser(user ? { name: user.displayName, email: user.email, avatar: user.photoURL } : null);
       if (!user) {
         $('pro-cta').textContent = 'Iniciar sesion para activar Pro';
         return;

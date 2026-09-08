@@ -307,7 +307,7 @@ async function stripe(env, path, params) {
       'Authorization': 'Basic ' + btoa(key + ':'),
       'Content-Type': 'application/x-www-form-urlencoded'
     },
-    body: new URLSearchParams(params).toString()
+    body: formEncode(params)
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) {
@@ -315,6 +315,24 @@ async function stripe(env, path, params) {
     throw new Error(msg);
   }
   return d;
+}
+
+// Serializa params soportando objetos y arrays anidados estilo Stripe:
+// { line_items: [{price, quantity}] } -> line_items[0][price]=&line_items[0][quantity]=
+function formEncode(obj, prefix) {
+  const out = [];
+  for (const k of Object.keys(obj)) {
+    const v = obj[k];
+    const key = prefix ? `${prefix}[${k}]` : k;
+    if (Array.isArray(v)) {
+      v.forEach((item, i) => out.push(formEncode(item, `${key}[${i}]`)));
+    } else if (v !== null && v !== undefined && typeof v === 'object') {
+      out.push(formEncode(v, key));
+    } else if (v !== undefined) {
+      out.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(v))}`);
+    }
+  }
+  return out.join('&');
 }
 
 async function stripeCheckoutEndpoint(request, env) {

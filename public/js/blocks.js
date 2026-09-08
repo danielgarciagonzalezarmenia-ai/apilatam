@@ -241,13 +241,14 @@ function blockButton(b, css) {
   if (b.width) dims.push(`width:${b.width}px;`);
   if (b.height) dims.push(`height:${b.height}px;`);
   style = 'position:relative;display:inline-flex;gap:8px;align-items:center;justify-content:center;box-sizing:border-box;padding:13px 28px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;' + style + dims.join(' ');
-  let attrs = 'href="#"';
+  let attrs = '';
   if (b.linkTarget) attrs = `data-af-page="${escapeHtml(b.linkTarget)}"`;
   else if (b.linkUrl) attrs = `href="${escapeHtml(b.linkUrl)}" target="_blank" rel="noopener"`;
+  const tag = attrs ? 'a' : 'span';
   const iconHtml = b.icon ? iconSpan(b.icon, { size: b.iconSize || 17, color: b.iconColor ? b.iconColor : 'currentColor' }) : '';
   const txt = escapeHtml(b.text || '');
   const label = txt || (!b.icon ? 'Boton' : '');
-  return `<div class="ab-button" style="${css};text-align:${b.align || 'center'};"><a style="${style}" ${attrs}>${iconHtml}${label}</a></div>`;
+  return `<div class="ab-button" style="${css};text-align:${b.align || 'center'};"><${tag} style="${style}" ${attrs}>${iconHtml}${label}</${tag}></div>`;
 }
 
 function blockVideo(b, css) {

@@ -360,6 +360,53 @@ body.home {
 
 .glass-menu li > .dot { margin-left: auto; }
 
+/* anclas/botones dentro de los items del menu (nav robusta) */
+.glass-menu li { padding: 0; }
+.glass-menu .gnav {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 18px;
+  color: rgba(255, 255, 255, 0.78);
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 18px;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: color 0.35s, transform 0.35s;
+}
+.glass-menu .gnav .gi { display: flex; align-items: center; gap: 18px; }
+.glass-menu .gnav i { font-size: 21px; width: 24px; text-align: center; }
+.glass-menu .gnav .txt { font-size: 17px; font-weight: 500; }
+.glass-menu .gnav:hover { color: #fff; transform: translateX(6px); }
+.glass-menu li.current .gnav { color: #fff; }
+
+/* rail: anclas/botones en la barra de iconos */
+.glass-sidebar .gnav.rail {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 22px;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: 0.35s;
+  text-decoration: none;
+  border: none;
+  background: transparent;
+}
+.glass-sidebar .gnav.rail:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  transform: translateY(-3px);
+}
+
 /* ============================================================
    ACCOUNT (usuario abajo)
    ============================================================ */
@@ -757,4 +804,98 @@ body.editor.has-glass .editor-layout { margin-left: 140px; }
 @media (max-width: 560px) {
   .gwin,
   .gwin.full { inset: 10px 8px 8px 78px; }
+}
+
+/* ============================================================
+   EDITOR: paneles en cristal glass sobre la imagen de fondo
+   ============================================================ */
+body.editor.has-glass {
+  --glass-border: rgba(255, 255, 255, 0.14);
+}
+body.editor.has-glass .editor-top,
+body.editor.has-glass .pages-bar {
+  background: rgba(14, 14, 20, 0.40) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+body.editor.has-glass .editor-panel {
+  background: rgba(14, 14, 20, 0.42) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+body.editor.has-glass .preview-wrap {
+  background: rgba(8, 8, 10, 0.30) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+body.editor.has-glass .phone-box,
+body.editor.has-glass .phone-frame {
+  background: rgba(12, 12, 16, 0.85) !important;
+}
+body.editor.has-glass .block-palette,
+body.editor.has-glass .block-list,
+body.editor.has-glass #inspector > * {
+  background: rgba(20, 20, 28, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* ============================================================
+   DASHBOARD / PANELES: tarjetas, pestañas y banners en glass
+   ============================================================ */
+body.glass-windowed .card {
+  background: rgba(14, 14, 20, 0.55) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+body.glass-windowed .card:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 0 40px rgba(108, 92, 231, 0.10);
+}
+body.glass-windowed .dash-tabs {
+  background: rgba(14, 14, 20, 0.45) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+body.glass-windowed .dash-tab.active {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+body.glass-windowed .plan-banner {
+  background: rgba(14, 14, 20, 0.45) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+body.glass-windowed .app-card {
+  background: rgba(14, 14, 20, 0.50) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 22px;
+}
+body.glass-windowed .app-card:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+body.glass-windowed .help-grid > div,
+body.glass-windowed .stat-card {
+  background: rgba(14, 14, 20, 0.50) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+body.glass-windowed .table-wrap,
+body.glass-windowed .modal {
+  background: rgba(14, 14, 20, 0.78) !important;
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+body.glass-windowed .pro-note {
+  border-color: rgba(255, 255, 255, 0.20);
+  background: rgba(14, 14, 20, 0.4);
+  backdrop-filter: blur(18px);
 }

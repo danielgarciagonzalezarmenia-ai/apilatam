@@ -1,14 +1,13 @@
 /* ============================================================================
-   AppForge - Glass shell compartido
+   AppForge - Glass shell compartido (v2)
    Inyecta el sidebar de vidrio (si no existe) y gestiona ventanas flotantes.
    Configuracion por pagina (antes de incluir este script):
      window.GLASS_MENU = [
-       { i:"fa-house", label:"Inicio", win:"home" },          // abre ventana .gwin[data-win=home]
-       { i:"fa-rocket", label:"Como funciona", win:"como" },
-       { i:"fa-dollar-sign", label:"Planes", win:"planes", rail:true },
-       { i:"fa-user", label:"Mis apps", href:"dashboard.html" }
+       { i:"fa-house", label:"Inicio", href:"index.html", rail:true },  // navega
+       { i:"fa-dollar-sign", label:"Planes", win:"planes", rail:true }  // abre ventana
      ]
-   Los menus con `href` navegan; los con `win` abren/cierran ventanas flotantes.
+   Los items con `href` son <a> reales (navegan siempre, sin depender de JS);
+   los con `win` son <button> que abren/cierran la ventana .gwin[data-win].
    ============================================================================ */
 (function () {
   "use strict";
@@ -23,11 +22,9 @@
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
       .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
-
   var el = function (id) { return document.getElementById(id); };
 
   function setBody() {
-    // el editor conserva su layout nativo (solo shell + fondo)
     if (document.body.classList.contains("editor")) {
       if (!document.body.classList.contains("has-glass")) document.body.classList.add("has-glass");
       return;
@@ -36,18 +33,15 @@
     if (!document.body.classList.contains("glass-windowed")) document.body.classList.add("glass-windowed");
   }
 
-  /* ---------------- Sidebar ---------------- */
   function railItems() {
     var out = [];
-    for (var i = 0; i < MENU.length; i++) {
-      if (MENU[i].rail && out.length < 4) out.push(MENU[i]);
-    }
+    for (var i = 0; i < MENU.length; i++) if (MENU[i].rail && out.length < 4) out.push(MENU[i]);
     return out;
   }
 
   function buildShell() {
-    if (el("glassWrap")) return;
-
+    var wrap = el("glassWrap");
+    if (wrap) { setBody(); return; }
     setBody();
 
     var html = '<div class="glass-wrap" id="glassWrap">';
@@ -55,20 +49,10 @@
     html += '<div class="window-btns"><span class="gw-green"></span><span class="gw-red"></span><span class="gw-yellow"></span></div>';
     html += '<div class="logo glass-logo"><button id="toggle" aria-label="Menu"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div>';
     html += '<div class="line glass-line"></div>';
-
-    var rail = railItems();
-    if (rail.length) {
-      html += '<ul class="mini-menu">';
-      for (var r = 0; r < rail.length; r++) {
-        html += '<li data-action="' + esc(rail[r].href || ("win:" + rail[r].win)) + '" title="' + esc(rail[r].label) + '"><i class="fa-solid ' + esc(rail[r].i) + '"></i></li>';
-      }
-      html += '</ul><div class="line glass-line"></div>';
-    }
-
-    html += '<ul class="mini-menu"><li data-action="win:profile" title="Cuenta"><i class="fa-solid fa-user"></i></li></ul>';
-    html += '<div class="profile glass-profile"><a href="login.html"><img id="miniAvatar" alt=""></a></div>';
+    html += '<ul class="mini-menu" id="mini-rail"></ul>';
+    html += '<div class="line glass-line"></div>';
+    html += '<div class="profile glass-profile"><a href="dashboard.html" id="railAcct" title="Mi cuenta"><img id="miniAvatar" alt=""></a></div>';
     html += '</aside>';
-
     html += '<section class="panel glass-panel">';
     html += '<div class="window-btns big"><span class="gw-green"></span><span class="gw-red"></span><span class="gw-yellow"></span></div>';
     html += '<h1>AppForge</h1>';
@@ -77,12 +61,12 @@
     html += '<ul class="menu glass-menu" id="gm-main"></ul>';
     html += '<div class="divider glass-divider"></div>';
     html += '<ul class="menu glass-menu secondary">';
-    html += '<li id="li-login" data-action="href:login.html"><div><i class="fa-solid fa-right-to-bracket"></i><span>Iniciar sesion</span></div></li>';
-    html += '<li id="li-apps" class="hidden" data-action="href:dashboard.html"><div><i class="fa-solid fa-user"></i><span>Mis apps</span></div></li>';
-    html += '<li id="li-logout" class="hidden"><div><i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesion</span></div></li>';
+    html += '<li id="li-login"><a class="gnav" href="login.html"><div class="gi"><i class="fa-solid fa-right-to-bracket"></i><span class="txt">Iniciar sesion</span></div></a></li>';
+    html += '<li id="li-apps" class="hidden"><a class="gnav" href="dashboard.html"><div class="gi"><i class="fa-solid fa-user"></i><span class="txt">Mis apps</span></div></a></li>';
+    html += '<li id="li-logout" class="hidden"><button class="gnav" type="button" data-glogout="1"><div class="gi"><i class="fa-solid fa-right-from-bracket"></i><span class="txt">Cerrar sesion</span></div></button></li>';
     html += '</ul>';
     html += '<div class="divider glass-divider bottom"></div>';
-    html += '<a class="account glass-account" href="login.html" id="accountLink">';
+    html += '<a class="account glass-account" href="dashboard.html" id="accountLink">';
     html += '<img id="accountAvatar" src="" alt="">';
     html += '<div><h3 id="accountName">Invitado</h3><small id="accountEmail">Conectate con tu cuenta</small></div>';
     html += '<i class="fa-solid fa-angle-right"></i>';
@@ -90,101 +74,136 @@
     html += '</section>';
     html += '</div>';
 
-    var wrap = document.createElement("div");
-    wrap.innerHTML = html;
-    var first = document.body.firstChild;
-    while (wrap.firstChild) {
-      var node = wrap.firstChild;
-      wrap.removeChild(node);
-      document.body.insertBefore(node, first);
-    }
+    var t = document.createElement("template");
+    t.innerHTML = html;
+    // insertar al inicio del body
+    while (t.content.firstChild) document.body.insertBefore(t.content.firstChild, document.body.firstChild);
 
+    fillRail();
     fillMenu();
-    wireToggle();
-    wireActions();
+    wire();
+  }
+
+  function fillRail() {
+    var ul = el("mini-rail");
+    if (!ul) return;
+    var rail = railItems();
+    ul.innerHTML = "";
+    rail.forEach(function (it) {
+      var li = document.createElement("li");
+      if (it.href) {
+        var a = document.createElement("a");
+        a.className = "gnav rail";
+        a.href = it.href;
+        a.title = it.label;
+        a.setAttribute("aria-label", it.label);
+        a.innerHTML = '<i class="fa-solid ' + esc(it.i) + '"></i>';
+        li.appendChild(a);
+      } else if (it.win) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "gnav rail";
+        b.title = it.label;
+        b.setAttribute("data-win", it.win);
+        b.innerHTML = '<i class="fa-solid ' + esc(it.i) + '"></i>';
+        li.appendChild(b);
+      }
+      ul.appendChild(li);
+    });
   }
 
   function fillMenu() {
     var ul = el("gm-main");
     if (!ul) return;
-    for (var i = 0; i < MENU.length; i++) {
-      var it = MENU[i];
-      var a = it.win ? ("win:" + it.win) : ("href:" + it.href);
-      var dot = it.dot ? '<span class="dot"></span>' : "";
-      ul.insertAdjacentHTML("beforeend",
-        '<li data-action="' + esc(a) + '"><div><i class="fa-solid ' + esc(it.i) + '"></i><span>' + esc(it.label) + '</span></div>' + dot + '</li>');
-    }
-  }
-
-  function wireToggle() {
-    var t = el("toggle");
-    var w = el("glassWrap");
-    if (t && w) t.addEventListener("click", function () { w.classList.toggle("open"); });
-  }
-
-  function doAction(action) {
-    var w = el("glassWrap");
-    if (w) w.classList.remove("open");
-    if (!action) return;
-    if (action.indexOf("win:") === 0) { Glass.open(action.slice(4)); return; }
-    if (action.indexOf("href:") === 0) { window.location.assign(action.slice(5)); return; }
-  }
-
-  function wireActions() {
-    document.addEventListener("click", function (e) {
-      var t = e.target.closest ? e.target.closest("[data-action]") : null;
-      if (!t) return;
-      doAction(t.getAttribute("data-action"));
+    ul.innerHTML = "";
+    MENU.forEach(function (it, idx) {
+      var li = document.createElement("li");
+      if (idx === 0) li.classList.add("current");
+      var icon = '<i class="fa-solid ' + esc(it.i) + '"></i>';
+      if (it.href) {
+        var a = document.createElement("a");
+        a.className = "gnav";
+        a.href = it.href;
+        a.innerHTML = '<div class="gi">' + icon + '<span class="txt">' + esc(it.label) + '</span></div>';
+        li.appendChild(a);
+      } else if (it.win) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "gnav";
+        b.setAttribute("data-win", it.win);
+        b.innerHTML = '<div class="gi">' + icon + '<span class="txt">' + esc(it.label) + '</span></div>';
+        li.appendChild(b);
+      }
+      ul.appendChild(li);
     });
-    var lg = el("li-logout");
-    if (lg) lg.addEventListener("click", function () {
-      if (window.logoutUser) { window.logoutUser(); } else if (window.Glass && window.Glass._logout) { window.Glass._logout(); } else { Glass.setUser(null); }
+  }
+
+  function wire() {
+    var w = el("glassWrap");
+    var t = el("toggle");
+    if (t && w) t.addEventListener("click", function () { w.classList.toggle("open"); });
+
+    // cualquiera con [data-win] abre/cierra esa ventana y cierra el panel
+    document.addEventListener("click", function (e) {
+      var target = e.target && e.target.closest ? e.target.closest("[data-win]") : null;
+      if (!target) return;
+      e.preventDefault();
+      if (w) w.classList.remove("open");
+      Glass.open(target.getAttribute("data-win"));
+    });
+
+    // cerrar sesion
+    document.addEventListener("click", function (e) {
+      var lg = e.target && e.target.closest ? e.target.closest("[data-glogout]") : null;
+      if (!lg) return;
+      e.preventDefault();
+      Glass._logout ? Glass._logout() : Glass.setUser(null);
+    });
+
+    // cerrar la ventana con su boton / al pulsar Escape
+    document.addEventListener("click", function (e) {
+      var c = e.target.closest ? e.target.closest(".gwin-close") : null;
+      if (c) { var win = c.closest(".gwin"); if (win) win.classList.remove("open"); }
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") document.querySelectorAll(".gwin.open").forEach(function (x) { x.classList.remove("open"); });
     });
   }
 
   /* ---------------- Window manager ---------------- */
   function openWin(id) {
-    var any = false;
+    var found = false;
     document.querySelectorAll(".gwin").forEach(function (win) {
-      if (win.getAttribute("data-win") === id) { win.classList.add("open"); any = true; }
+      if (win.getAttribute("data-win") === id) { win.classList.add("open"); found = true; }
       else win.classList.remove("open");
     });
-    // si no existe la ventana, podria navegar a una pagina
-    return any;
+    // si la pagina no tiene esa ventana pero si la pagina destino,... nada
+    return found;
   }
   function closeWin(id) {
     var win = document.querySelector('.gwin[data-win="' + id + '"]');
     if (win) win.classList.remove("open");
   }
 
-  function initWindows() {
-    document.querySelectorAll(".gwin").forEach(function (win) {
-      var close = win.querySelector(".gwin-close");
-      if (close) close.addEventListener("click", function () { win.classList.remove("open"); });
-      if (win.getAttribute("data-auth") !== undefined) {
-        // marca para actualizar segun sesion (vacio por ahora)
-      }
-    });
-    // abrir la ventana primaria marcada con data-win-open
-    document.querySelectorAll(".gwin[data-win-open]").forEach(function (win, idx, list) {
-      if (idx > 0) return; // solo la primera
-      win.classList.add("open");
-    });
-  }
-
   /* ---------------- Auth ---------------- */
   var user = null;
   function setUser(u) {
     user = u;
-    var nameEl = el("accountName"), emailEl = el("accountEmail"),
-      avEl = el("accountAvatar"), minAv = el("miniAvatar"),
-      logL = el("li-login"), appsL = el("li-apps"), outL = el("li-logout"),
-      acc = el("accountLink");
     var log = !!u;
+    var logL = el("li-login"), appsL = el("li-apps"), outL = el("li-logout"),
+      acc = el("accountLink"), railAcct = el("railAcct"),
+      nameEl = el("accountName"), emailEl = el("accountEmail"),
+      avEl = el("accountAvatar"), minAv = el("miniAvatar");
+    var dash = "dashboard.html", login = "login.html";
     if (logL) logL.classList.toggle("hidden", log);
     if (appsL) appsL.classList.toggle("hidden", !log);
     if (outL) outL.classList.toggle("hidden", !log);
-    if (acc) acc.setAttribute("href", log ? "dashboard.html" : "login.html");
+    var accHref = log ? dash : login;
+    if (acc) acc.setAttribute("href", accHref);
+    if (railAcct) railAcct.setAttribute("href", accHref);
+    if (logL || appsL) {
+      var ll = logL && logL.querySelector("a");
+    }
     if (u) {
       if (nameEl) nameEl.textContent = u.name || "Mi cuenta";
       if (emailEl) emailEl.textContent = u.email || "";
@@ -196,28 +215,24 @@
       if (avEl) avEl.setAttribute("src", "");
       if (minAv) minAv.setAttribute("src", "");
     }
-    // evento para que cada pagina reaccione
     document.dispatchEvent(new CustomEvent("glass:user", { detail: u }));
   }
 
-  var Glass = {
-    open: openWin,
-    close: closeWin,
-    setUser: setUser,
-    getUser: function () { return user; },
-    _logout: null
-  };
+  var Glass = { open: openWin, close: closeWin, setUser: setUser, getUser: function () { return user; }, _logout: null };
   window.Glass = Glass;
+
+  function initWindows() {
+    var first = null;
+    document.querySelectorAll(".gwin[data-win-open]").forEach(function (x) {
+      if (!first) { x.classList.add("open"); first = true; }
+    });
+  }
 
   function start() {
     buildShell();
     initWindows();
-    // si la pagina ya puso un usuario global
     if (window.GLASS_INIT_USER) setUser(window.GLASS_INIT_USER);
   }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start);
-  } else {
-    start();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+  else start();
 })();
